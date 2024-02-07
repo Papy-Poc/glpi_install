@@ -19,7 +19,7 @@ L'installation de GLPI se fait sans SSL. Si vous avez besoin d'ouvrir l'acc√®s √
 |--|--|--|
 glpi|glpi|compte administrateur
 tech|tech|compte technique
-normal|normal|compte "normal
+normal|normal|compte normal
 post-only|postonly|compte post-only
 
 ### Lire la documentation
