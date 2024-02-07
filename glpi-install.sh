@@ -100,21 +100,22 @@ warn "Ce script va maintenant installer les paquets nécessaires à l'installati
 info "Êtes-vous sûr de vouloir continuer ? [yes/no]"
 read confirm
 if [ $confirm == "yes" ]; then
-        info "Continuing..."
+        info "Continer..."
 elif [ $confirm == "no" ]; then
-        info "Exiting..."
+        info "Sortir..."
         exit 1
 else
-        warn "Réponse non valide. Quitter..."
+        warn "Réponse non valide. Sortir..."
         exit 1
 fi
 }
 
 function install_packages()
 {
-info "Installing packages..."
+info "Installation des paquets..."
 sleep 1
 apt update
+apt upgrade --yes
 apt install --yes --no-install-recommends apache2 mariadb-server perl curl jq php
 info "Installing php extensions..."
 apt install --yes --no-install-recommends php-ldap php-imap php-apcu php-xmlrpc php-cas php-mysqli php-mbstring php-curl php-gd php-simplexml php-xml php-intl php-zip php-bz2
@@ -129,16 +130,11 @@ sleep 1
 SLQROOTPWD=$(openssl rand -base64 48 | cut -c1-12 )
 SQLGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
 systemctl start mariadb
+(echo ""; echo "y"; echo "y"; echo "$SLQROOTPWD"; echo "$SLQROOTPWD"; echo "y"; echo "y"; echo "y"; echo "y") | mysql_secure_installation
 sleep 1
 
-# Set the root password
-mysql -e "UPDATE mysql.user SET Password = PASSWORD('$SLQROOTPWD') WHERE User = 'root'"
-# Remove anonymous user accounts
-mysql -e "DELETE FROM mysql.user WHERE User = ''"
-# Disable remote root login
-mysql -e "DELETE FROM mysql.user WHERE User = 'root' AND Host NOT IN ('localhost', '127.0.0.1', '::1')"
 # Remove the test database
-mysql -e "DROP DATABASE test"
+mysql -e "DROP DATABASE IF EXISTS test"
 # Reload privileges
 mysql -e "FLUSH PRIVILEGES"
 # Create a new database
@@ -214,7 +210,7 @@ function setup_db()
 {
 info "Setting up GLPI..."
 cd /var/www/html/glpi
-php bin/console db:install --db-name=glpi --db-user=glpi_user --db-password=$SQLGLPIPWD --no-interaction
+php bin/console db:install --db-name=glpi --db-user=glpi_user --db-password=$SQLGLPIPWD --default-language="fr_FR" --no-interaction
 rm -rf /var/www/html/glpi/install
 }
 
