@@ -115,29 +115,9 @@ function install_packages()
 info "Installing packages..."
 sleep 1
 apt update
-apt install --yes --no-install-recommends \
-apache2 \
-mariadb-server \
-perl \
-curl \
-jq \
-php
+apt install --yes --no-install-recommends apache2 mariadb-server perl curl jq php
 info "Installing php extensions..."
-apt install --yes --no-install-recommends \
-php-ldap \
-php-imap \
-php-apcu \
-php-xmlrpc \
-php-cas \
-php-mysqli \
-php-mbstring \
-php-curl \
-php-gd \
-php-simplexml \
-php-xml \
-php-intl \
-php-zip \
-php-bz2
+apt install --yes --no-install-recommends php-ldap php-imap php-apcu php-xmlrpc php-cas php-mysqli php-mbstring php-curl php-gd php-simplexml php-xml php-intl php-zip php-bz2
 systemctl enable mariadb
 systemctl enable apache2
 }
@@ -189,7 +169,7 @@ tar xzf /tmp/glpi-latest.tgz -C /var/www/html/
 
 # Add permissions
 chown -R www-data:www-data /var/www/html/glpi
-chmod -R 775 /var/www/html/glpi
+chmod 775 /var/www/html/glpi
 
 # Setup vhost
 cat > /etc/apache2/sites-available/000-default.conf << EOF
