@@ -43,11 +43,11 @@ VERSION=$(lsb_release -rs)
 if [ "$DISTRO" == "Debian" ]; then
         # Vérifie si la version de Debian est acceptable
         if [[ " ${DEBIAN_VERSIONS[*]} " == *" $VERSION "* ]]; then
-                info "Your operating system version ($DISTRO $VERSION) is compatible."
+                info "La version de votre système d'exploitation ($DISTRO $VERSION) est compatible."
         else
-                warn "Your operating system version ($DISTRO $VERSION) is not noted as compatible."
-                warn "Do you still want to force the installation? Be careful, if you choose to force the script, it is at your own risk."
-                info "Are you sure you want to continue? [yes/no]"
+                warn "La version de votre système d'exploitation ($DISTRO $VERSION) n'est pas considérée comme compatible."
+                warn "Voulez-vous toujours forcer l'installation ? Attention, si vous choisissez de forcer le script, c'est à vos risques et périls."
+                info "Êtes-vous sûr de vouloir continuer ? [yes/no]"
                 read response
                 if [ $response == "yes" ]; then
                 info "Continuing..."
@@ -55,7 +55,7 @@ if [ "$DISTRO" == "Debian" ]; then
                 info "Exiting..."
                 exit 1
                 else
-                warn "Invalid response. Exiting..."
+                warn "Réponse non valide. Quitter..."
                 exit 1
                 fi
         fi
@@ -64,11 +64,11 @@ if [ "$DISTRO" == "Debian" ]; then
 elif [ "$DISTRO" == "Ubuntu" ]; then
         # Vérifie si la version d'Ubuntu est acceptable
         if [[ " ${UBUNTU_VERSIONS[*]} " == *" $VERSION "* ]]; then
-                info "Your operating system version ($DISTRO $VERSION) is compatible."
+                info "La version de votre système d'exploitation ($DISTRO $VERSION) est compatible."
         else
                 warn "Your operating system version ($DISTRO $VERSION) is not noted as compatible."
-                warn "Do you still want to force the installation? Be careful, if you choose to force the script, it is at your own risk."
-                info "Are you sure you want to continue? [yes/no]"
+                warn "Voulez-vous toujours forcer l'installation ? Attention, si vous choisissez de forcer le script, c'est à vos risques et périls."
+                info "Êtes-vous sûr de vouloir continuer ? [yes/no]"
                 read response
                 if [ $response == "yes" ]; then
                 info "Continuing..."
@@ -76,7 +76,7 @@ elif [ "$DISTRO" == "Ubuntu" ]; then
                 info "Exiting..."
                 exit 1
                 else
-                warn "Invalid response. Exiting..."
+                warn "Réponse non valide. Quitter..."
                 exit 1
                 fi
         fi
@@ -96,8 +96,8 @@ HOST=$(hostname)
 
 function confirm_installation()
 {
-warn "This script will now install the necessary packages for installing and configuring GLPI."
-info "Are you sure you want to continue? [yes/no]"
+warn "Ce script va maintenant installer les paquets nécessaires à l'installation et à la configuration de GLPI."
+info "Êtes-vous sûr de vouloir continuer ? [yes/no]"
 read confirm
 if [ $confirm == "yes" ]; then
         info "Continuing..."
@@ -105,7 +105,7 @@ elif [ $confirm == "no" ]; then
         info "Exiting..."
         exit 1
 else
-        warn "Invalid response. Exiting..."
+        warn "Réponse non valide. Quitter..."
         exit 1
 fi
 }
@@ -181,7 +181,7 @@ mysql -e "GRANT SELECT ON mysql.time_zone_name TO 'glpi_user'@'localhost'"
 
 function install_glpi()
 {
-info "Downloading and installing the latest version of GLPI..."
+info "Téléchargement et installation de la dernière version de GLPI..."
 # Get download link for the latest release
 DOWNLOADLINK=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.assets[0].browser_download_url')
 wget -O /tmp/glpi-latest.tgz $DOWNLOADLINK
@@ -241,16 +241,16 @@ rm -rf /var/www/html/glpi/install
 function display_credentials()
 {
 info "=======> GLPI installation details  <======="
-warn "It is important to record this informations. If you lose them, they will be unrecoverable."
-info "==> GLPI:"
-info "Default user accounts are:"
+avertir "Il est important d'enregistrer ces informations. Si vous les perdez, elles seront irrécupérables."
+info "==> GLPI :"
+info "Les comptes utilisateurs par défaut sont :"
 info "USER       -  PASSWORD       -  ACCESS"
-info "glpi       -  glpi           -  admin account,"
-info "tech       -  tech           -  technical account,"
-info "normal     -  normal         -  normal account,"
-info "post-only  -  postonly       -  post-only account."
+info "glpi       -  glpi           -  compte admin,"
+info "tech       -  tech           -  compte technicien,"
+info "normal     -  normal         -  compte normal,"
+info "post-only  -  postonly       -  compte post-simple."
 echo ""
-info "You can connect access GLPI web page from IP or hostname:"
+info "Vous pouvez accéder à la page web de GLPI à partir d'une adresse IP ou d'un nom d'hôte :"
 info "http://$IPADRESS or http://$HOST" 
 echo ""
 info "==> Database:"
@@ -259,9 +259,8 @@ info "glpi_user password:      $SQLGLPIPWD"
 info "GLPI database name:          glpi"
 info "<==========================================>"
 echo ""
-info "If you encounter any issue with this script, please report it on GitHub: https://github.com/PapyPoc/glpi_install/issues"
+info "Si vous rencontrez un problème avec ce script, veuillez le signaler sur GitHub : https://github.com/PapyPoc/glpi_install/issues"
 }
-
 
 check_root
 check_distro
