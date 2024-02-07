@@ -18,7 +18,7 @@ function check_root()
 # Vérification des privilèges root
 if [[ "$(id -u)" -ne 0 ]]
 then
-        warn "This script must be run as root" >&2
+        warn "Ce script doit être exécuté en tant que root" >&2
   exit 1
 else
         info "Root privilege: OK"
