@@ -115,10 +115,10 @@ function install_packages()
 info "Installation des paquets..."
 sleep 1
 apt update
-apt upgrade --yes
-apt install --yes --no-install-recommends apache2 mariadb-server perl curl jq php
+apt upgrade -y
+apt install -y --no-install-recommends apache2 mariadb-server perl curl jq php
 info "Installing php extensions..."
-apt install --yes --no-install-recommends php-ldap php-imap php-apcu php-xmlrpc php-cas php-mysqli php-mbstring php-curl php-gd php-simplexml php-xml php-intl php-zip php-bz2
+apt install -y --no-install-recommends php-ldap php-imap php-apcu php-xmlrpc php-cas php-mysqli php-mbstring php-curl php-gd php-simplexml php-xml php-intl php-zip php-bz2
 systemctl enable mariadb
 systemctl enable apache2
 }
