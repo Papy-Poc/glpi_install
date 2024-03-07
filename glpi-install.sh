@@ -169,6 +169,7 @@ chown -R www-data:www-data /var/www/html/glpi
 chmod 755 /var/www/html/glpi
 
 # Setup vhost
+mv /etc/apache2/sites-enabled/000-default.conf /etc/apache2/sites-enabled/000-default.conf.old
 cat > /etc/apache2/sites-available/000-default.conf << EOF
 <VirtualHost *:80>
  # Dossier Web Public
@@ -197,8 +198,8 @@ cat > /etc/apache2/sites-available/000-default.conf << EOF
 EOF
 
 #Disable Apache Web Server Signature
-echo "ServerSignature Off" >> /etc/apache2/apache2.conf
-echo "ServerTokens Prod" >> /etc/apache2/apache2.conf
+#echo "ServerSignature Off" >> /etc/apache2/apache2.conf
+#echo "ServerTokens Prod" >> /etc/apache2/apache2.conf
 
 # Setup Cron task
 echo "*/2 * * * * www-data /usr/bin/php /var/www/html/glpi/front/cron.php &>/dev/null" >> /etc/cron.d/glpi
