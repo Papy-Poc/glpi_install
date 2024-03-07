@@ -1,4 +1,5 @@
 [![Release](https://img.shields.io/github/release/NeoFragCMS/neofrag-cms.svg)](https://github.com/NeoFragCMS/neofrag-cms/tags)
+import type { SimpleIcon } from 'simple-icons';
 # GLPI_install_script
 
  <img alt="GLPI IMG" src="https://glpi-project.org/wp-content/uploads/2022/01/hero-img-2-1280x865.png">
