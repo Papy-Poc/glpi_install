@@ -1,4 +1,4 @@
-[![Release](https://img.shields.io/github/release/NeoFragCMS/neofrag-cms.svg)](https://github.com/PapyPoc/glpi_install/tags)
+[![Release](https://img.shields.io/github/release/)](https://github.com/PapyPoc/glpi_install/tags)
 # GLPI_install_script
 
  <img alt="GLPI IMG" src="https://glpi-project.org/wp-content/uploads/2022/01/hero-img-2-1280x865.png">
@@ -39,7 +39,7 @@ Ce script a été testé sur les distributions suivantes :
 |Debian|10|⚠️ Jamais testé, si vous choisissez de forcer le script, c'est à vos risques et périls. |
 |Debian|11|✅|
 |Debian|12|✅|
-|Ubuntu|22.04|⚠️|
+|Ubuntu|22.04|⚠️ Tester, ne marche pas|
 |Ubuntu|23.10|✅|
 
 
