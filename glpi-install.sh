@@ -43,7 +43,7 @@ VERSION=$(lsb_release -rs 2>/dev/null)
 # Vérifie si c'est une distribution Debian
 if [ "$DISTRO" == "Debian" ]; then
         # Vérifie si la version de Debian est acceptable
-        if [[ " ${DEBIAN_VERSIONS[*]} " == *" $VERSION "* ]]; then
+        if [ " ${DEBIAN_VERSIONS[*]} " == *" $VERSION "* ] || [ " ${UBUNTU_VERSIONS[*]} " == *" $VERSION "* ]; then
                 info "La version de votre système d'exploitation ($DISTRO $VERSION) est compatible."
         else
                 warn "La version de votre système d'exploitation ($DISTRO $VERSION) n'est pas considérée comme compatible."
