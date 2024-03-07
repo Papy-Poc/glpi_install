@@ -117,9 +117,9 @@ info "Installation des paquets..."
 sleep 1
 apt update
 apt upgrade -y
-apt install -y --no-install-recommends apache2 mariadb-server perl curl jq php
+apt install -y --no-install-recommends apache2 mariadb-server perl curl jq php 0>/dev/null
 info "Installing php extensions..."
-apt install -y --no-install-recommends php-ldap php-imap php-apcu php-xmlrpc php-cas php-mysqli php-mbstring php-curl php-gd php-simplexml php-xml php-intl php-zip php-bz2
+apt install -y --no-install-recommends php-ldap php-imap php-apcu php-xmlrpc php-cas php-mysqli php-mbstring php-curl php-gd php-simplexml php-xml php-intl php-zip php-bz2 0>/dev/null
 systemctl enable mariadb
 systemctl enable apache2
 }
@@ -197,9 +197,12 @@ cat > /etc/apache2/sites-available/000-default.conf << EOF
 </VirtualHost>
 EOF
 
+a2dissite 000-default.conf
+a2ensite 000-default.conf
+
 #Disable Apache Web Server Signature
-#echo "ServerSignature Off" >> /etc/apache2/apache2.conf
-#echo "ServerTokens Prod" >> /etc/apache2/apache2.conf
+echo "ServerSignature Off" >> /etc/apache2/apache2.conf
+echo "ServerTokens Prod" >> /etc/apache2/apache2.conf
 
 # Setup Cron task
 echo "*/2 * * * * www-data /usr/bin/php /var/www/html/glpi/front/cron.php &>/dev/null" >> /etc/cron.d/glpi
