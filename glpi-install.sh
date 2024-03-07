@@ -24,22 +24,22 @@ else
         info "Root privilege: OK"
 fi
 }
-apt update && apt upgrade -y
-apt install lsb-release lsb -y
+info "Recherche des mise à jour"
+apt update 
+info "Application des mise à jour"
+apt upgrade -y
+info "Installation du paquet des release"
+apt install -y lsb-release
 function check_distro()
 {
 # Constante pour les versions de Debian acceptables
 DEBIAN_VERSIONS=("11" "12")
-
 # Constante pour les versions d'Ubuntu acceptables
 UBUNTU_VERSIONS=("22.04")
-
 # Récupération du nom de la distribution
 DISTRO=$(lsb_release -is 2>/dev/null)
-
 # Récupération de la version de la distribution
 VERSION=$(lsb_release -rs 2>/dev/null)
-
 # Vérifie si c'est une distribution Debian
 if [ "$DISTRO" == "Debian" ]; then
         # Vérifie si la version de Debian est acceptable
@@ -175,9 +175,6 @@ cat > /etc/apache2/sites-available/glpi.conf << EOF
    DirectoryIndex index.php index.html
  </IfModule>
 
- # Alias
- Alias "/glpi" "/var/www/html/glpi/public"
-
  # Log
  ErrorLog /var/www/html/glpi/log/error.log
  CustomLog /var/www/html/glpi/log/access.log combined
@@ -241,6 +238,7 @@ info "<==========================================>"
 echo ""
 info "Si vous rencontrez un problème avec ce script, veuillez le signaler sur GitHub : https://github.com/PapyPoc/glpi_install/issues"
 }
+
 clear
 check_root
 check_distro
