@@ -243,7 +243,7 @@ info "Installation du paquet des release"
 apt install -y lsb-release 2>/dev/null
 check_root
 check_distro
-confirm_installation
+# confirm_installation  # Pour une installation manuel enlever #
 network_info
 install_packages
 mariadb_configure
