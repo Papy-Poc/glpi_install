@@ -148,7 +148,7 @@ mysql -e "GRANT ALL PRIVILEGES ON glpi.* TO 'glpi_user'@'localhost'"
 mysql -e "FLUSH PRIVILEGES"
 
 # Initialize time zones datas
-mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root -p'$SLQROOTPWD' mysql
+mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root -p"$SLQROOTPWD" mysql
 #Ask tz
 dpkg-reconfigure tzdata
 systemctl restart mariadb
@@ -164,10 +164,6 @@ DOWNLOADLINK=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/l
 wget -O /tmp/glpi-latest.tgz $DOWNLOADLINK 2>/dev/null
 tar xzf /tmp/glpi-latest.tgz -C /var/www/html/
 mkdir /var/www/html/glpi/log
-
-# Add permissions
-chown -R www-data:www-data /var/www/html
-chmod 755 /var/www/html/glpi
 
 # Setup vhost
 cat > /etc/apache2/sites-available/glpi.conf << EOF
@@ -217,6 +213,10 @@ info "Setting up GLPI..."
 cd /var/www/html/glpi
 php bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password=$SQLGLPIPWD --default-language="fr_FR" --no-interaction --force
 rm -rf /var/www/html/glpi/install
+
+# Add permissions
+chown -R www-data:www-data /var/www/html
+chmod 755 /var/www/html/glpi
 }
 
 function display_credentials()
