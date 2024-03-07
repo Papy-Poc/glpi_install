@@ -24,8 +24,8 @@ else
         info "Root privilege: OK"
 fi
 }
-apt update && apt upgrade -y
-apt install lsb-release -y
+apt update && apt upgrade -y  1>/dev/null
+apt install lsb-release -y  1>/dev/null
 function check_distro()
 {
 # Constante pour les versions de Debian acceptables
@@ -121,6 +121,8 @@ apt install -y --no-install-recommends apache2 mariadb-server perl curl jq php 1
 info "Installing php extensions..."
 apt install -y --no-install-recommends php-ldap php-imap php-apcu php-xmlrpc php-cas php-mysqli php-mbstring php-curl php-gd php-simplexml php-xml php-intl php-zip php-bz2 1>/dev/null
 systemctl enable mariadb
+phpversion=$(php -v | grep -i '(cli)' | awk '{print $2}' | cut -c 1,2,3)
+sed -i 's/^;session.cookie_httponly =/session.cookie_httponly = On/g' /etc/php/$phpversion/cli/php.ini
 systemctl enable apache2
 }
 
@@ -161,16 +163,15 @@ function install_glpi()
 info "Téléchargement et installation de la dernière version de GLPI..."
 # Get download link for the latest release
 DOWNLOADLINK=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.assets[0].browser_download_url')
-wget -O /tmp/glpi-latest.tgz $DOWNLOADLINK
+wget -O /tmp/glpi-latest.tgz $DOWNLOADLINK 2>/dev/null
 tar xzf /tmp/glpi-latest.tgz -C /var/www/html/
-mkdir /var/www/html/glpi/log
+mkdir /var/www/html/log
 # Add permissions
 chown -R www-data:www-data /var/www/html/glpi
 chmod 755 /var/www/html/glpi
 
 # Setup vhost
-mv /etc/apache2/sites-enabled/000-default.conf /etc/apache2/sites-enabled/000-default.conf.old
-cat > /etc/apache2/sites-available/000-default.conf << EOF
+cat > /etc/apache2/sites-available/glpi.conf << EOF
 <VirtualHost *:80>
  # Dossier Web Public
  DocumentRoot /var/www/html/glpi/public
@@ -184,8 +185,8 @@ cat > /etc/apache2/sites-available/000-default.conf << EOF
  Alias "/glpi" "/var/www/html/glpi/public"
 
  # Log
- ErrorLog /var/www/html/glpi/log/error.log
- CustomLog /var/www/html/glpi/log/access.log combined
+ ErrorLog /var/www/html/log/error.log
+ CustomLog ${APACHE_DIRECTORY}/access.log combined
 
  # Repertoire
  <Directory /var/www/html/glpi/public>
@@ -198,7 +199,7 @@ cat > /etc/apache2/sites-available/000-default.conf << EOF
 EOF
 
 a2dissite 000-default.conf
-a2ensite 000-default.conf
+a2ensite glpi.conf
 
 #Disable Apache Web Server Signature
 echo "ServerSignature Off" >> /etc/apache2/apache2.conf
