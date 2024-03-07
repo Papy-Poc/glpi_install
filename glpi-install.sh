@@ -144,7 +144,7 @@ mysql -e "FLUSH PRIVILEGES"
 # Initialize time zones datas
 mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root -p"$SLQROOTPWD" mysql
 #Ask tz
-dpkg-reconfigure tzdata
+echo "Europe/Paris" | sudo dpkg-reconfigure -f noninteractive tzdata
 systemctl restart mariadb
 sleep 1
 mysql -e "GRANT SELECT ON mysql.time_zone_name TO 'glpi_user'@'localhost'"
