@@ -242,7 +242,7 @@ info "<==========================================>"
 echo ""
 info "Si vous rencontrez un problème avec ce script, veuillez le signaler sur GitHub : https://github.com/PapyPoc/glpi_install/issues"
 }
-
+clear
 check_root
 check_distro
 confirm_installation
