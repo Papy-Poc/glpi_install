@@ -163,9 +163,10 @@ info "Téléchargement et installation de la dernière version de GLPI..."
 DOWNLOADLINK=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.assets[0].browser_download_url')
 wget -O /tmp/glpi-latest.tgz $DOWNLOADLINK 2>/dev/null
 tar xzf /tmp/glpi-latest.tgz -C /var/www/html/
-mkdir /var/www/html/log
+mkdir /var/www/html/glpi/log
+
 # Add permissions
-chown -R www-data:www-data /var/www/html/glpi
+chown -R www-data:www-data /var/www/html
 chmod 755 /var/www/html/glpi
 
 # Setup vhost
@@ -183,8 +184,8 @@ cat > /etc/apache2/sites-available/glpi.conf << EOF
  Alias "/glpi" "/var/www/html/glpi/public"
 
  # Log
-# ErrorLog /var/www/html/log/error.log
-# CustomLog ${APACHE_DIRECTORY}/access.log combined
+ ErrorLog /var/www/html/glpi/log/error.log
+ CustomLog /var/www/html/glpi/log/access.log combined
 
  # Repertoire
  <Directory /var/www/html/glpi/public>
