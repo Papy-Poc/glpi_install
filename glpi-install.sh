@@ -24,7 +24,8 @@ else
         info "Root privilege: OK"
 fi
 }
-
+apt update && apt upgrade -y
+apt install lsb-release lsb -y
 function check_distro()
 {
 # Constante pour les versions de Debian acceptables
@@ -34,10 +35,10 @@ DEBIAN_VERSIONS=("11" "12")
 UBUNTU_VERSIONS=("22.04")
 
 # Récupération du nom de la distribution
-DISTRO=$(lsb_release -is)
+DISTRO=$(lsb_release -is 2>/dev/null)
 
 # Récupération de la version de la distribution
-VERSION=$(lsb_release -rs)
+VERSION=$(lsb_release -rs 2>/dev/null)
 
 # Vérifie si c'est une distribution Debian
 if [ "$DISTRO" == "Debian" ]; then
@@ -165,7 +166,7 @@ tar xzf /tmp/glpi-latest.tgz -C /var/www/html/
 
 # Add permissions
 chown -R www-data:www-data /var/www/html/glpi
-chmod 775 /var/www/html/glpi
+chmod 755 /var/www/html/glpi
 
 # Setup vhost
 cat > /etc/apache2/sites-available/000-default.conf << EOF
@@ -210,7 +211,7 @@ function setup_db()
 {
 info "Setting up GLPI..."
 cd /var/www/html/glpi
-php bin/console db:install --db-name=glpi --db-user=glpi_user --db-password=$SQLGLPIPWD --default-language="fr_FR" --no-interaction
+php bin/console db:install --db-name=glpi --db-user=glpi_user --db-password=$SQLGLPIPWD --default-language="fr_FR" --no-interaction --force
 rm -rf /var/www/html/glpi/install
 }
 
