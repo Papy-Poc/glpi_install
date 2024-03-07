@@ -111,7 +111,6 @@ else
         exit 1
 fi
 }
-
 function install_packages()
 {
 info "Installation des paquets..."
