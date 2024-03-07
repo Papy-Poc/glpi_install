@@ -24,9 +24,8 @@ else
         info "Root privilege: OK"
 fi
 }
-apt update 1>/dev/null | grep -vi "warning"
-apt upgrade -y  1>/dev/null | grep -vi "warning"
-apt install -y lsb-release 1>/dev/null | grep -vi "warning"
+apt update && apt upgrade -y
+apt install lsb-release lsb -y
 function check_distro()
 {
 # Constante pour les versions de Debian acceptables
