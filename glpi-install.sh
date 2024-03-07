@@ -1,7 +1,6 @@
  #!/bin/bash
 #
 # GLPI install script
-#
 # Author: PapyPoc
 # Version: 1.0.0
 #
