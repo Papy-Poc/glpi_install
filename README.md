@@ -1,4 +1,4 @@
-[![Release](https://img.shields.io/github/release/NeoFragCMS/neofrag-cms.svg)](https://github.com/NeoFragCMS/neofrag-cms/tags)
+[![Release](https://img.shields.io/github/release/NeoFragCMS/neofrag-cms.svg)](https://github.com/PapyPoc/glpi_install/tags)
 # GLPI_install_script
 
  <img alt="GLPI IMG" src="https://glpi-project.org/wp-content/uploads/2022/01/hero-img-2-1280x865.png">
