@@ -1,4 +1,4 @@
-#!/bin/bash
+ #!/bin/bash
 #
 # GLPI install script
 #
@@ -212,7 +212,7 @@ function setup_db()
 {
 info "Setting up GLPI..."
 cd /var/www/html/glpi
-php bin/console db:install --db-name=glpi --db-user=glpi_user --db-password=$SQLGLPIPWD --default-language="fr_FR" --no-interaction --force
+php bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password=$SQLGLPIPWD --default-language="fr_FR" --no-interaction --force
 rm -rf /var/www/html/glpi/install
 }
 
