@@ -39,7 +39,7 @@ Ce script a été testé sur les distributions suivantes :
 |Debian|10|⚠️ Jamais testé, si vous choisissez de forcer le script, c'est à vos risques et périls. |
 |Debian|11|✅|
 |Debian|12|✅|
-|Ubuntu|22.04|✅|
+|Ubuntu|22.04|⚠️|
 |Ubuntu|23.10|✅|
 
 
