@@ -41,12 +41,32 @@ DISTRO=$(lsb_release -is 2>/dev/null)
 # Récupération de la version de la distribution
 VERSION=$(lsb_release -rs 2>/dev/null)
 # Vérifie si c'est une distribution Debian
-if [ "$DISTRO" == "Debian" || "$DISTRO" == "Ubuntu" ]; then
+if [ "$DISTRO" == "Debian" ]; then
         # Vérifie si la version de Debian est acceptable
         if [[ " ${DEBIAN_VERSIONS[*]} " == *" $VERSION "* ]]; then
                 info "La version de votre système d'exploitation ($DISTRO $VERSION) est compatible."
         else
                 warn "La version de votre système d'exploitation ($DISTRO $VERSION) n'est pas considérée comme compatible."
+                warn "Voulez-vous toujours forcer l'installation ? Attention, si vous choisissez de forcer le script, c'est à vos risques et périls."
+                info "Êtes-vous sûr de vouloir continuer ? [yes/no]"
+                read response
+                if [ $response == "yes" ]; then
+                info "Continuing..."
+                elif [ $response == "no" ]; then
+                info "Exiting..."
+                exit 1
+                else
+                warn "Réponse non valide. Quitter..."
+                exit 1
+                fi
+        fi
+# Vérifie si c'est une distribution Ubuntu
+elif [ "$DISTRO" == "Ubuntu" ]; then
+        # Vérifie si la version d'Ubuntu est acceptable
+        if [[ " ${UBUNTU_VERSIONS[*]} " == *" $VERSION "* ]]; then
+                info "La version de votre système d'exploitation ($DISTRO $VERSION) est compatible."
+        else
+                warn "Your operating system version ($DISTRO $VERSION) is not noted as compatible."
                 warn "Voulez-vous toujours forcer l'installation ? Attention, si vous choisissez de forcer le script, c'est à vos risques et périls."
                 info "Êtes-vous sûr de vouloir continuer ? [yes/no]"
                 read response
