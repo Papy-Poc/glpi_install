@@ -184,8 +184,8 @@ cat > /etc/apache2/sites-available/000-default.conf << EOF
  Alias "/glpi" "/var/www/html/glpi/public"
 
  # Log
- ErrorLog ${APACHE_LOG_DIR}/error.log
- CustomLog ${APACHE_LOG_DIR}/access.log combined
+ ErrorLog /var/log/error.log
+ CustomLog /var/log/access.log combined
 
  # Repertoire
  <Directory /var/www/html/glpi/public>
