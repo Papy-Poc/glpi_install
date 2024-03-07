@@ -24,8 +24,9 @@ else
         info "Root privilege: OK"
 fi
 }
-apt update 1>/dev/null && apt upgrade -y  1>/dev/null
-apt install lsb-release -y  1>/dev/null
+apt update 1>/dev/null | grep -vi "warning"
+apt upgrade -y  1>/dev/null | grep -vi "warning"
+apt install -y lsb-release 1>/dev/null | grep -vi "warning"
 function check_distro()
 {
 # Constante pour les versions de Debian acceptables
@@ -120,7 +121,7 @@ info "Installing php extensions..."
 apt install -y --no-install-recommends php-ldap php-imap php-apcu php-xmlrpc php-cas php-mysqli php-mbstring php-curl php-gd php-simplexml php-xml php-intl php-zip php-bz2 1>/dev/null
 systemctl enable mariadb
 phpversion=$(php -v | grep -i '(cli)' | awk '{print $2}' | cut -c 1,2,3)
-sed -i 's/^;session.cookie_httponly =/session.cookie_httponly = On/g' /etc/php/$phpversion/cli/php.ini
+sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 = on/' /etc/php/$phpversion/cli/php.ini
 systemctl enable apache2
 }
 
