@@ -25,7 +25,7 @@ else
 fi
 }
 apt update && apt upgrade -y
-apt install lsb-release lsb -y
+apt install lsb-release -y
 function check_distro()
 {
 # Constante pour les versions de Debian acceptables
