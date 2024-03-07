@@ -39,7 +39,7 @@ VERSION=$(lsb_release -rs 2>/dev/null)
 if [ "$DISTRO" == "Debian" ]; then
         # Vérifie si la version de Debian est acceptable
         if [[ " ${DEBIAN_VERSIONS[*]} " == *" $VERSION "* ]]; then
-                info "La version de votre système d'exploitation ($DISTRO $VERSION) est compatible."
+                info "La version de votre systeme d'exploitation ($DISTRO $VERSION) est compatible."
         else
                 warn "La version de votre système d'exploitation ($DISTRO $VERSION) n'est pas considérée comme compatible."
                 warn "Voulez-vous toujours forcer l'installation ? Attention, si vous choisissez de forcer le script, c'est à vos risques et périls."
