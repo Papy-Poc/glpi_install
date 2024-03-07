@@ -27,9 +27,9 @@ fi
 info "Recherche des mise à jour"
 apt update 
 info "Application des mise à jour"
-apt upgrade -y
+apt upgrade -y 2>/dev/null
 info "Installation du paquet des release"
-apt install -y lsb-release
+apt install -y lsb-release 2>/dev/null
 function check_distro()
 {
 # Constante pour les versions de Debian acceptables
@@ -38,7 +38,6 @@ DEBIAN_VERSIONS=("11" "12")
 UBUNTU_VERSIONS=("22.04")
 # Récupération du nom de la distribution
 DISTRO=$(lsb_release -is 2>/dev/null)
-echo $DISTRO
 # Récupération de la version de la distribution
 VERSION=$(lsb_release -rs 2>/dev/null)
 # Vérifie si c'est une distribution Debian
@@ -61,6 +60,7 @@ if [ "$DISTRO" == "Debian" ]; then
                 exit 1
                 fi
         fi
+
 # Vérifie si c'est une distribution Ubuntu
 elif [ "$DISTRO" == "Ubuntu" ]; then
         # Vérifie si la version d'Ubuntu est acceptable
@@ -149,9 +149,7 @@ mysql -e "FLUSH PRIVILEGES"
 # Initialize time zones datas
 mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root -p"$SLQROOTPWD" mysql
 #Ask tz
-echo "tzdata tzdata/Areas select Europe" | debconf-set-selections
-echo "tzdata tzdata/Zones/Europe select Paris" | debconf-set-selections
-dpkg-reconfigure -f noninteractive tzdata
+dpkg-reconfigure tzdata
 systemctl restart mariadb
 sleep 1
 mysql -e "GRANT SELECT ON mysql.time_zone_name TO 'glpi_user'@'localhost'"
@@ -240,7 +238,6 @@ info "<==========================================>"
 echo ""
 info "Si vous rencontrez un problème avec ce script, veuillez le signaler sur GitHub : https://github.com/PapyPoc/glpi_install/issues"
 }
-
 clear
 check_root
 check_distro
