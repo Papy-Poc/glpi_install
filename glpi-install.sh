@@ -38,12 +38,13 @@ DEBIAN_VERSIONS=("11" "12")
 UBUNTU_VERSIONS=("22.04")
 # Récupération du nom de la distribution
 DISTRO=$(lsb_release -is 2>/dev/null)
+echo $DISTRO
 # Récupération de la version de la distribution
 VERSION=$(lsb_release -rs 2>/dev/null)
 # Vérifie si c'est une distribution Debian
-if ["$DISTRO"=="Debian"]; then
+if [ "$DISTRO" == "Debian" ]; then
         # Vérifie si la version de Debian est acceptable
-        if [[" ${DEBIAN_VERSIONS[*]} "==*" $VERSION "*]]; then
+        if [[ " ${DEBIAN_VERSIONS[*]} " == *" $VERSION "* ]]; then
                 info "La version de votre système d'exploitation ($DISTRO $VERSION) est compatible."
         else
                 warn "La version de votre système d'exploitation ($DISTRO $VERSION) n'est pas considérée comme compatible."
@@ -61,9 +62,9 @@ if ["$DISTRO"=="Debian"]; then
                 fi
         fi
 # Vérifie si c'est une distribution Ubuntu
-elif ["$DISTRO" == "Ubuntu"]; then
+elif [ "$DISTRO" == "Ubuntu" ]; then
         # Vérifie si la version d'Ubuntu est acceptable
-        if [[" ${UBUNTU_VERSIONS[*]} " == *" $VERSION "*]]; then
+        if [[ " ${UBUNTU_VERSIONS[*]} " == *" $VERSION "* ]]; then
                 info "La version de votre système d'exploitation ($DISTRO $VERSION) est compatible."
         else
                 warn "Your operating system version ($DISTRO $VERSION) is not noted as compatible."
