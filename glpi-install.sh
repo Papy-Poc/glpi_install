@@ -41,6 +41,8 @@ DISTRO=$(lsb_release -is 2>/dev/null)
 # Récupération de la version de la distribution
 VERSION=$(lsb_release -rs 2>/dev/null)
 # Vérifie si c'est une distribution Debian
+echo $DISTRO
+exit 1
 if [ "$DISTRO" == "Debian" ]; then
         # Vérifie si la version de Debian est acceptable
         if [[ " ${DEBIAN_VERSIONS[*]} " == *" $VERSION "* ]]; then
@@ -238,7 +240,7 @@ info "<==========================================>"
 echo ""
 info "Si vous rencontrez un problème avec ce script, veuillez le signaler sur GitHub : https://github.com/PapyPoc/glpi_install/issues"
 }
-clear
+
 check_root
 check_distro
 confirm_installation
