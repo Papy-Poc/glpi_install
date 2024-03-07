@@ -30,7 +30,7 @@ function check_distro()
 # Constante pour les versions de Debian acceptables
 DEBIAN_VERSIONS=("11" "12")
 # Constante pour les versions d'Ubuntu acceptables
-UBUNTU_VERSIONS=("22.04")
+UBUNTU_VERSIONS=("22.04" "23.10")
 # Récupération du nom de la distribution
 DISTRO=$(lsb_release -is 2>/dev/null)
 # Récupération de la version de la distribution
@@ -116,6 +116,7 @@ systemctl enable mariadb
 phpversion=$(php -v | grep -i '(cli)' | awk '{print $2}' | cut -c 1,2,3)
 sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 = on/' /etc/php/$phpversion/cli/php.ini
 systemctl enable apache2
+systemctl restart apache2
 }
 
 function mariadb_configure()
