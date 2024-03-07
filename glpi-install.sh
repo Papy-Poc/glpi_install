@@ -24,12 +24,7 @@ else
         info "Root privilege: OK"
 fi
 }
-info "Recherche des mise à jour"
-apt update 
-info "Application des mise à jour"
-apt upgrade -y 2>/dev/null
-info "Installation du paquet des release"
-apt install -y lsb-release 2>/dev/null
+
 function check_distro()
 {
 # Constante pour les versions de Debian acceptables
@@ -42,7 +37,7 @@ DISTRO=$(lsb_release -is 2>/dev/null)
 VERSION=$(lsb_release -rs 2>/dev/null)
 # Vérifie si c'est une distribution Debian
 echo $DISTRO
-exit 1
+exit
 if [ "$DISTRO" == "Debian" ]; then
         # Vérifie si la version de Debian est acceptable
         if [[ " ${DEBIAN_VERSIONS[*]} " == *" $VERSION "* ]]; then
@@ -241,6 +236,12 @@ echo ""
 info "Si vous rencontrez un problème avec ce script, veuillez le signaler sur GitHub : https://github.com/PapyPoc/glpi_install/issues"
 }
 
+info "Recherche des mise à jour"
+apt update 
+info "Application des mise à jour"
+apt upgrade -y 2>/dev/null
+info "Installation du paquet des release"
+apt install -y lsb-release 2>/dev/null
 check_root
 check_distro
 confirm_installation
