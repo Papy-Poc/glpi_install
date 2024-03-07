@@ -24,7 +24,7 @@ else
         info "Root privilege: OK"
 fi
 }
-apt update && apt upgrade -y  1>/dev/null
+apt update 1>/dev/null && apt upgrade -y  1>/dev/null
 apt install lsb-release -y  1>/dev/null
 function check_distro()
 {
@@ -115,8 +115,6 @@ function install_packages()
 {
 info "Installation des paquets..."
 sleep 1
-apt update
-apt upgrade -y
 apt install -y --no-install-recommends apache2 mariadb-server perl curl jq php 1>/dev/null
 info "Installing php extensions..."
 apt install -y --no-install-recommends php-ldap php-imap php-apcu php-xmlrpc php-cas php-mysqli php-mbstring php-curl php-gd php-simplexml php-xml php-intl php-zip php-bz2 1>/dev/null
@@ -185,8 +183,8 @@ cat > /etc/apache2/sites-available/glpi.conf << EOF
  Alias "/glpi" "/var/www/html/glpi/public"
 
  # Log
- ErrorLog /var/www/html/log/error.log
- CustomLog ${APACHE_DIRECTORY}/access.log combined
+# ErrorLog /var/www/html/log/error.log
+# CustomLog ${APACHE_DIRECTORY}/access.log combined
 
  # Repertoire
  <Directory /var/www/html/glpi/public>
