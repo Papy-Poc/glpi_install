@@ -40,7 +40,7 @@ Ce script a été testé sur les distributions suivantes :
 |Debian|11|✅|
 |Debian|12|✅|
 |Ubuntu|22.04|✅|
-|Ubuntu|22.10|⚠️ Jamais essayé, si vous choisissez de forcer le script, c'est à vos risques et périls.
+|Ubuntu|23.10|✅|
 
 
 ## Comment utiliser
