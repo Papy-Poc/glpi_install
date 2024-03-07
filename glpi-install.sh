@@ -30,7 +30,7 @@ function check_distro()
 # Constante pour les versions de Debian acceptables
 DEBIAN_VERSIONS=("11" "12")
 # Constante pour les versions d'Ubuntu acceptables
-UBUNTU_VERSIONS=("22.04" "23.10")
+UBUNTU_VERSIONS=("23.10")
 # Récupération du nom de la distribution
 DISTRO=$(lsb_release -is 2>/dev/null)
 # Récupération de la version de la distribution
