@@ -166,7 +166,7 @@ tar xzf /tmp/glpi-latest.tgz -C /var/www/html/
 
 # Add permissions
 chown -R www-data:www-data /var/www/html/glpi
-chmod 775 /var/www/html/glpi
+chmod 755 /var/www/html/glpi
 
 # Setup vhost
 cat > /etc/apache2/sites-available/000-default.conf << EOF
@@ -211,7 +211,7 @@ function setup_db()
 {
 info "Setting up GLPI..."
 cd /var/www/html/glpi
-php bin/console db:install --db-name=glpi --db-user=glpi_user --db-password=$SQLGLPIPWD --default-language="fr_FR" --no-interaction
+php bin/console db:install --db-name=glpi --db-user=glpi_user --db-password=$SQLGLPIPWD --default-language="fr_FR" --no-interaction --force
 rm -rf /var/www/html/glpi/install
 }
 
