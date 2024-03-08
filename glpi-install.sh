@@ -226,23 +226,14 @@ systemctl restart apache2 > /dev/null 2>&1
 
 function update_mdp_users()
 {
-GLPIPWDSAUVE=""
-listecompte=("glpi" "tech" "normal" "post-only")
 
-for value in "${listecompte[@]}"
-do
-    GLPIPWD=$(openssl rand -base64 48 | cut -c1-12)
-    # Sauvegarde des mot de passe
-    GLPIPWDSAUVE="$GLPIPWDSAUVE$GLPIPWD "
-    # Hachage pour GLPI
-    
-    # Définir la requête SQL de mise à jour
-    # SQL_QUERY="UPDATE glpi_users SET password = '$GLPIPWD' WHERE name = '$value';"
-    # Exécuter la requête SQL en utilisant la commande mysql
-    # mysql -u glpi_user -p"$SQLGLPIPWD" glpi -e "$SQL_QUERY"
-done
+sed -i "s/'glpi'      => 'glpi',/'glpi'      => 'test',/g" /var/www/html/glpi/src/User.php
+sed -i "s/'tech'      => 'tech',/'tech'      => 'test',/g" /var/www/html/glpi/src/User.php
+sed -i "s/'normal'    => 'normal',/'normal'    => 'test',/g" /var/www/html/glpi/src/User.php
+sed -i "s/'post-only' => 'postonly'/'post-only' => 'test'/g" /var/www/html/glpi/src/User.php
 
-echo "Les mots de passe générés pour les comptes sont : $GLPIPWDSAUVE"
+# echo "Les mots de passe générés pour les comptes sont : $GLPIPWDSAUVE"
+# echo "Les mots de passe générés pour les comptes sont : $HASHPWDSAUVE"
 }
 
 function display_credentials()
@@ -270,7 +261,7 @@ info "Si vous rencontrez un problème avec ce script, veuillez le signaler sur G
 }
 function write_credentials()
 {
-cat <<EOF > /home/sauve_mdp.txt
+cat <<EOF > $HOME/sauve_mdp.txt
 ==============================> GLPI installation details  <=====================================
 Il est important d'enregistrer ces informations. Si vous les perdez, elles seront irrécupérables.
 ==> GLPI :
@@ -292,7 +283,7 @@ Nom de la base de donné GLPI: glpi
 
 Si vous rencontrez un problème avec ce script, veuillez le signaler sur GitHub : https://github.com/PapyPoc/glpi_install/issues
 EOF
-chmod 700 /home/sauve_mdp.txt
+chmod 700 $HOME/sauve_mdp.txt
 echo ""
 warn "Fichier de sauvegarde des mots de passe enregistrer dans /home"
 echo ""
@@ -306,6 +297,7 @@ network_info
 install_packages
 mariadb_configure
 install_glpi
+update_mdp_users
 setup_db
 display_credentials
 write_credentials
