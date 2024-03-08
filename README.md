@@ -1,6 +1,5 @@
 # GLPI_install_script
 
- <img alt="GLPI IMG" src="[https://glpi-project.org/wp-content/uploads/2022/01/hero-img-2-1280x730.png]">
  ![Screenshot of a comment on a GitHub issue showing an image, added in the Markdown, of an Octocat smiling and raising a tentacle.](https://myoctocat.com/assets/images/base-octocat.svg)
  
 ## A propos de ce script
