@@ -224,18 +224,6 @@ sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 =on/' /etc/php/$phpversion/cl
 systemctl restart apache2 > /dev/null 2>&1
 }
 
-function update_mdp_users()
-{
-cp /var/www/html/glpi/src/User.php /var/www/html/glpi/src/User.php.bak 
-sed -i "s/'glpi'      => 'glpi',/'glpi'      => 'test',/g" /var/www/html/glpi/src/User.php
-sed -i "s/'tech'      => 'tech',/'tech'      => 'test',/g" /var/www/html/glpi/src/User.php
-sed -i "s/'normal'    => 'normal',/'normal'    => 'test',/g" /var/www/html/glpi/src/User.php
-sed -i "s/'post-only' => 'postonly'/'post-only' => 'test'/g" /var/www/html/glpi/src/User.php
-
-# echo "Les mots de passe générés pour les comptes sont : $GLPIPWDSAUVE"
-# echo "Les mots de passe générés pour les comptes sont : $HASHPWDSAUVE"
-}
-
 function display_credentials()
 {
 info "===========================> Détail de l'installation de GLPI <=================================="
@@ -297,7 +285,6 @@ network_info
 install_packages
 mariadb_configure
 install_glpi
-update_mdp_users
 setup_db
 display_credentials
 write_credentials
