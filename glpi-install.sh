@@ -250,7 +250,7 @@ function write_credentials()
 cat <<EOF > /home/sauve_mdp.txt
 ==============================> GLPI installation details  <=====================================
 Il est important d'enregistrer ces informations. Si vous les perdez, elles seront irrécupérables.
-==> GLPI :"
+==> GLPI :
 Les comptes utilisateurs par défaut sont :
 UTILISATEUR       -  MOT DE PASSE       -  ACCÈS
 glpi              -  glpi               -  compte admin
