@@ -120,8 +120,6 @@ apt install -y --no-install-recommends apache2 mariadb-server perl curl jq php >
 info "Installation des extensions de php"
 apt install -y --no-install-recommends php-ldap php-imap php-apcu php-xmlrpc php-cas php-mysqli php-mbstring php-curl php-gd php-simplexml php-xml php-intl php-zip php-bz2 > /dev/null 2>&1
 systemctl enable mariadb > /dev/null 2>&1
-phpversion=$(php -v | grep -i '(cli)' | awk '{print $2}' | cut -c 1,2,3)
-sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 =on/' /etc/php/$phpversion/cli/php.ini
 info "Activation d'Apache"
 systemctl enable apache2 > /dev/null 2>&1
 info "Redémarage d'Apache"
@@ -220,6 +218,10 @@ rm -rf /var/www/html/glpi/install
 # Add permissions
 chown -R www-data:www-data /var/www/html
 chmod 755 /var/www/html/glpi
+
+phpversion=$(php -v | grep -i '(cli)' | awk '{print $2}' | cut -c 1,2,3)
+sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 =on/' /etc/php/$phpversion/cli/php.ini
+systemctl restart apache2 > /dev/null 2>&1
 }
 
 function display_credentials()
