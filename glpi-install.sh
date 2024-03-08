@@ -226,11 +226,23 @@ systemctl restart apache2 > /dev/null 2>&1
 
 function update_mdp_users()
 {
-# Définir la requête SQL de mise à jour
-SQL_QUERY="UPDATE glpi SET colonne1 = valeur1, colonne2 = valeur2 WHERE condition;"
+GLPIPWDSAUVE=""
+listecompte=("glpi" "tech" "normal" "post-only")
 
-# Exécuter la requête SQL en utilisant la commande mysql
-mysql -u glpi_user -p"$SQLGLPIPWD" glpi -e "$SQL_QUERY"
+for value in "${listecompte[@]}"
+do
+    GLPIPWD=$(openssl rand -base64 48 | cut -c1-12)
+    # Sauvegarde des mot de passe
+    GLPIPWDSAUVE="$GLPIPWDSAUVE$GLPIPWD "
+    # Hachage pour GLPI
+    
+    # Définir la requête SQL de mise à jour
+    # SQL_QUERY="UPDATE glpi_users SET password = '$GLPIPWD' WHERE name = '$value';"
+    # Exécuter la requête SQL en utilisant la commande mysql
+    # mysql -u glpi_user -p"$SQLGLPIPWD" glpi -e "$SQL_QUERY"
+done
+
+echo "Les mots de passe générés pour les comptes sont : $GLPIPWDSAUVE"
 }
 
 function display_credentials()
