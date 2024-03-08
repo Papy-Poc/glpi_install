@@ -107,6 +107,7 @@ else
         exit 1
 fi
 }
+
 function install_packages()
 {
 info "Installation des paquets..."
@@ -247,6 +248,7 @@ info "<=========================================================================
 echo ""
 info "Si vous rencontrez un problème avec ce script, veuillez le signaler sur GitHub : https://github.com/PapyPoc/glpi_install/issues"
 }
+
 function write_credentials()
 {
 cat <<EOF > $HOME/sauve_mdp.txt
