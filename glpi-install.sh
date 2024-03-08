@@ -27,14 +27,16 @@ fi
 
 function check_distro()
 {
+info "Installation du paquet des release"
+apt install -y lsb-release > /dev/null 2>&1
 # Constante pour les versions de Debian acceptables
 DEBIAN_VERSIONS=("11" "12")
 # Constante pour les versions d'Ubuntu acceptables
 UBUNTU_VERSIONS=("23.10")
 # Récupération du nom de la distribution
-DISTRO=$(lsb_release -is > /dev/null 2>&1)
+DISTRO=$(lsb_release -is 2>/dev/null)
 # Récupération de la version de la distribution
-VERSION=$(lsb_release -rs > /dev/null 2>&1)
+VERSION=$(lsb_release -rs 2>/dev/null)
 # Vérifie si c'est une distribution Debian
 if [ "$DISTRO" == "Debian" ]; then
         # Vérifie si la version de Debian est acceptable
@@ -112,13 +114,9 @@ sleep 1
 info "Recherche des mise à jour"
 apt update 
 info "Application des mise à jour"
-apt upgrade -y  > /dev/null 2>&1
-info "Installation du paquet lsb-release"
-apt install -y lsb-release > /dev/null 2>&1
-sleep 1
-info "Installation des paquet lamp..."
+apt upgrade -y > /dev/null 2>&1
 apt install -y --no-install-recommends apache2 mariadb-server perl curl jq php > /dev/null 2>&1
-info "Installation des extensions php..."
+info "Installing php extensions..."
 apt install -y --no-install-recommends php-ldap php-imap php-apcu php-xmlrpc php-cas php-mysqli php-mbstring php-curl php-gd php-simplexml php-xml php-intl php-zip php-bz2 > /dev/null 2>&1
 systemctl enable mariadb
 phpversion=$(php -v | grep -i '(cli)' | awk '{print $2}' | cut -c 1,2,3)
@@ -133,22 +131,22 @@ info "Configuring MariaDB..."
 sleep 1
 SLQROOTPWD=$(openssl rand -base64 48 | cut -c1-12 )
 SQLGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
-systemctl start mariadb  > /dev/null 2>&1
-(echo ""; echo "y"; echo "y"; echo "$SLQROOTPWD"; echo "$SLQROOTPWD"; echo "y"; echo "y"; echo "y"; echo "y") | mysql_secure_installation
+systemctl start mariadb
+(echo ""; echo "y"; echo "y"; echo "$SLQROOTPWD"; echo "$SLQROOTPWD"; echo "y"; echo "y"; echo "y"; echo "y") | mysql_secure_installation > /dev/null 2>&1
 sleep 1
 
 # Remove the test database
-mysql -e "DROP DATABASE IF EXISTS test"
+mysql -e "DROP DATABASE IF EXISTS test" > /dev/null 2>&1
 # Reload privileges
-mysql -e "FLUSH PRIVILEGES"
+mysql -e "FLUSH PRIVILEGES" > /dev/null 2>&1
 # Create a new database
-mysql -e "CREATE DATABASE glpi"
+mysql -e "CREATE DATABASE glpi" > /dev/null 2>&1
 # Create a new user
-mysql -e "CREATE USER 'glpi_user'@'localhost' IDENTIFIED BY '$SQLGLPIPWD'"
+mysql -e "CREATE USER 'glpi_user'@'localhost' IDENTIFIED BY '$SQLGLPIPWD'" > /dev/null 2>&1
 # Grant privileges to the new user for the new database
-mysql -e "GRANT ALL PRIVILEGES ON glpi.* TO 'glpi_user'@'localhost'"
+mysql -e "GRANT ALL PRIVILEGES ON glpi.* TO 'glpi_user'@'localhost'" > /dev/null 2>&1
 # Reload privileges
-mysql -e "FLUSH PRIVILEGES"
+mysql -e "FLUSH PRIVILEGES" > /dev/null 2>&1
 
 # Initialize time zones datas
 mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root -p"$SLQROOTPWD" mysql > /dev/null 2>&1
@@ -156,7 +154,7 @@ mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root -p"$SLQROOTPWD" mysql > 
 echo "Europe/Paris" | sudo dpkg-reconfigure -f noninteractive tzdata > /dev/null 2>&1
 systemctl restart mariadb
 sleep 1
-mysql -e "GRANT SELECT ON mysql.time_zone_name TO 'glpi_user'@'localhost'"
+mysql -e "GRANT SELECT ON mysql.time_zone_name TO 'glpi_user'@'localhost'" > /dev/null 2>&1
 }
 
 function install_glpi()
@@ -221,7 +219,7 @@ chmod 755 /var/www/html/glpi
 
 function display_credentials()
 {
-info "=======> GLPI installation details  <======="
+info "===========================> Détail de l'installation de GLPI <=================================="
 warn "Il est important d'enregistrer ces informations. Si vous les perdez, elles seront irrécupérables."
 info "==> GLPI :"
 info "Les comptes utilisateurs par défaut sont :"
@@ -232,15 +230,41 @@ info "normal            -  normal             -  compte normal,"
 info "post-only         -  postonly           -  compte post-simple."
 echo ""
 info "Vous pouvez accéder à la page web de GLPI à partir d'une adresse IP ou d'un nom d'hôte :"
-info "http://$IPADRESS or http://$HOST" 
+info "http://$IPADRESS" 
 echo ""
 info "==> Database:"
 info "Mot de passe root: $SLQROOTPWD"
 info "Mot de passe glpi_user: $SQLGLPIPWD"
 info "Nom de la base de donné GLPI: glpi"
-info "<==========================================>"
+info "<===============================================================================================>"
 echo ""
 info "Si vous rencontrez un problème avec ce script, veuillez le signaler sur GitHub : https://github.com/PapyPoc/glpi_install/issues"
+}
+function write_credentials()
+{
+cat <<EOF > sauve_mdp.txt
+==============================> GLPI installation details  <=====================================
+Il est important d'enregistrer ces informations. Si vous les perdez, elles seront irrécupérables.
+==> GLPI :"
+Les comptes utilisateurs par défaut sont :
+UTILISATEUR       -  MOT DE PASSE       -  ACCÈS
+glpi              -  glpi               -  compte admin
+tech              -  tech               -  compte technicien
+normal            -  normal             -  compte normal
+post-only         -  postonly           -  compte post-simple
+
+Vous pouvez accéder à la page web de GLPI à partir d'une adresse IP ou d'un nom d'hôte :
+http://$IPADRESS 
+
+==> Database:
+Mot de passe root: $SLQROOTPWD
+Mot de passe glpi_user: $SQLGLPIPWD
+Nom de la base de donné GLPI: glpi
+<===============================================================================================>
+
+Si vous rencontrez un problème avec ce script, veuillez le signaler sur GitHub : https://github.com/PapyPoc/glpi_install/issues
+EOF
+chmod 700 sauve_mdp.txt
 }
 
 check_root
@@ -252,3 +276,4 @@ mariadb_configure
 install_glpi
 setup_db
 display_credentials
+write_credentials
