@@ -275,6 +275,7 @@ warn "Fichier de sauvegarde des mots de passe enregistrer dans /home"
 echo ""
 }
 
+clear
 check_root
 check_distro
 # confirm_installation  # Pour une installation manuel enlever #
