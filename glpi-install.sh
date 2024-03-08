@@ -134,7 +134,7 @@ info "Configuration de MariaDB"
 sleep 1
 SLQROOTPWD=$(openssl rand -base64 48 | cut -c1-12 )
 SQLGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
-systemctl start mariadb
+systemctl start mariadb > /dev/null 2>&1
 (echo ""; echo "y"; echo "y"; echo "$SLQROOTPWD"; echo "$SLQROOTPWD"; echo "y"; echo "y"; echo "y"; echo "y") | mysql_secure_installation > /dev/null 2>&1
 sleep 1
 
