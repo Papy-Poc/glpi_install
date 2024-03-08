@@ -2,7 +2,7 @@
 
  ![Screenshot of a comment on a GitHub issue showing an image, added in the Markdown, of an Octocat smiling and raising a tentacle.]([(https://glpi-project.org/wp-content/uploads/2022/01/hero-img-2.png)])
 
-![https://glpi-project.org/wp-content/uploads/2022/01/hero-img-2.png]
+![(https://glpi-project.org/wp-content/uploads/2022/01/hero-img-2.png)]
  
 ## A propos de ce script
 
