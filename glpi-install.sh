@@ -32,9 +32,9 @@ DEBIAN_VERSIONS=("11" "12")
 # Constante pour les versions d'Ubuntu acceptables
 UBUNTU_VERSIONS=("23.10")
 # Récupération du nom de la distribution
-DISTRO=$(lsb_release -is 2>/dev/null)
+DISTRO=$(lsb_release -is > /dev/null 2>&1)
 # Récupération de la version de la distribution
-VERSION=$(lsb_release -rs 2>/dev/null)
+VERSION=$(lsb_release -rs > /dev/null 2>&1)
 # Vérifie si c'est une distribution Debian
 if [ "$DISTRO" == "Debian" ]; then
         # Vérifie si la version de Debian est acceptable
@@ -109,9 +109,17 @@ function install_packages()
 {
 info "Installation des paquets..."
 sleep 1
-apt install -y --no-install-recommends apache2 mariadb-server perl curl jq php 1>/dev/null
-info "Installing php extensions..."
-apt install -y --no-install-recommends php-ldap php-imap php-apcu php-xmlrpc php-cas php-mysqli php-mbstring php-curl php-gd php-simplexml php-xml php-intl php-zip php-bz2 1>/dev/null
+info "Recherche des mise à jour"
+apt update 
+info "Application des mise à jour"
+apt upgrade -y  > /dev/null 2>&1
+info "Installation du paquet lsb-release"
+apt install -y lsb-release > /dev/null 2>&1
+sleep 1
+info "Installation des paquet lamp..."
+apt install -y --no-install-recommends apache2 mariadb-server perl curl jq php > /dev/null 2>&1
+info "Installation des extensions php..."
+apt install -y --no-install-recommends php-ldap php-imap php-apcu php-xmlrpc php-cas php-mysqli php-mbstring php-curl php-gd php-simplexml php-xml php-intl php-zip php-bz2 > /dev/null 2>&1
 systemctl enable mariadb
 phpversion=$(php -v | grep -i '(cli)' | awk '{print $2}' | cut -c 1,2,3)
 sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 = on/' /etc/php/$phpversion/cli/php.ini
@@ -125,7 +133,7 @@ info "Configuring MariaDB..."
 sleep 1
 SLQROOTPWD=$(openssl rand -base64 48 | cut -c1-12 )
 SQLGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
-systemctl start mariadb
+systemctl start mariadb  > /dev/null 2>&1
 (echo ""; echo "y"; echo "y"; echo "$SLQROOTPWD"; echo "$SLQROOTPWD"; echo "y"; echo "y"; echo "y"; echo "y") | mysql_secure_installation
 sleep 1
 
@@ -143,9 +151,9 @@ mysql -e "GRANT ALL PRIVILEGES ON glpi.* TO 'glpi_user'@'localhost'"
 mysql -e "FLUSH PRIVILEGES"
 
 # Initialize time zones datas
-mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root -p"$SLQROOTPWD" mysql
+mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root -p"$SLQROOTPWD" mysql > /dev/null 2>&1
 #Ask tz
-echo "Europe/Paris" | sudo dpkg-reconfigure -f noninteractive tzdata
+echo "Europe/Paris" | sudo dpkg-reconfigure -f noninteractive tzdata > /dev/null 2>&1
 systemctl restart mariadb
 sleep 1
 mysql -e "GRANT SELECT ON mysql.time_zone_name TO 'glpi_user'@'localhost'"
@@ -156,7 +164,7 @@ function install_glpi()
 info "Téléchargement et installation de la dernière version de GLPI..."
 # Get download link for the latest release
 DOWNLOADLINK=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.assets[0].browser_download_url')
-wget -O /tmp/glpi-latest.tgz $DOWNLOADLINK 2>/dev/null
+wget -O /tmp/glpi-latest.tgz $DOWNLOADLINK > /dev/null 2>&1
 tar xzf /tmp/glpi-latest.tgz -C /var/www/html/
 mkdir /var/www/html/glpi/log
 
@@ -235,12 +243,6 @@ echo ""
 info "Si vous rencontrez un problème avec ce script, veuillez le signaler sur GitHub : https://github.com/PapyPoc/glpi_install/issues"
 }
 
-info "Recherche des mise à jour"
-apt update 
-info "Application des mise à jour"
-apt upgrade -y 2>/dev/null
-info "Installation du paquet des release"
-apt install -y lsb-release 2>/dev/null
 check_root
 check_distro
 # confirm_installation  # Pour une installation manuel enlever #
