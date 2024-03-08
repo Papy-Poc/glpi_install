@@ -12,13 +12,14 @@ L'installation de GLPI se fait sans SSL. Si vous avez besoin d'ouvrir l'accès �
 ⚠️ Il est fortement recommandé d'exécuter ce script sur une nouvelle installation.
 
 ### Comptes par défaut
+|--|--|--|
 | Login | Mot de passe | Rôle |
 |--|--|--|
 glpi|glpi|compte administrateur
 tech|tech|compte technique
 normal|normal|compte normal
 post-only|postonly|compte post-only
-
+|--|--|--|
 ### Lire la documentation
 Sachez que je n'ai aucun lien avec l'équipe qui développe GLPI et/ou TecLib.
 Si vous rencontrez un problème avec ce script sur une des distributions compatibles, vous pouvez créer un problème, je vous aiderai avec plaisir.
