@@ -226,7 +226,7 @@ systemctl restart apache2 > /dev/null 2>&1
 
 function update_mdp_users()
 {
-
+cp /var/www/html/glpi/src/User.php /var/www/html/glpi/src/User.php.bak 
 sed -i "s/'glpi'      => 'glpi',/'glpi'      => 'test',/g" /var/www/html/glpi/src/User.php
 sed -i "s/'tech'      => 'tech',/'tech'      => 'test',/g" /var/www/html/glpi/src/User.php
 sed -i "s/'normal'    => 'normal',/'normal'    => 'test',/g" /var/www/html/glpi/src/User.php
