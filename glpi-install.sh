@@ -224,6 +224,15 @@ sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 =on/' /etc/php/$phpversion/cl
 systemctl restart apache2 > /dev/null 2>&1
 }
 
+function update_mdp_users()
+{
+# Définir la requête SQL de mise à jour
+SQL_QUERY="UPDATE glpi SET colonne1 = valeur1, colonne2 = valeur2 WHERE condition;"
+
+# Exécuter la requête SQL en utilisant la commande mysql
+mysql -u glpi_user -p"$SQLGLPIPWD" glpi -e "$SQL_QUERY"
+}
+
 function display_credentials()
 {
 info "===========================> Détail de l'installation de GLPI <=================================="
