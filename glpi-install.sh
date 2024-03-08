@@ -272,6 +272,8 @@ EOF
 chmod 700 /home/sauve_mdp.txt
 echo ""
 warn "Fichier de sauvegarde des mots de passe enregistrer dans /home"
+echo ""
+cat /home/sauve_mdp.txt
 }
 
 check_root
