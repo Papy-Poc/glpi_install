@@ -1,9 +1,9 @@
 # GLPI_install_script
 
- <img alt="GLPI IMG" src="https://glpi-project.org/wp-content/uploads/2022/01/hero-img-2-1280x730.png">
+ <img alt="GLPI IMG" src="[https://glpi-project.org/wp-content/uploads/2022/01/hero-img-2-1280x730.png](https://glpi-project.org/wp-content/uploads/2021/11/hero-image.png)">
 ## A propos de ce script
 
-Ce script a été écrit pour installer rapidement la dernière version de GLPI (actuellement 10.0.05) sur les serveurs Ubuntu et Debian.
+Ce script a été écrit pour installer rapidement la dernière version de GLPI (actuellement 10.0.12) sur les serveurs Ubuntu et Debian.
 
 Le script installera Apache, MariaDB, PHP et les dépendances, téléchargera et installera la dernière version depuis le [Official GLPI repo] (https://github.com/glpi-project/glpi) et configurera la base de données pour vous.
 Une fois le script exécuté, la seule chose que vous aurez à faire sera de vous connecter à GLPI.
