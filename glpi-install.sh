@@ -112,22 +112,25 @@ function install_packages()
 info "Installation des paquets..."
 sleep 1
 info "Recherche des mise à jour"
-apt update 
+apt update > /dev/null 2>&1
 info "Application des mise à jour"
 apt upgrade -y > /dev/null 2>&1
+info "Installation des service lamp..."
 apt install -y --no-install-recommends apache2 mariadb-server perl curl jq php > /dev/null 2>&1
-info "Installing php extensions..."
+info "Installation des extensions de php"
 apt install -y --no-install-recommends php-ldap php-imap php-apcu php-xmlrpc php-cas php-mysqli php-mbstring php-curl php-gd php-simplexml php-xml php-intl php-zip php-bz2 > /dev/null 2>&1
 systemctl enable mariadb
 phpversion=$(php -v | grep -i '(cli)' | awk '{print $2}' | cut -c 1,2,3)
 sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 = on/' /etc/php/$phpversion/cli/php.ini
-systemctl enable apache2
-systemctl restart apache2
+info "Activation d'Apache"
+systemctl enable apache2 > /dev/null 2>&1
+info "Redémarage d'Apache"
+systemctl restart apache2 > /dev/null 2>&1
 }
 
 function mariadb_configure()
 {
-info "Configuring MariaDB..."
+info "Configuration de MariaDB"
 sleep 1
 SLQROOTPWD=$(openssl rand -base64 48 | cut -c1-12 )
 SQLGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
@@ -191,8 +194,8 @@ cat > /etc/apache2/sites-available/glpi.conf << EOF
 </VirtualHost>
 EOF
 
-a2dissite 000-default.conf
-a2ensite glpi.conf
+a2dissite 000-default.conf > /dev/null 2>&1
+a2ensite glpi.conf > /dev/null 2>&1
 
 #Disable Apache Web Server Signature
 echo "ServerSignature Off" >> /etc/apache2/apache2.conf
@@ -202,7 +205,8 @@ echo "ServerTokens Prod" >> /etc/apache2/apache2.conf
 echo "*/2 * * * * www-data /usr/bin/php /var/www/html/glpi/front/cron.php &>/dev/null" >> /etc/cron.d/glpi
 
 #Activation du module rewrite d'apache
-a2enmod rewrite && systemctl restart apache2
+a2enmod rewrite > /dev/null 2>&1
+systemctl restart apache2 > /dev/null 2>&1
 }
 
 function setup_db()
