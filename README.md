@@ -1,5 +1,5 @@
 # GLPI_install_script
- ![Screenshot of a comment on a GitHub issue showing an image, added in the Markdown, of an Octocat smiling and raising a tentacle.](https://glpi-project.org/wp-content/uploads/2022/01/hero-img-2.png)
+ ![GLPI](https://glpi-project.org/wp-content/uploads/2022/01/hero-img-2.png)
 ## A propos de ce script
 
 Ce script a été écrit pour installer rapidement la dernière version de GLPI (actuellement 10.0.12) sur les serveurs Ubuntu et Debian.
@@ -42,8 +42,8 @@ Ce script a été testé sur les distributions suivantes :
 ## Comment utiliser
 GLPI_install_script s'installe en lançant l'une des commandes suivantes dans votre terminal. Vous pouvez l'installer via la ligne de commande avec curl ou wget.
 
-    `wget https://raw.githubusercontent.com/PapyPoc/glpi_install/main/glpi-install.sh && chmod 777 glpi-install.sh && ./glpi-install.sh`
+    wget https://raw.githubusercontent.com/PapyPoc/glpi_install/main/glpi-install.sh && chmod 777 glpi-install.sh && ./glpi-install.sh
 
 ou avec curl
 
-    `curl -O wget https://raw.githubusercontent.com/PapyPoc/glpi_install/main/glpi-install.sh && chmod 777 glpi-install.sh && ./glpi-install.sh`
+    curl -O wget https://raw.githubusercontent.com/PapyPoc/glpi_install/main/glpi-install.sh && chmod 777 glpi-install.sh && ./glpi-install.sh
