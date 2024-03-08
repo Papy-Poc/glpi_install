@@ -119,7 +119,7 @@ info "Installation des service lamp..."
 apt install -y --no-install-recommends apache2 mariadb-server perl curl jq php > /dev/null 2>&1
 info "Installation des extensions de php"
 apt install -y --no-install-recommends php-ldap php-imap php-apcu php-xmlrpc php-cas php-mysqli php-mbstring php-curl php-gd php-simplexml php-xml php-intl php-zip php-bz2 > /dev/null 2>&1
-systemctl enable mariadb
+systemctl enable mariadb > /dev/null 2>&1
 phpversion=$(php -v | grep -i '(cli)' | awk '{print $2}' | cut -c 1,2,3)
 sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 = on/' /etc/php/$phpversion/cli/php.ini
 info "Activation d'Apache"
@@ -152,6 +152,7 @@ mysql -e "GRANT ALL PRIVILEGES ON glpi.* TO 'glpi_user'@'localhost'" > /dev/null
 mysql -e "FLUSH PRIVILEGES" > /dev/null 2>&1
 
 # Initialize time zones datas
+info "Configuration de TimeZone"
 mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root -p"$SLQROOTPWD" mysql > /dev/null 2>&1
 #Ask tz
 echo "Europe/Paris" | sudo dpkg-reconfigure -f noninteractive tzdata > /dev/null 2>&1
@@ -246,7 +247,7 @@ info "Si vous rencontrez un problème avec ce script, veuillez le signaler sur G
 }
 function write_credentials()
 {
-cat <<EOF > sauve_mdp.txt
+cat <<EOF > /home/sauve_mdp.txt
 ==============================> GLPI installation details  <=====================================
 Il est important d'enregistrer ces informations. Si vous les perdez, elles seront irrécupérables.
 ==> GLPI :"
@@ -268,7 +269,9 @@ Nom de la base de donné GLPI: glpi
 
 Si vous rencontrez un problème avec ce script, veuillez le signaler sur GitHub : https://github.com/PapyPoc/glpi_install/issues
 EOF
-chmod 700 sauve_mdp.txt
+chmod 700 /home/sauve_mdp.txt
+echo ""
+warn "Fichier de sauvegarde des mots de passe enregistrer dans /home"
 }
 
 check_root
