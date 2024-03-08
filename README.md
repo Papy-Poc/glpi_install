@@ -2,6 +2,7 @@
 
  <img alt="GLPI IMG" src="[https://glpi-project.org/wp-content/uploads/2022/01/hero-img-2-1280x730.png]">
  [stack Overflow](http://lmsotfy.com/so.png)
+ 
 ## A propos de ce script
 
 Ce script a été écrit pour installer rapidement la dernière version de GLPI (actuellement 10.0.12) sur les serveurs Ubuntu et Debian.
