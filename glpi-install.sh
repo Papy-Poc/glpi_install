@@ -13,22 +13,24 @@ function info(){
     echo -e '\e[36m'$1'\e[0m';
 }
 
-function check_root()
-{
+function check_root(){
 # Vérification des privilèges root
 if [[ "$(id -u)" -ne 0 ]]
 then
         warn "Ce script doit être exécuté en tant que root" >&2
   exit 1
 else
-        info "Root privilege: OK"
+        info "Privilège Root: OK"
 fi
 }
 
-function check_distro()
-{
+function check_distro(){
+info "Recherche des mise à jour"
+apt-get update > /dev/null 2>&1
+info "Application des mise à jour"
+apt-get upgrade -y > /dev/null 2>&1
 info "Installation du paquet des release"
-apt install -y lsb-release > /dev/null 2>&1
+apt-get install -y lsb-release > /dev/null 2>&1
 # Constante pour les versions de Debian acceptables
 DEBIAN_VERSIONS=("11" "12")
 # Constante pour les versions d'Ubuntu acceptables
@@ -85,25 +87,18 @@ else
 fi
 }
 
-function network_info()
-{
+function network_info(){
 INTERFACE=$(ip route | awk 'NR==1 {print $5}')
 IPADRESS=$(ip addr show $INTERFACE | grep inet | awk '{ print $2; }' | sed 's/\/.*$//' | head -n 1)
 HOST=$(hostname)
 }
 
-function install_packages()
-{
-info "Installation des paquets..."
+function install_packages(){
 sleep 1
-info "Recherche des mise à jour"
-apt update > /dev/null 2>&1
-info "Application des mise à jour"
-apt upgrade -y > /dev/null 2>&1
 info "Installation des service lamp..."
-apt install -y --no-install-recommends apache2 mariadb-server perl curl jq php > /dev/null 2>&1
+apt install -y apache2 mariadb-server perl curl jq php > /dev/null 2>&1
 info "Installation des extensions de php"
-apt install -y --no-install-recommends php-ldap php-imap php-apcu php-xmlrpc php-cas php-mysqli php-mbstring php-curl php-gd php-simplexml php-xml php-intl php-zip php-bz2 > /dev/null 2>&1
+apt install -y php-mysql php-mbstring php-curl php-gd php-xml php-intl php-ldap php-apcu php-xmlrpc php-zip php-bz2 php-imap > /dev/null 2>&1
 systemctl enable mariadb > /dev/null 2>&1
 info "Activation d'Apache"
 systemctl enable apache2 > /dev/null 2>&1
@@ -111,8 +106,7 @@ info "Redémarage d'Apache"
 systemctl restart apache2 > /dev/null 2>&1
 }
 
-function mariadb_configure()
-{
+function mariadb_configure(){
 info "Configuration de MariaDB"
 sleep 1
 SLQROOTPWD=$(openssl rand -base64 48 | cut -c1-12 )
@@ -144,8 +138,7 @@ sleep 1
 mysql -e "GRANT SELECT ON mysql.time_zone_name TO 'glpi_user'@'localhost'" > /dev/null 2>&1
 }
 
-function install_glpi()
-{
+function install_glpi(){
 info "Téléchargement et installation de la dernière version de GLPI..."
 # Get download link for the latest release
 DOWNLOADLINK=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.assets[0].browser_download_url')
@@ -153,31 +146,58 @@ wget -O /tmp/glpi-latest.tgz $DOWNLOADLINK > /dev/null 2>&1
 tar xzf /tmp/glpi-latest.tgz -C /var/www/html/
 mkdir /var/www/html/glpi/log
 
+# Add permissions
+chown -R www-data:www-data /var/www/html
+chmod 755 /var/www/html
+
+mkdir /etc/glpi
+cat > /etc/glpi/local_define.php << EOF
+<?php
+define('GLPI_VAR_DIR', '/var/lib/glpi');
+define('GLPI_LOG_DIR', '/var/log/glpi');
+EOF
+mv /var/www/html/glpi/config /etc/glpi
+chown -R www-data /etc/glpi/
+mv /var/www/html/glpi/files /var/lib/glpi
+mkdir /var/log/glpi
+chown www-data /var/log/glpi
+cat > /var/www/html/glpi/inc/downstream.php << EOF
+<?php
+define('GLPI_CONFIG_DIR', '/etc/glpi/');
+if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
+require_once GLPI_CONFIG_DIR . '/local_define.php';
+}
+EOF
+phpversion=$(php -v | grep -i '(cli)' | awk '{print $2}' | cut -c 1,2,3)
+sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 =on/' /etc/php/$phpversion/cli/php.ini
+
 # Setup vhost
 cat > /etc/apache2/sites-available/glpi.conf << EOF
 <VirtualHost *:80>
- # Dossier Web Public
- DocumentRoot /var/www/html/glpi/public
+        # Dossier Web Public
+        DocumentRoot /var/www/html/glpi/public
 
- # Fichier à charger par défaut (ordre)
- <IfModule dir_module>
-   DirectoryIndex index.php index.html
- </IfModule>
+        # Fichier à charger par défaut (ordre)
+        <IfModule dir_module>
+                DirectoryIndex index.php index.html
+        </IfModule>
 
- # Log
- ErrorLog /var/www/html/glpi/log/error.log
- CustomLog /var/www/html/glpi/log/access.log combined
+        # Log
+        ErrorLog /var/www/html/glpi/log/error.log
+        CustomLog /var/www/html/glpi/log/access.log combined
 
- # Repertoire
- <Directory /var/www/html/glpi/public>
-   Require all granted
-   RewriteEngine On
-   RewriteCond %{REQUEST_FILENAME} !-f
-   RewriteRule ^(.*)$ index.php [QSA,L]
- </Directory>
+        # Repertoire
+        <Directory /var/www/html/glpi/public>
+                Require all granted
+                RewriteEngine On
+                RewriteCond %{REQUEST_FILENAME} !-f
+                RewriteRule ^(.*)$ index.php [QSA,L]
+        </Directory>
 </VirtualHost>
 EOF
 
+#Activation du module rewrite d'apache
+a2enmod rewrite > /dev/null 2>&1
 a2dissite 000-default.conf > /dev/null 2>&1
 a2ensite glpi.conf > /dev/null 2>&1
 
@@ -187,30 +207,18 @@ echo "ServerTokens Prod" >> /etc/apache2/apache2.conf
 
 # Setup Cron task
 echo "*/2 * * * * www-data /usr/bin/php /var/www/html/glpi/front/cron.php &>/dev/null" >> /etc/cron.d/glpi
-
-#Activation du module rewrite d'apache
-a2enmod rewrite > /dev/null 2>&1
+# Restart d'apache
 systemctl restart apache2 > /dev/null 2>&1
 }
 
-function setup_db()
-{
+function setup_db(){
 info "Setting up GLPI..."
 cd /var/www/html/glpi
 php bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password=$SQLGLPIPWD --default-language="fr_FR" --no-interaction --force
 rm -rf /var/www/html/glpi/install
-
-# Add permissions
-chown -R www-data:www-data /var/www/html
-chmod 755 /var/www/html/glpi
-
-phpversion=$(php -v | grep -i '(cli)' | awk '{print $2}' | cut -c 1,2,3)
-sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 =on/' /etc/php/$phpversion/cli/php.ini
-systemctl restart apache2 > /dev/null 2>&1
 }
 
-function display_credentials()
-{
+function display_credentials(){
 info "===========================> Détail de l'installation de GLPI <=================================="
 warn "Il est important d'enregistrer ces informations. Si vous les perdez, elles seront irrécupérables."
 info "==> GLPI :"
@@ -233,11 +241,11 @@ echo ""
 info "Si vous rencontrez un problème avec ce script, veuillez le signaler sur GitHub : https://github.com/PapyPoc/glpi_install/issues"
 }
 
-function write_credentials()
-{
+function write_credentials(){
 cat <<EOF > $HOME/sauve_mdp.txt
 ==============================> GLPI installation details  <=====================================
 Il est important d'enregistrer ces informations. Si vous les perdez, elles seront irrécupérables.
+
 ==> GLPI :
 Les comptes utilisateurs par défaut sont :
 UTILISATEUR       -  MOT DE PASSE       -  ACCÈS
