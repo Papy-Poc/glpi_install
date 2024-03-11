@@ -96,7 +96,7 @@ HOST=$(hostname)
 function install_packages(){
 sleep 1
 info "Installation des service lamp..."
-apt install -y apache2 mariadb-server perl curl jq php > /dev/null 2>&1
+apt-get install -y apache2 mariadb-server perl curl jq php > /dev/null 2>&1
 info "Installation des extensions de php"
 apt install -y php-mysql php-mbstring php-curl php-gd php-xml php-intl php-ldap php-apcu php-xmlrpc php-zip php-bz2 php-imap > /dev/null 2>&1
 systemctl enable mariadb > /dev/null 2>&1
@@ -117,8 +117,8 @@ sleep 1
 
 # Remove the test database
 mysql -e "DROP DATABASE IF EXISTS test" > /dev/null 2>&1
-# Reload privileges
-mysql -e "FLUSH PRIVILEGES" > /dev/null 2>&1
+# Remove the test user
+mysql -e "DROP USER IF EXISTS test" > /dev/null 2>&1
 # Create a new database
 mysql -e "CREATE DATABASE glpi" > /dev/null 2>&1
 # Create a new user
@@ -132,7 +132,7 @@ mysql -e "FLUSH PRIVILEGES" > /dev/null 2>&1
 info "Configuration de TimeZone"
 mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root -p"$SLQROOTPWD" mysql > /dev/null 2>&1
 #Ask tz
-echo "Europe/Paris" | sudo dpkg-reconfigure -f noninteractive tzdata > /dev/null 2>&1
+echo "Europe/Paris" | dpkg-reconfigure -f noninteractive tzdata > /dev/null 2>&1
 systemctl restart mariadb
 sleep 1
 mysql -e "GRANT SELECT ON mysql.time_zone_name TO 'glpi_user'@'localhost'" > /dev/null 2>&1
@@ -144,62 +144,51 @@ info "Téléchargement et installation de la dernière version de GLPI..."
 DOWNLOADLINK=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.assets[0].browser_download_url')
 wget -O /tmp/glpi-latest.tgz $DOWNLOADLINK > /dev/null 2>&1
 tar xzf /tmp/glpi-latest.tgz -C /var/www/html/
-mkdir /var/www/html/glpi/log
 
-# Add permissions
-chown -R www-data:www-data /var/www/html
-chmod 755 /var/www/html
-
-mkdir /etc/glpi
-cat > /etc/glpi/local_define.php << EOF
-<?php
-define('GLPI_VAR_DIR', '/var/lib/glpi');
-define('GLPI_LOG_DIR', '/var/log/glpi');
-EOF
-mv /var/www/html/glpi/config /etc/glpi
-chown -R www-data /etc/glpi/
-mv /var/www/html/glpi/files /var/lib/glpi
-mkdir /var/log/glpi
-chown www-data /var/log/glpi
-cat > /var/www/html/glpi/inc/downstream.php << EOF
-<?php
-define('GLPI_CONFIG_DIR', '/etc/glpi/');
-if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
-require_once GLPI_CONFIG_DIR . '/local_define.php';
-}
-EOF
 phpversion=$(php -v | grep -i '(cli)' | awk '{print $2}' | cut -c 1,2,3)
 sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 =on/' /etc/php/$phpversion/cli/php.ini
 
 # Setup vhost
 cat > /etc/apache2/sites-available/glpi.conf << EOF
 <VirtualHost *:80>
-        # Dossier Web Public
-        DocumentRoot /var/www/html/glpi/public
+ # Nom du serveur (/etc/hosts)
+ ServerName glpi.lan
 
-        # Fichier à charger par défaut (ordre)
-        <IfModule dir_module>
-                DirectoryIndex index.php index.html
-        </IfModule>
+ # Dossier Web Public
+ DocumentRoot /var/www/html/glpi/public
+        
+ # Fichier à charger par défaut (ordre)
+ <IfModule dir_module>
+   DirectoryIndex index.php index.html
+ </IfModule>
 
-        # Log
-        ErrorLog /var/www/html/glpi/log/error.log
-        CustomLog /var/www/html/glpi/log/access.log combined
+ # Alias
+ Alias "/glpi" "/var/www/html/glpi/public"
 
-        # Repertoire
-        <Directory /var/www/html/glpi/public>
-                Require all granted
-                RewriteEngine On
-                RewriteCond %{REQUEST_FILENAME} !-f
-                RewriteRule ^(.*)$ index.php [QSA,L]
-        </Directory>
+ # Log
+ ErrorLog ${APACHE_LOG_DIR}/error.log
+ CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+ # Repertoire
+ <Directory /var/www/html/glpi/public>
+   Require all granted
+   RewriteEngine On
+   RewriteCond %{REQUEST_FILENAME} !-f
+   RewriteRule ^(.*)$ index.php [QSA,L]
+ </Directory>
 </VirtualHost>
 EOF
 
 #Activation du module rewrite d'apache
 a2enmod rewrite > /dev/null 2>&1
+# Restart d'apache
+systemctl restart apache2 > /dev/null 2>&1
 a2dissite 000-default.conf > /dev/null 2>&1
+# Restart d'apache
+systemctl restart apache2 > /dev/null 2>&1
 a2ensite glpi.conf > /dev/null 2>&1
+# Restart d'apache
+systemctl restart apache2 > /dev/null 2>&1
 
 # Disable Apache Web Server Signature
 echo "ServerSignature Off" >> /etc/apache2/apache2.conf
@@ -216,6 +205,29 @@ info "Setting up GLPI..."
 cd /var/www/html/glpi
 php bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password=$SQLGLPIPWD --default-language="fr_FR" --no-interaction --force
 rm -rf /var/www/html/glpi/install
+
+mkdir /etc/glpi
+cat > /etc/glpi/local_define.php << EOF
+<?php
+define('GLPI_VAR_DIR', '/var/lib/glpi');
+define('GLPI_LOG_DIR', '/var/log/glpi');
+EOF
+mv /var/www/html/glpi/config /etc/glpi
+chown -R www-data:www-data  /etc/glpi/
+mv /var/www/html/glpi/files /var/lib/glpi
+mkdir /var/log/glpi
+chown www-data:www-data  /var/log/glpi
+cat > /var/www/html/glpi/inc/downstream.php << EOF
+<?php
+define('GLPI_CONFIG_DIR', '/etc/glpi/');
+if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
+require_once GLPI_CONFIG_DIR . '/local_define.php';
+}
+EOF
+
+# Add permissions
+chown -R www-data:www-data /var/www/html
+chmod 755 /var/www/html
 }
 
 function display_credentials(){
