@@ -222,8 +222,8 @@ cat > /etc/apache2/sites-available/glpi.conf << EOF
  Alias "/glpi" "/var/www/html/glpi/public"
 
  # Log
- ErrorLog ${APACHE_LOG_DIR}/error.log
- CustomLog ${APACHE_LOG_DIR}/access.log combined
+ ErrorLog /var/log/glpi/error.log
+ CustomLog /var/log/glpi/access.log combined
 
  # Repertoire
  <Directory /var/www/html/glpi/public>
@@ -250,7 +250,6 @@ sed -i 's/session.cookie_secure =/session.cookie_secure = on/g' /etc/php/$phpver
 sed -i 's/session.cookie_httponly =/session.cookie_httponly = on/g' /etc/php/$phpversion/cli/php.ini
 sed -i 's/session.cookie_samesite =/session.cookie_samesite = on/g'  /etc/php/$phpversion/cli/php.ini
 
-systemctl restart php$phpversion-fpm.service
 systemctl restart apache2 > /dev/null 2>&1
 }
 
