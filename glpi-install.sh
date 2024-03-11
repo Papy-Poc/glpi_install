@@ -103,7 +103,7 @@ apt upgrade -y > /dev/null 2>&1
 info "Installation des service lamp..."
 apt install -y --no-install-recommends apache2 mariadb-server perl curl jq php > /dev/null 2>&1
 info "Installation des extensions de php"
-apt install -y --no-install-recommends php-ldap php-imap php-apcu php-xmlrpc php-cas php-mysqli php-mbstring php-curl php-gd php-simplexml php-xml php-intl php-zip php-bz2 php-imap php-apcu php-ldap php8.2-fpm > /dev/null 2>&1
+apt install -y --no-install-recommends php-ldap php-imap php-apcu php-xmlrpc php-cas php-mysqli php-mbstring php-curl php-gd php-simplexml php-xml php-intl php-zip php-bz2 > /dev/null 2>&1
 systemctl enable mariadb > /dev/null 2>&1
 info "Activation d'Apache"
 systemctl enable apache2 > /dev/null 2>&1
@@ -231,9 +231,6 @@ cat > /etc/apache2/sites-available/glpi.conf << EOF
       RewriteCond %{REQUEST_FILENAME} !-f
       RewriteRule ^(.*)$ index.php [QSA,L]
      </Directory>
-     <FilesMatch \.php$>
-      SetHandler "proxy:unix:/run/php/php8.2-fpm.sock|fcgi://localhost/"
-     </FilesMatch>
 </VirtualHost>
 EOF
 
@@ -247,17 +244,11 @@ systemctl restart apache2 > /dev/null 2>&1
 # Sécurisation des cookie
 sleep 5
 phpversion=$(php -v | grep -i '(cli)' | awk '{print $2}' | cut -c 1,2,3)
-sed -i 's/session.cookie_secure =/session.cookie_secure = on/g' /etc/php/$phpversion/apache2/php.ini
-sed -i 's/session.cookie_httponly =/session.cookie_httponly = on/g' /etc/php/$phpversion/apache2/php.ini
-sed -i 's/session.cookie_samesite =/session.cookie_samesite = on/g'  /etc/php/$phpversion/apache2/php.ini
 
 sed -i 's/session.cookie_secure =/session.cookie_secure = on/g' /etc/php/$phpversion/cli/php.ini
 sed -i 's/session.cookie_httponly =/session.cookie_httponly = on/g' /etc/php/$phpversion/cli/php.ini
 sed -i 's/session.cookie_samesite =/session.cookie_samesite = on/g'  /etc/php/$phpversion/cli/php.ini
 
-sed -i 's/session.cookie_secure =/session.cookie_secure = on/g' /etc/php/$phpversion/fpm/php.ini
-sed -i 's/session.cookie_httponly =/session.cookie_httponly = on/g' /etc/php/$phpversion/fpm/php.ini
-sed -i 's/session.cookie_samesite =/session.cookie_samesite = on/g'  /etc/php/$phpversion/fpm/php.ini
 systemctl restart php$phpversion-fpm.service
 systemctl restart apache2 > /dev/null 2>&1
 }
