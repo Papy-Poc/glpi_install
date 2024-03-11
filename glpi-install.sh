@@ -92,22 +92,6 @@ IPADRESS=$(ip addr show $INTERFACE | grep inet | awk '{ print $2; }' | sed 's/\/
 HOST=$(hostname)
 }
 
-function confirm_installation()
-{
-warn "Ce script va maintenant installer les paquets nécessaires à l'installation et à la configuration de GLPI."
-info "Êtes-vous sûr de vouloir continuer ? [yes/no]"
-read confirm
-if [ $confirm == "yes" ]; then
-        info "Continer..."
-elif [ $confirm == "no" ]; then
-        info "Sortir..."
-        exit 1
-else
-        warn "Réponse non valide. Sortir..."
-        exit 1
-fi
-}
-
 function install_packages()
 {
 info "Installation des paquets..."
@@ -197,7 +181,7 @@ EOF
 a2dissite 000-default.conf > /dev/null 2>&1
 a2ensite glpi.conf > /dev/null 2>&1
 
-#Disable Apache Web Server Signature
+# Disable Apache Web Server Signature
 echo "ServerSignature Off" >> /etc/apache2/apache2.conf
 echo "ServerTokens Prod" >> /etc/apache2/apache2.conf
 
@@ -282,7 +266,6 @@ echo ""
 clear
 check_root
 check_distro
-# confirm_installation  # Pour une installation manuel enlever #
 network_info
 install_packages
 mariadb_configure
