@@ -103,7 +103,7 @@ apt upgrade -y > /dev/null 2>&1
 info "Installation des service lamp..."
 apt install -y --no-install-recommends apache2 mariadb-server perl curl jq php > /dev/null 2>&1
 info "Installation des extensions de php"
-apt install -y --no-install-recommends php-ldap php-imap php-apcu php-xmlrpc php-cas php-mysqli php-mbstring php-curl php-gd php-simplexml php-xml php-intl php-zip php-bz2 > /dev/null 2>&1
+apt install -y --no-install-recommends php-ldap php-imap php-apcu php-xmlrpc php-cas php-mysqli php-mbstring php-curl php-gd php-simplexml php-xml php-intl php-zip php-bz2 php-imap php-apcu php-ldap php8.2-fpm > /dev/null 2>&1
 systemctl enable mariadb > /dev/null 2>&1
 info "Activation d'Apache"
 systemctl enable apache2 > /dev/null 2>&1
@@ -151,10 +151,6 @@ info "Téléchargement et installation de la dernière version de GLPI..."
 DOWNLOADLINK=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.assets[0].browser_download_url')
 wget -O /tmp/glpi-latest.tgz $DOWNLOADLINK > /dev/null 2>&1
 tar xzf /tmp/glpi-latest.tgz -C /var/www/html/
-
-# Add permissions
-chown -R www-data:www-data /var/www/html
-chmod 755 /var/www/html/glpi
 
 # Setup Cron task
 echo "*/2 * * * * www-data /usr/bin/php /var/www/html/glpi/front/cron.php &>/dev/null" >> /etc/cron.d/glpi
@@ -204,34 +200,37 @@ info "Mise en place de Apache et PHP..."
 echo "ServerSignature Off" >> /etc/apache2/apache2.conf
 echo "ServerTokens Prod" >> /etc/apache2/apache2.conf
 
+# Add permissions
+chown -R www-data:www-data /var/www/html
+chmod 755 /var/www/html/glpi
+
 # Setup vhost
 cat > /etc/apache2/sites-available/glpi.conf << EOF
 <VirtualHost *:80>
- # Nom du serveur (/etc/hosts)
- ServerName debian.lan
+ ServerName glpi.lan
 
- # Dossier Web Public
- DocumentRoot /var/www/html/glpi/public
+     # Dossier Web Public
+     DocumentRoot /var/www/html/glpi/public
         
- # Fichier à charger par défaut (ordre)
- <IfModule dir_module>
-   DirectoryIndex index.php index.html
- </IfModule>
+     # Fichier à charger par défaut (ordre)
+     <IfModule dir_module>
+      DirectoryIndex index.php index.html
+     </IfModule>
 
- # Alias
- Alias "/glpi" "/var/www/html/glpi/public"
+     # Alias
+     Alias "/glpi" "/var/www/html/glpi/public"
 
- # Log
- ErrorLog ${APACHE_LOG_DIR}/error.log
- CustomLog ${APACHE_LOG_DIR}/access.log combined
+     # Log
+     ErrorLog ${APACHE_LOG_DIR}/error.log
+     CustomLog ${APACHE_LOG_DIR}/access.log combined
 
- # Repertoire
- <Directory /var/www/html/glpi/public>
-   Require all granted
-   RewriteEngine On
-   RewriteCond %{REQUEST_FILENAME} !-f
-   RewriteRule ^(.*)$ index.php [QSA,L]
- </Directory>
+     # Repertoire
+     <Directory /var/www/html/glpi/public>
+      Require all granted
+      RewriteEngine On
+      RewriteCond %{REQUEST_FILENAME} !-f
+      RewriteRule ^(.*)$ index.php [QSA,L]
+     </Directory>
 </VirtualHost>
 EOF
 
@@ -245,11 +244,17 @@ systemctl restart apache2 > /dev/null 2>&1
 # Sécurisation des cookie
 sleep 5
 phpversion=$(php -v | grep -i '(cli)' | awk '{print $2}' | cut -c 1,2,3)
+sed -i 's/session.cookie_secure =/session.cookie_secure = on/g' /etc/php/$phpversion/apache2/php.ini
+sed -i 's/session.cookie_httponly =/session.cookie_httponly = on/g' /etc/php/$phpversion/apache2/php.ini
+sed -i 's/session.cookie_samesite =/session.cookie_samesite = on/g'  /etc/php/$phpversion/apache2/php.ini
 
 sed -i 's/session.cookie_secure =/session.cookie_secure = on/g' /etc/php/$phpversion/cli/php.ini
 sed -i 's/session.cookie_httponly =/session.cookie_httponly = on/g' /etc/php/$phpversion/cli/php.ini
 sed -i 's/session.cookie_samesite =/session.cookie_samesite = on/g'  /etc/php/$phpversion/cli/php.ini
 
+sed -i 's/session.cookie_secure =/session.cookie_secure = on/g' /etc/php/$phpversion/fpm/php.ini
+sed -i 's/session.cookie_httponly =/session.cookie_httponly = on/g' /etc/php/$phpversion/fpm/php.ini
+sed -i 's/session.cookie_samesite =/session.cookie_samesite = on/g'  /etc/php/$phpversion/fpm/php.ini
 systemctl restart php$phpversion-fpm.service
 systemctl restart apache2 > /dev/null 2>&1
 }
