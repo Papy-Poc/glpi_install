@@ -209,22 +209,28 @@ cat > /etc/apache2/sites-available/glpi.conf << EOF
 <VirtualHost *:80>
  ServerName glpi.lan
 
-    DocumentRoot /var/www/glpi/public
+     # Dossier Web Public
+     DocumentRoot /var/www/html/glpi/public
+        
+     # Fichier à charger par défaut (ordre)
+     <IfModule dir_module>
+      DirectoryIndex index.php index.html
+     </IfModule>
 
-    # If you want to place GLPI in a subfolder of your site (e.g. your virtual host is serving multiple applications),
-    # you can use an Alias directive. If you do this, the DocumentRoot directive MUST NOT target the GLPI directory itself.
-    # Alias "/glpi" "/var/www/glpi/public"
+     # Alias
+     Alias "/glpi" "/var/www/html/glpi/public"
 
-    <Directory /var/www/glpi/public>
-        Require all granted
-        RewriteEngine On
-        # Redirect all requests to GLPI router, unless file exists.
-        RewriteCond %{REQUEST_FILENAME} !-f
-        RewriteRule ^(.*)$ index.php [QSA,L]
+    # Log
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+    # Repertoire
+    <Directory /var/www/html/glpi/public>
+     Require all granted
+     RewriteEngine On
+     RewriteCond %{REQUEST_FILENAME} !-f
+     RewriteRule ^(.*)$ index.php [QSA,L]
     </Directory>
-    <FilesMatch \.php$>
-        SetHandler "proxy:unix:/run/php/php8.2-fpm.sock|fcgi://localhost/"
-    </FilesMatch>
 </VirtualHost>
 EOF
 
