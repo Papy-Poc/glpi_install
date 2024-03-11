@@ -13,8 +13,7 @@ function info(){
     echo -e '\e[36m'$1'\e[0m';
 }
 
-function check_root()
-{
+function check_root(){
 # Vérification des privilèges root
 if [[ "$(id -u)" -ne 0 ]]
 then
@@ -85,15 +84,13 @@ else
 fi
 }
 
-function network_info()
-{
+function network_info(){
 INTERFACE=$(ip route | awk 'NR==1 {print $5}')
 IPADRESS=$(ip addr show $INTERFACE | grep inet | awk '{ print $2; }' | sed 's/\/.*$//' | head -n 1)
 HOST=$(hostname)
 }
 
-function install_packages()
-{
+function install_packages(){
 info "Installation des paquets..."
 sleep 1
 info "Recherche des mise à jour"
@@ -111,8 +108,7 @@ info "Redémarage d'Apache"
 systemctl restart apache2 > /dev/null 2>&1
 }
 
-function mariadb_configure()
-{
+function mariadb_configure(){
 info "Configuration de MariaDB"
 sleep 1
 SLQROOTPWD=$(openssl rand -base64 48 | cut -c1-12 )
@@ -144,8 +140,7 @@ sleep 1
 mysql -e "GRANT SELECT ON mysql.time_zone_name TO 'glpi_user'@'localhost'" > /dev/null 2>&1
 }
 
-function install_glpi()
-{
+function install_glpi(){
 info "Téléchargement et installation de la dernière version de GLPI..."
 # Get download link for the latest release
 DOWNLOADLINK=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.assets[0].browser_download_url')
@@ -169,9 +164,8 @@ chmod 775 /var/log/glpi
 cat > /var/www/glpi/inc/downstream.php << EOF
 <?php
 define('GLPI_CONFIG_DIR', '/etc/glpi/');
-if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) 
-{
-        require_once GLPI_CONFIG_DIR . '/local_define.php'
+if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
+        require_once GLPI_CONFIG_DIR . '/local_define.php';
 }
 EOF
 # Création du fichier local_define.php
@@ -189,16 +183,14 @@ echo "ServerTokens Prod" >> /etc/apache2/apache2.conf
 echo "*/2 * * * * www-data /usr/bin/php /var/www/html/glpi/front/cron.php &>/dev/null" >> /etc/cron.d/glpi
 }
 
-function setup_db()
-{
+function setup_db(){
 info "Mise en place de GLPI..."
 cd /var/www/html/glpi
 php bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password=$SQLGLPIPWD --default-language="fr_FR" --no-interaction --force
 rm -rf /var/www/html/glpi/install
 }
 
-function setup_apache-php()
-{
+function setup_apache-php(){
 info "Mise en place de Apache et PHP..."
 
 # Add permissions
@@ -241,8 +233,7 @@ systemctl restart php$phpversion-fpm.service
 systemctl restart apache2 > /dev/null 2>&1
 }
 
-function display_credentials()
-{
+function display_credentials(){
 info "===========================> Détail de l'installation de GLPI <=================================="
 warn "Il est important d'enregistrer ces informations. Si vous les perdez, elles seront irrécupérables."
 info "==> GLPI :"
@@ -265,8 +256,7 @@ echo ""
 info "Si vous rencontrez un problème avec ce script, veuillez le signaler sur GitHub : https://github.com/PapyPoc/glpi_install/issues"
 }
 
-function write_credentials()
-{
+function write_credentials(){
 cat <<EOF > $HOME/sauve_mdp.txt
 ==============================> GLPI installation details  <=====================================
 Il est important d'enregistrer ces informations. Si vous les perdez, elles seront irrécupérables.
