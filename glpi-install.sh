@@ -220,17 +220,17 @@ cat > /etc/apache2/sites-available/glpi.conf << EOF
      # Alias
      Alias "/glpi" "/var/www/html/glpi/public"
 
-    # Log
-    ErrorLog ${APACHE_LOG_DIR}/error.log
-    CustomLog ${APACHE_LOG_DIR}/access.log combined
+     # Log
+     ErrorLog ${APACHE_LOG_DIR}/error.log
+     CustomLog ${APACHE_LOG_DIR}/access.log combined
 
-    # Repertoire
-    <Directory /var/www/html/glpi/public>
-     Require all granted
-     RewriteEngine On
-     RewriteCond %{REQUEST_FILENAME} !-f
-     RewriteRule ^(.*)$ index.php [QSA,L]
-    </Directory>
+     # Repertoire
+     <Directory /var/www/html/glpi/public>
+      Require all granted
+      RewriteEngine On
+      RewriteCond %{REQUEST_FILENAME} !-f
+      RewriteRule ^(.*)$ index.php [QSA,L]
+     </Directory>
 </VirtualHost>
 EOF
 
