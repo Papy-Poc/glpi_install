@@ -13,14 +13,15 @@ function info(){
     echo -e '\e[36m'$1'\e[0m';
 }
 
-function check_root(){
+function check_root()
+{
 # Vérification des privilèges root
 if [[ "$(id -u)" -ne 0 ]]
 then
         warn "Ce script doit être exécuté en tant que root" >&2
   exit 1
 else
-        info "Privilège Root: OK"
+        info "Root privilege: OK"
 fi
 }
 
@@ -84,13 +85,31 @@ else
 fi
 }
 
-function network_info(){
+function network_info()
+{
 INTERFACE=$(ip route | awk 'NR==1 {print $5}')
 IPADRESS=$(ip addr show $INTERFACE | grep inet | awk '{ print $2; }' | sed 's/\/.*$//' | head -n 1)
 HOST=$(hostname)
 }
 
-function install_packages(){
+function confirm_installation()
+{
+warn "Ce script va maintenant installer les paquets nécessaires à l'installation et à la configuration de GLPI."
+info "Êtes-vous sûr de vouloir continuer ? [yes/no]"
+read confirm
+if [ $confirm == "yes" ]; then
+        info "Continer..."
+elif [ $confirm == "no" ]; then
+        info "Sortir..."
+        exit 1
+else
+        warn "Réponse non valide. Sortir..."
+        exit 1
+fi
+}
+
+function install_packages()
+{
 info "Installation des paquets..."
 sleep 1
 info "Recherche des mise à jour"
@@ -108,7 +127,8 @@ info "Redémarage d'Apache"
 systemctl restart apache2 > /dev/null 2>&1
 }
 
-function mariadb_configure(){
+function mariadb_configure()
+{
 info "Configuration de MariaDB"
 sleep 1
 SLQROOTPWD=$(openssl rand -base64 48 | cut -c1-12 )
@@ -121,11 +141,11 @@ sleep 1
 mysql -e "DROP DATABASE IF EXISTS test" > /dev/null 2>&1
 # Reload privileges
 mysql -e "FLUSH PRIVILEGES" > /dev/null 2>&1
-# Création de la Base De Données
+# Create a new database
 mysql -e "CREATE DATABASE glpi" > /dev/null 2>&1
-# Création de l'utilisateur
+# Create a new user
 mysql -e "CREATE USER 'glpi_user'@'localhost' IDENTIFIED BY '$SQLGLPIPWD'" > /dev/null 2>&1
-# Permission de la BDD pour le compte glpi_user
+# Grant privileges to the new user for the new database
 mysql -e "GRANT ALL PRIVILEGES ON glpi.* TO 'glpi_user'@'localhost'" > /dev/null 2>&1
 # Reload privileges
 mysql -e "FLUSH PRIVILEGES" > /dev/null 2>&1
@@ -140,40 +160,42 @@ sleep 1
 mysql -e "GRANT SELECT ON mysql.time_zone_name TO 'glpi_user'@'localhost'" > /dev/null 2>&1
 }
 
-function install_glpi(){
+function install_glpi()
+{
 info "Téléchargement et installation de la dernière version de GLPI..."
 # Get download link for the latest release
 DOWNLOADLINK=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.assets[0].browser_download_url')
 wget -O /tmp/glpi-latest.tgz $DOWNLOADLINK > /dev/null 2>&1
 tar xzf /tmp/glpi-latest.tgz -C /var/www/html/
-# Création répertoire pour les fichiers de logs
-mkdir /var/www/html/glpi/logs
-# Création répertoire pour les fichiers de configuration de GLPI
-mkdir /etc/glpi
-chown www-data /etc/glpi/
-chmod 775 /etc/glpi
-mv /var/www/glpi/config /etc/glpi
-mkdir /var/lib/glpi
-chown www-data /var/lib/glpi/
-chmod 775 /var/lib/glpi/
-mv /var/www/glpi/files /var/lib/glpi
-mkdir /var/log/glpi
-chown www-data /var/log/glpi
-chmod 775 /var/log/glpi
-# Création du fichier downstream.php
-cat > /var/www/glpi/inc/downstream.php << EOF
-<?php
-define('GLPI_CONFIG_DIR', '/etc/glpi/');
-if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
-        require_once GLPI_CONFIG_DIR . '/local_define.php';
-}
+mkdir /var/www/html/glpi/log
+
+# Setup vhost
+cat > /etc/apache2/sites-available/glpi.conf << EOF
+<VirtualHost *:80>
+ # Dossier Web Public
+ DocumentRoot /var/www/html/glpi/public
+
+ # Fichier à charger par défaut (ordre)
+ <IfModule dir_module>
+   DirectoryIndex index.php index.html
+ </IfModule>
+
+ # Log
+ ErrorLog /var/www/html/glpi/log/error.log
+ CustomLog /var/www/html/glpi/log/access.log combined
+
+ # Repertoire
+ <Directory /var/www/html/glpi/public>
+   Require all granted
+   RewriteEngine On
+   RewriteCond %{REQUEST_FILENAME} !-f
+   RewriteRule ^(.*)$ index.php [QSA,L]
+ </Directory>
+</VirtualHost>
 EOF
-# Création du fichier local_define.php
-cat > /etc/glpi/local_define.php << EOF
-<?php
-define('GLPI_VAR_DIR', '/var/lib/glpi/files');
-define('GLPI_LOG_DIR', '/var/log/glpi');
-EOF
+
+a2dissite 000-default.conf > /dev/null 2>&1
+a2ensite glpi.conf > /dev/null 2>&1
 
 #Disable Apache Web Server Signature
 echo "ServerSignature Off" >> /etc/apache2/apache2.conf
@@ -181,59 +203,30 @@ echo "ServerTokens Prod" >> /etc/apache2/apache2.conf
 
 # Setup Cron task
 echo "*/2 * * * * www-data /usr/bin/php /var/www/html/glpi/front/cron.php &>/dev/null" >> /etc/cron.d/glpi
+
+#Activation du module rewrite d'apache
+a2enmod rewrite > /dev/null 2>&1
+systemctl restart apache2 > /dev/null 2>&1
 }
 
-function setup_db(){
-info "Mise en place de GLPI..."
+function setup_db()
+{
+info "Setting up GLPI..."
 cd /var/www/html/glpi
 php bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password=$SQLGLPIPWD --default-language="fr_FR" --no-interaction --force
 rm -rf /var/www/html/glpi/install
-}
-
-function setup_apache-php(){
-info "Mise en place de Apache et PHP..."
 
 # Add permissions
 chown -R www-data:www-data /var/www/html
 chmod 755 /var/www/html/glpi
 
-# Setup vhost
-cat > /etc/apache2/sites-available/glpi.conf << EOF
-<VirtualHost *:80>
- ServerName glpi.lan
-
-    DocumentRoot /var/www/glpi/public
-
-    # If you want to place GLPI in a subfolder of your site (e.g. your virtual host is serving multiple applications),
-    # you can use an Alias directive. If you do this, the DocumentRoot directive MUST NOT target the GLPI directory itself.
-    # Alias "/glpi" "/var/www/glpi/public"
-
-    <Directory /var/www/glpi/public>
-        Require all granted
-        RewriteEngine On
-        # Redirect all requests to GLPI router, unless file exists.
-        RewriteCond %{REQUEST_FILENAME} !-f
-        RewriteRule ^(.*)$ index.php [QSA,L]
-    </Directory>
-</VirtualHost>
-EOF
-
-a2dissite 000-default.conf > /dev/null 2>&1
-a2ensite glpi.conf > /dev/null 2>&1
-
-#Activation du module rewrite d'apache
-a2enmod rewrite > /dev/null 2>&1
-
-# Sécurisation des cookie
 phpversion=$(php -v | grep -i '(cli)' | awk '{print $2}' | cut -c 1,2,3)
-sed -i '/^\s*;*\s*session\.cookie_secure\s*=.*/s/^;\(\s*session\.cookie_secure\s*=\s*\).*/\1 on/' /etc/php/$phpversion/cli/php.ini
-sed -i '/^\s*;*\s*session\.cookie_httponly\s*=.*/s/^;\(\s*session\.cookie_httponly\s*=\s*\).*/\1 on/' /etc/php/$phpversion/cli/php.ini
-sed -i '/^\s*;*\s*session\.cookie_samesite\s*=.*/s/^;\(\s*session\.cookie_samesite\s*=\s*\).*/\1 Lax/' /etc/php/$phpversion/cli/php.ini
-systemctl restart php$phpversion-fpm.service
+sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 =on/' /etc/php/$phpversion/cli/php.ini
 systemctl restart apache2 > /dev/null 2>&1
 }
 
-function display_credentials(){
+function display_credentials()
+{
 info "===========================> Détail de l'installation de GLPI <=================================="
 warn "Il est important d'enregistrer ces informations. Si vous les perdez, elles seront irrécupérables."
 info "==> GLPI :"
@@ -256,7 +249,8 @@ echo ""
 info "Si vous rencontrez un problème avec ce script, veuillez le signaler sur GitHub : https://github.com/PapyPoc/glpi_install/issues"
 }
 
-function write_credentials(){
+function write_credentials()
+{
 cat <<EOF > $HOME/sauve_mdp.txt
 ==============================> GLPI installation details  <=====================================
 Il est important d'enregistrer ces informations. Si vous les perdez, elles seront irrécupérables.
@@ -288,11 +282,11 @@ echo ""
 clear
 check_root
 check_distro
+# confirm_installation  # Pour une installation manuel enlever #
 network_info
 install_packages
 mariadb_configure
 install_glpi
 setup_db
-setup_apache-php
 display_credentials
 write_credentials
