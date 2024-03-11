@@ -97,13 +97,13 @@ function install_packages()
 info "Installation des paquets..."
 sleep 1
 info "Recherche des mise à jour"
-apt update > /dev/null 2>&1
+apt-get update > /dev/null 2>&1
 info "Application des mise à jour"
-apt upgrade -y > /dev/null 2>&1
+apt-get upgrade -y > /dev/null 2>&1
 info "Installation des service lamp..."
-apt install -y --no-install-recommends apache2 mariadb-server perl curl jq php > /dev/null 2>&1
+apt-get install -y --no-install-recommends apache2 mariadb-server perl curl jq php > /dev/null 2>&1
 info "Installation des extensions de php"
-apt install -y --no-install-recommends php-ldap php-imap php-apcu php-xmlrpc php-cas php-mysqli php-mbstring php-curl php-gd php-simplexml php-xml php-intl php-zip php-bz2 > /dev/null 2>&1
+apt-get install -y --no-install-recommends php-ldap php-imap php-apcu php-xmlrpc php-cas php-mysqli php-mbstring php-curl php-gd php-simplexml php-xml php-intl php-zip php-bz2 > /dev/null 2>&1
 systemctl enable mariadb > /dev/null 2>&1
 info "Activation d'Apache"
 systemctl enable apache2 > /dev/null 2>&1
@@ -151,10 +151,6 @@ info "Téléchargement et installation de la dernière version de GLPI..."
 DOWNLOADLINK=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.assets[0].browser_download_url')
 wget -O /tmp/glpi-latest.tgz $DOWNLOADLINK > /dev/null 2>&1
 tar xzf /tmp/glpi-latest.tgz -C /var/www/html/
-
-# Add permissions
-chown -R www-data:www-data /var/www/html
-chmod 755 /var/www/html/glpi
 
 # Setup Cron task
 echo "*/2 * * * * www-data /usr/bin/php /var/www/html/glpi/front/cron.php &>/dev/null" >> /etc/cron.d/glpi
@@ -242,6 +238,9 @@ sed -i 's/session.cookie_secure =/session.cookie_secure = on/g' /etc/php/$phpver
 sed -i 's/session.cookie_httponly =/session.cookie_httponly = on/g' /etc/php/$phpversion/cli/php.ini
 sed -i 's/session.cookie_samesite =/session.cookie_samesite = on/g'  /etc/php/$phpversion/cli/php.ini
 
+# Add permissions
+chown -R www-data:www-data /var/www/html
+chmod 755 /var/www/html/glpi
 systemctl restart apache2 > /dev/null 2>&1
 }
 
