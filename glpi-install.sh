@@ -152,6 +152,10 @@ DOWNLOADLINK=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/l
 wget -O /tmp/glpi-latest.tgz $DOWNLOADLINK > /dev/null 2>&1
 tar xzf /tmp/glpi-latest.tgz -C /var/www/html/
 
+# Add permissions
+chown -R www-data:www-data /var/www/html
+chmod 755 /var/www/html/glpi
+
 # Setup Cron task
 echo "*/2 * * * * www-data /usr/bin/php /var/www/html/glpi/front/cron.php &>/dev/null" >> /etc/cron.d/glpi
 }
@@ -171,11 +175,11 @@ info "Mise en place des répertoires pour les fichiers de configuration de GLPI"
 mkdir /etc/glpi
 chown www-data /etc/glpi/
 chmod 775 /etc/glpi
-mv /var/www/glpi/config /etc/glpi
+mv /var/www/html/glpi/config /etc/glpi
 mkdir /var/lib/glpi
 chown www-data /var/lib/glpi/
 chmod 775 /var/lib/glpi/
-mv /var/www/glpi/files /var/lib/glpi
+mv /var/www/html/glpi/files /var/lib/glpi
 mkdir /var/log/glpi
 chown www-data /var/log/glpi
 chmod 775 /var/log/glpi
@@ -199,10 +203,6 @@ info "Mise en place de Apache et PHP..."
 #Disable Apache Web Server Signature
 echo "ServerSignature Off" >> /etc/apache2/apache2.conf
 echo "ServerTokens Prod" >> /etc/apache2/apache2.conf
-
-# Add permissions
-chown -R www-data:www-data /var/www/html
-chmod 755 /var/www/html/glpi
 
 # Setup vhost
 cat > /etc/apache2/sites-available/glpi.conf << EOF
@@ -231,6 +231,9 @@ cat > /etc/apache2/sites-available/glpi.conf << EOF
       RewriteCond %{REQUEST_FILENAME} !-f
       RewriteRule ^(.*)$ index.php [QSA,L]
      </Directory>
+     <FilesMatch \.php$>
+      SetHandler "proxy:unix:/run/php/php8.2-fpm.sock|fcgi://localhost/"
+     </FilesMatch>
 </VirtualHost>
 EOF
 
