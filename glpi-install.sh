@@ -239,12 +239,22 @@ a2ensite glpi.conf > /dev/null 2>&1
 
 #Activation du module rewrite d'apache
 a2enmod rewrite > /dev/null 2>&1
+systemctl restart apache2 > /dev/null 2>&1
 
 # Sécurisation des cookie
+sleep 5
 phpversion=$(php -v | grep -i '(cli)' | awk '{print $2}' | cut -c 1,2,3)
-sed -i '/^\s*;*\s*session\.cookie_secure\s*=.*/s/^;\(\s*session\.cookie_secure\s*=\s*\).*/\1 on/' /etc/php/$phpversion/fpm/php.ini
-sed -i '/^\s*;*\s*session\.cookie_httponly\s*=.*/s/^;\(\s*session\.cookie_httponly\s*=\s*\).*/\1 on/' /etc/php/$phpversion/fpm/php.ini
-sed -i '/^\s*;*\s*session\.cookie_samesite\s*=.*/s/^;\(\s*session\.cookie_samesite\s*=\s*\).*/\1 Lax/' /etc/php/$phpversion/fpm/php.ini
+sed -i 's/session.cookie_secure =/session.cookie_secure = on/g' /etc/php/$phpversion/apache2/php.ini
+sed -i 's/session.cookie_httponly =/session.cookie_httponly = on/g' /etc/php/$phpversion/apache2/php.ini
+sed -i 's/session.cookie_samesite =/session.cookie_samesite = on/g'  /etc/php/$phpversion/apache2/php.ini
+
+sed -i 's/session.cookie_secure =/session.cookie_secure = on/g' /etc/php/$phpversion/cli/php.ini
+sed -i 's/session.cookie_httponly =/session.cookie_httponly = on/g' /etc/php/$phpversion/cli/php.ini
+sed -i 's/session.cookie_samesite =/session.cookie_samesite = on/g'  /etc/php/$phpversion/cli/php.ini
+
+sed -i 's/session.cookie_secure =/session.cookie_secure = on/g' /etc/php/$phpversion/fpm/php.ini
+sed -i 's/session.cookie_httponly =/session.cookie_httponly = on/g' /etc/php/$phpversion/fpm/php.ini
+sed -i 's/session.cookie_samesite =/session.cookie_samesite = on/g'  /etc/php/$phpversion/fpm/php.ini
 systemctl restart php$phpversion-fpm.service
 systemctl restart apache2 > /dev/null 2>&1
 }
