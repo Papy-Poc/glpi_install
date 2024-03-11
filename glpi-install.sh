@@ -97,13 +97,13 @@ function install_packages()
 info "Installation des paquets..."
 sleep 1
 info "Recherche des mise à jour"
-apt-get update > /dev/null 2>&1
+apt update > /dev/null 2>&1
 info "Application des mise à jour"
-apt-get upgrade -y > /dev/null 2>&1
+apt upgrade -y > /dev/null 2>&1
 info "Installation des service lamp..."
-apt-get install -y --no-install-recommends apache2 mariadb-server perl curl jq php > /dev/null 2>&1
+apt install -y --no-install-recommends apache2 mariadb-server perl curl jq php > /dev/null 2>&1
 info "Installation des extensions de php"
-apt-get install -y --no-install-recommends php-ldap php-imap php-apcu php-xmlrpc php-cas php-mysqli php-mbstring php-curl php-gd php-simplexml php-xml php-intl php-zip php-bz2 > /dev/null 2>&1
+apt install -y --no-install-recommends php-ldap php-imap php-apcu php-xmlrpc php-cas php-mysqli php-mbstring php-curl php-gd php-simplexml php-xml php-intl php-zip php-bz2 > /dev/null 2>&1
 systemctl enable mariadb > /dev/null 2>&1
 info "Activation d'Apache"
 systemctl enable apache2 > /dev/null 2>&1
@@ -152,8 +152,20 @@ DOWNLOADLINK=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/l
 wget -O /tmp/glpi-latest.tgz $DOWNLOADLINK > /dev/null 2>&1
 tar xzf /tmp/glpi-latest.tgz -C /var/www/html/
 
+# Add permissions
+chown -R www-data:www-data /var/www/html
+chmod 755 /var/www/html/glpi
+
 # Setup Cron task
 echo "*/2 * * * * www-data /usr/bin/php /var/www/html/glpi/front/cron.php &>/dev/null" >> /etc/cron.d/glpi
+}
+
+function setup_db()
+{
+info "Mise en place de GLPI..."
+cd /var/www/html/glpi
+php bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password=$SQLGLPIPWD --default-language="fr_FR" --no-interaction --force
+rm -rf /var/www/html/glpi/install
 }
 
 function setup_apache-php()
@@ -196,7 +208,7 @@ echo "ServerTokens Prod" >> /etc/apache2/apache2.conf
 cat > /etc/apache2/sites-available/glpi.conf << EOF
 <VirtualHost *:80>
  # Nom du serveur (/etc/hosts)
- ServerName glpi.lan
+ ServerName debian.lan
 
  # Dossier Web Public
  DocumentRoot /var/www/html/glpi/public
@@ -210,8 +222,8 @@ cat > /etc/apache2/sites-available/glpi.conf << EOF
  Alias "/glpi" "/var/www/html/glpi/public"
 
  # Log
- ErrorLog /var/log/glpi/error.log
- CustomLog /var/log/glpi/access.log combined
+ ErrorLog ${APACHE_LOG_DIR}/error.log
+ CustomLog ${APACHE_LOG_DIR}/access.log combined
 
  # Repertoire
  <Directory /var/www/html/glpi/public>
@@ -238,18 +250,8 @@ sed -i 's/session.cookie_secure =/session.cookie_secure = on/g' /etc/php/$phpver
 sed -i 's/session.cookie_httponly =/session.cookie_httponly = on/g' /etc/php/$phpversion/cli/php.ini
 sed -i 's/session.cookie_samesite =/session.cookie_samesite = on/g'  /etc/php/$phpversion/cli/php.ini
 
-# Add permissions
-chown -R www-data:www-data /var/www/html
-chmod 755 /var/www/html/glpi
+systemctl restart php$phpversion-fpm.service
 systemctl restart apache2 > /dev/null 2>&1
-}
-
-function setup_db()
-{
-info "Mise en place de GLPI..."
-cd /var/www/html/glpi
-php bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password=$SQLGLPIPWD --default-language="fr_FR" --no-interaction --force
-rm -rf /var/www/html/glpi/install
 }
 
 function display_credentials()
@@ -313,7 +315,7 @@ network_info
 install_packages
 mariadb_configure
 install_glpi
-setup_apache-php
 setup_db
+setup_apache-php
 display_credentials
 write_credentials
