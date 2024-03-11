@@ -160,14 +160,6 @@ chmod 755 /var/www/html/glpi
 echo "*/2 * * * * www-data /usr/bin/php /var/www/html/glpi/front/cron.php &>/dev/null" >> /etc/cron.d/glpi
 }
 
-function setup_db()
-{
-info "Mise en place de GLPI..."
-cd /var/www/html/glpi
-php bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password=$SQLGLPIPWD --default-language="fr_FR" --no-interaction --force
-rm -rf /var/www/html/glpi/install
-}
-
 function setup_apache-php()
 {
 info "Mise en place des répertoires pour les fichiers de configuration de GLPI"
@@ -253,6 +245,14 @@ sed -i 's/session.cookie_samesite =/session.cookie_samesite = on/g'  /etc/php/$p
 systemctl restart apache2 > /dev/null 2>&1
 }
 
+function setup_db()
+{
+info "Mise en place de GLPI..."
+cd /var/www/html/glpi
+php bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password=$SQLGLPIPWD --default-language="fr_FR" --no-interaction --force
+rm -rf /var/www/html/glpi/install
+}
+
 function display_credentials()
 {
 info "===========================> Détail de l'installation de GLPI <=================================="
@@ -314,7 +314,7 @@ network_info
 install_packages
 mariadb_configure
 install_glpi
-setup_db
 setup_apache-php
+setup_db
 display_credentials
 write_credentials
