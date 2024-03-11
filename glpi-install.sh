@@ -207,30 +207,31 @@ echo "ServerTokens Prod" >> /etc/apache2/apache2.conf
 # Setup vhost
 cat > /etc/apache2/sites-available/glpi.conf << EOF
 <VirtualHost *:80>
+ # Nom du serveur (/etc/hosts)
  ServerName glpi.lan
 
-     # Dossier Web Public
-     DocumentRoot /var/www/html/glpi/public
+ # Dossier Web Public
+ DocumentRoot /var/www/html/glpi/public
         
-     # Fichier à charger par défaut (ordre)
-     <IfModule dir_module>
-      DirectoryIndex index.php index.html
-     </IfModule>
+ # Fichier à charger par défaut (ordre)
+ <IfModule dir_module>
+   DirectoryIndex index.php index.html
+ </IfModule>
 
-     # Alias
-     Alias "/glpi" "/var/www/html/glpi/public"
+ # Alias
+ Alias "/glpi" "/var/www/html/glpi/public"
 
-     # Log
-     ErrorLog ${APACHE_LOG_DIR}/error.log
-     CustomLog ${APACHE_LOG_DIR}/access.log combined
+ # Log
+ ErrorLog ${APACHE_LOG_DIR}/error.log
+ CustomLog ${APACHE_LOG_DIR}/access.log combined
 
-     # Repertoire
-     <Directory /var/www/html/glpi/public>
-      Require all granted
-      RewriteEngine On
-      RewriteCond %{REQUEST_FILENAME} !-f
-      RewriteRule ^(.*)$ index.php [QSA,L]
-     </Directory>
+ # Repertoire
+ <Directory /var/www/html/glpi/public>
+   Require all granted
+   RewriteEngine On
+   RewriteCond %{REQUEST_FILENAME} !-f
+   RewriteRule ^(.*)$ index.php [QSA,L]
+ </Directory>
 </VirtualHost>
 EOF
 
