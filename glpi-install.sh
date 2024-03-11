@@ -151,9 +151,23 @@ info "Téléchargement et installation de la dernière version de GLPI..."
 DOWNLOADLINK=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.assets[0].browser_download_url')
 wget -O /tmp/glpi-latest.tgz $DOWNLOADLINK > /dev/null 2>&1
 tar xzf /tmp/glpi-latest.tgz -C /var/www/html/
-# Création répertoire pour les fichiers de logs
-mkdir /var/www/html/glpi/logs
-# Création répertoire pour les fichiers de configuration de GLPI
+
+# Setup Cron task
+echo "*/2 * * * * www-data /usr/bin/php /var/www/html/glpi/front/cron.php &>/dev/null" >> /etc/cron.d/glpi
+}
+
+function setup_db()
+{
+info "Mise en place de GLPI..."
+cd /var/www/html/glpi
+php bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password=$SQLGLPIPWD --default-language="fr_FR" --no-interaction --force
+rm -rf /var/www/html/glpi/install
+}
+
+function setup_apache-php()
+{
+info "Mise en place des répertoires pour les fichiers de configuration de GLPI"
+# Création répertoires pour les fichiers de configuration de GLPI
 mkdir /etc/glpi
 chown www-data /etc/glpi/
 chmod 775 /etc/glpi
@@ -180,25 +194,11 @@ define('GLPI_VAR_DIR', '/var/lib/glpi/files');
 define('GLPI_LOG_DIR', '/var/log/glpi');
 EOF
 
+info "Mise en place de Apache et PHP..."
+
 #Disable Apache Web Server Signature
 echo "ServerSignature Off" >> /etc/apache2/apache2.conf
 echo "ServerTokens Prod" >> /etc/apache2/apache2.conf
-
-# Setup Cron task
-echo "*/2 * * * * www-data /usr/bin/php /var/www/html/glpi/front/cron.php &>/dev/null" >> /etc/cron.d/glpi
-}
-
-function setup_db()
-{
-info "Mise en place de GLPI..."
-cd /var/www/html/glpi
-php bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password=$SQLGLPIPWD --default-language="fr_FR" --no-interaction --force
-rm -rf /var/www/html/glpi/install
-}
-
-function setup_apache-php()
-{
-info "Mise en place de Apache et PHP..."
 
 # Add permissions
 chown -R www-data:www-data /var/www/html
