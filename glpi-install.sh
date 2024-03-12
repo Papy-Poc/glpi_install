@@ -143,13 +143,13 @@ EOF
         sleep 1
         cat > /var/www/html/glpi/inc/downstream.php << EOF
         <?php
-        define('GLPI_CONFIG_DIR', '/etc/glpi/');
+        define('GLPI_CONFIG_DIR', '/etc/glpi');
         if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
         require_once GLPI_CONFIG_DIR . '/local_define.php';
         }
 EOF
-        mv /var/www/html/glpi/config /etc/glpi
-        mv /var/www/html/glpi/files /var/lib/glpi
+        mv /var/www/html/glpi/config /etc/glpi/
+        mv /var/www/html/glpi/files /var/lib/glpi/
         chown -R www-data:www-data  /etc/glpi
         chmod -R 775 /etc/glpi
         sleep 1
