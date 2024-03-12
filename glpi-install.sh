@@ -99,7 +99,7 @@ sleep 1
 # Set the root password
 mysql -e "UPDATE mysql.user SET Password = PASSWORD('$SLQROOTPWD') WHERE User = 'root'"
 # Remove anonymous user accounts
-mysql -e "DELETE FROM mysql.user WHERE User = ''"
+mysql -e "DELETE FROM mysql.user WHERE User = 'test'"
 # Disable remote root login
 mysql -e "DELETE FROM mysql.user WHERE User = 'root' AND Host NOT IN ('localhost', '127.0.0.1', '::1')"
 # Remove the test database
@@ -139,8 +139,9 @@ define('GLPI_VAR_DIR', '/var/lib/glpi');
 define('GLPI_LOG_DIR', '/var/log/glpi');
 EOF
 mv /var/www/html/glpi/config /etc/glpi
-chown -R www-data:www-data  /etc/glpi/
 mv /var/www/html/glpi/files /var/lib/glpi
+chown -R www-data:www-data  /etc/glpi
+chmod -R 775 /etc/glpi
 mkdir /var/log/glpi
 chown -R www-data:www-data  /var/log/glpi
 chmod -R 775 /var/log/glpi
@@ -159,26 +160,17 @@ chmod -R 775 /var/www/html
 # Setup vhost
 cat > /etc/apache2/sites-available/glpi.conf << EOF
 <VirtualHost *:80>
-        # Nom du serveur (/etc/hosts)
-        ServerName glpi.lan
+       ServerName glpi.lan
 
-        # Dossier Web Public
-        DocumentRoot /var/www/html/glpi/public
-        # Repertoire
-        <Directory /var/www/html/glpi/public>
-                Require all granted
-                RewriteEngine On
-                RewriteCond %{REQUEST_FILENAME} !-f
-                RewriteRule ^(.*)$ index.php [QSA,L]
-        </Directory>        
-        # Fichier à charger par défaut (ordre)
-        <IfModule dir_module>
-                DirectoryIndex index.php index.html
-        </IfModule>
-
-        # Alias
-        Alias "/glpi" "/var/www/html/glpi/public"
-
+    DocumentRoot /var/www/glpi/public
+    <Directory /var/www/glpi/public>
+        Require all granted
+        RewriteEngine On
+        RewriteCond %{HTTP:Authorization} ^(.+)$
+        RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+        RewriteCond %{REQUEST_FILENAME} !-f
+        RewriteRule ^(.*)$ index.php [QSA,L]
+    </Directory>
         # Log
         ErrorLog /var/log/glpi/error.log
         CustomLog /var/log/glpi/access.log combined
