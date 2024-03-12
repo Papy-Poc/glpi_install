@@ -126,12 +126,7 @@ function install_glpi(){
         systemctl restart apache2
 
 }
-
-function setup_db(){
-        info "Setting up GLPI..."
-        cd /var/www/html/glpi
-        php bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password=$SQLGLPIPWD --default-language="fr_FR" --no-interaction --force
-        rm -rf /var/www/html/glpi/install
+function conf_glpi(){
         sleep 1
         mkdir /etc/glpi
         sleep 1
@@ -191,6 +186,12 @@ EOF
 
         # Setup Cron task
         echo "*/2 * * * * www-data /usr/bin/php /var/www/html/glpi/front/cron.php &>/dev/null" >> /etc/cron.d/glpi
+}
+function setup_db(){
+        info "Setting up GLPI..."
+        cd /var/www/html/glpi
+        php bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password=$SQLGLPIPWD --default-language="fr_FR" --no-interaction --force
+        rm -rf /var/www/html/glpi/install
 }
 
 function display_credentials(){
@@ -254,6 +255,8 @@ install_packages
 mariadb_configure
 sleep 5
 install_glpi
+sleep 5
+conf_glpi
 sleep 5
 setup_db
 display_credentials
