@@ -15,76 +15,54 @@ function info(){
 
 function check_root(){
 # Vérification des privilèges root
-if [[ "$(id -u)" -ne 0 ]]
-then
+if [[ "$(id -u)" -ne 0 ]]; then
         warn "Ce script doit être exécuté en tant que root" >&2
-  exit 1
+        exit 1
 else
         info "Privilège Root: OK"
 fi
 }
 
 function check_distro(){
-info "Recherche des mise à jour"
-apt-get update > /dev/null 2>&1
-info "Application des mise à jour"
-apt-get upgrade -y > /dev/null 2>&1
-info "Installation du paquet des release"
-apt-get install -y lsb-release > /dev/null 2>&1
 # Constante pour les versions de Debian acceptables
 DEBIAN_VERSIONS=("11" "12")
 # Constante pour les versions d'Ubuntu acceptables
 UBUNTU_VERSIONS=("23.10")
-# Récupération du nom de la distribution
-DISTRO=$(lsb_release -is 2>/dev/null)
-# Récupération de la version de la distribution
-VERSION=$(lsb_release -rs 2>/dev/null)
-# Vérifie si c'est une distribution Debian
-if [ "$DISTRO" == "Debian" ]; then
-        # Vérifie si la version de Debian est acceptable
-        if [[ " ${DEBIAN_VERSIONS[*]} " == *" $VERSION "* ]]; then
-                info "La version de votre systeme d'exploitation ($DISTRO $VERSION) est compatible."
-        else
-                warn "La version de votre système d'exploitation ($DISTRO $VERSION) n'est pas considérée comme compatible."
-                warn "Voulez-vous toujours forcer l'installation ? Attention, si vous choisissez de forcer le script, c'est à vos risques et périls."
-                info "Êtes-vous sûr de vouloir continuer ? [yes/no]"
-                read response
-                if [ $response == "yes" ]; then
-                info "Continuing..."
-                elif [ $response == "no" ]; then
-                info "Exiting..."
-                exit 1
+# Vérifie si c'est une distribution Debian ou Ubuntu
+if [ -f /etc/os-release ]; then
+    # Source le fichier /etc/os-release pour obtenir les informations de la distribution
+    . /etc/os-release
+    # Vérifie si la distribution est basée sur Debian ou Ubuntu
+        if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
+                if [[ " ${DEBIAN_VERSIONS[*]} " == *" $VERSION_ID "* || " ${UBUNTU_VERSIONS[*]} " == *" $VERSION_ID "* ]]; then
+                        info "La version de votre systeme d'exploitation ($ID $VERSION_ID) est compatible."
                 else
-                warn "Réponse non valide. Quitter..."
-                exit 1
+                        warn "La version de votre système d'exploitation ($ID $VERSION_ID) n'est pas considérée comme compatible."
+                        warn "Voulez-vous toujours forcer l'installation ? Attention, si vous choisissez de forcer le script, c'est à vos risques et périls."
+                        info "Êtes-vous sûr de vouloir continuer ? [yes/no]"
+                        read response
+                        if [ $response == "yes" ]; then
+                                info "Continuing..."
+                        elif [ $response == "no" ]; then
+                                info "Exiting..."
+                                exit 1
+                        else
+                                warn "Réponse non valide. Quitter..."
+                                exit 1
+                        fi
                 fi
         fi
-
-# Vérifie si c'est une distribution Ubuntu
-elif [ "$DISTRO" == "Ubuntu" ]; then
-        # Vérifie si la version d'Ubuntu est acceptable
-        if [[ " ${UBUNTU_VERSIONS[*]} " == *" $VERSION "* ]]; then
-                info "La version de votre système d'exploitation ($DISTRO $VERSION) est compatible."
-        else
-                warn "Your operating system version ($DISTRO $VERSION) is not noted as compatible."
-                warn "Voulez-vous toujours forcer l'installation ? Attention, si vous choisissez de forcer le script, c'est à vos risques et périls."
-                info "Êtes-vous sûr de vouloir continuer ? [yes/no]"
-                read response
-                if [ $response == "yes" ]; then
-                info "Continuing..."
-                elif [ $response == "no" ]; then
-                info "Exiting..."
-                exit 1
-                else
-                warn "Réponse non valide. Quitter..."
-                exit 1
-                fi
-        fi
-# Si c'est une autre distribution
 else
-        warn "Il s'agit d'une autre distribution que Debian ou Ubuntu qui n'est pas compatible."
-        exit 1
+    warn "Il s'agit d'une autre distribution que Debian ou Ubuntu qui n'est pas compatible."
+    exit 1
 fi
+}
+
+function update_distro(){
+info "Recherche des mise à jour"
+apt-get update > /dev/null 2>&1
+info "Application des mise à jour"
+apt-get upgrade -y > /dev/null 2>&1
 }
 
 function network_info(){
@@ -96,9 +74,10 @@ HOST=$(hostname)
 function install_packages(){
 sleep 1
 info "Installation des service lamp..."
-apt-get install -y apache2 mariadb-server perl curl jq php > /dev/null 2>&1
+apt-get install -y --no-install-recommends apache2 mariadb-server perl curl jq php > /dev/null 2>&1
 info "Installation des extensions de php"
-apt install -y php-mysql php-mbstring php-curl php-gd php-xml php-intl php-ldap php-apcu php-xmlrpc php-zip php-bz2 php-imap > /dev/null 2>&1
+apt install -y --no-install-recommends php-mysql php-mbstring php-curl php-gd php-xml php-intl php-ldap php-apcu php-xmlrpc php-zip php-bz2 > /dev/null 2>&1
+info "Activation de MariaDB"
 systemctl enable mariadb > /dev/null 2>&1
 info "Activation d'Apache"
 systemctl enable apache2 > /dev/null 2>&1
@@ -115,10 +94,16 @@ systemctl start mariadb > /dev/null 2>&1
 (echo ""; echo "y"; echo "y"; echo "$SLQROOTPWD"; echo "$SLQROOTPWD"; echo "y"; echo "y"; echo "y"; echo "y") | mysql_secure_installation > /dev/null 2>&1
 sleep 1
 
+# Set the root password
+mysql -e "UPDATE mysql.user SET Password = PASSWORD('$SLQROOTPWD') WHERE User = 'root'"
+# Remove anonymous user accounts
+mysql -e "DELETE FROM mysql.user WHERE User = ''"
+# Disable remote root login
+mysql -e "DELETE FROM mysql.user WHERE User = 'root' AND Host NOT IN ('localhost', '127.0.0.1', '::1')"
 # Remove the test database
-mysql -e "DROP DATABASE IF EXISTS test" > /dev/null 2>&1
-# Remove the test user
-mysql -e "DROP USER IF EXISTS test" > /dev/null 2>&1
+mysql -e "DROP DATABASE test"
+# Reload privileges
+mysql -e "FLUSH PRIVILEGES"
 # Create a new database
 mysql -e "CREATE DATABASE glpi" > /dev/null 2>&1
 # Create a new user
@@ -145,40 +130,65 @@ DOWNLOADLINK=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/l
 wget -O /tmp/glpi-latest.tgz $DOWNLOADLINK > /dev/null 2>&1
 tar xzf /tmp/glpi-latest.tgz -C /var/www/html/
 
+mkdir /etc/glpi
+cat > /etc/glpi/local_define.php << EOF
+<?php
+define('GLPI_VAR_DIR', '/var/lib/glpi');
+define('GLPI_LOG_DIR', '/var/log/glpi');
+EOF
+mv /var/www/html/glpi/config /etc/glpi
+chown -R www-data:www-data  /etc/glpi/
+mv /var/www/html/glpi/files /var/lib/glpi
+mkdir /var/log/glpi
+chown www-data:www-data  /var/log/glpi
+chmod -R 775 /var/log/glpi
+cat > /var/www/html/glpi/inc/downstream.php << EOF
+<?php
+define('GLPI_CONFIG_DIR', '/etc/glpi/');
+if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
+require_once GLPI_CONFIG_DIR . '/local_define.php';
+}
+EOF
+
+# Add permissions
+chown -R www-data:www-data /var/www/html/glpi
+chmod -R 775 /var/www/html/glpi
+
 phpversion=$(php -v | grep -i '(cli)' | awk '{print $2}' | cut -c 1,2,3)
 sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 =on/' /etc/php/$phpversion/cli/php.ini
 
 # Setup vhost
 cat > /etc/apache2/sites-available/glpi.conf << EOF
 <VirtualHost *:80>
- # Nom du serveur (/etc/hosts)
- ServerName glpi.lan
+        # Nom du serveur (/etc/hosts)
+        ServerName glpi.lan
 
- # Dossier Web Public
- DocumentRoot /var/www/html/glpi/public
-        
- # Fichier à charger par défaut (ordre)
- <IfModule dir_module>
-   DirectoryIndex index.php index.html
- </IfModule>
+        # Dossier Web Public
+        DocumentRoot /var/www/html/glpi/public
+        # Repertoire
+        <Directory /var/www/html/glpi/public>
+                Require all granted
+                RewriteEngine On
+                RewriteCond %{REQUEST_FILENAME} !-f
+                RewriteRule ^(.*)$ index.php [QSA,L]
+        </Directory>        
+        # Fichier à charger par défaut (ordre)
+        <IfModule dir_module>
+                DirectoryIndex index.php index.html
+        </IfModule>
 
- # Alias
- Alias "/glpi" "/var/www/html/glpi/public"
+        # Alias
+        Alias "/glpi" "/var/www/html/glpi/public"
 
- # Log
- ErrorLog ${APACHE_LOG_DIR}/error.log
- CustomLog ${APACHE_LOG_DIR}/access.log combined
-
- # Repertoire
- <Directory /var/www/html/glpi/public>
-   Require all granted
-   RewriteEngine On
-   RewriteCond %{REQUEST_FILENAME} !-f
-   RewriteRule ^(.*)$ index.php [QSA,L]
- </Directory>
+        # Log
+        ErrorLog /var/log/glpi/error.log
+        CustomLog /var/log/glpi/access.log combined
 </VirtualHost>
 EOF
 
+# Disable Apache Web Server Signature
+echo "ServerSignature Off" >> /etc/apache2/apache2.conf
+echo "ServerTokens Prod" >> /etc/apache2/apache2.conf
 #Activation du module rewrite d'apache
 a2enmod rewrite > /dev/null 2>&1
 # Restart d'apache
@@ -189,10 +199,6 @@ systemctl restart apache2 > /dev/null 2>&1
 a2ensite glpi.conf > /dev/null 2>&1
 # Restart d'apache
 systemctl restart apache2 > /dev/null 2>&1
-
-# Disable Apache Web Server Signature
-echo "ServerSignature Off" >> /etc/apache2/apache2.conf
-echo "ServerTokens Prod" >> /etc/apache2/apache2.conf
 
 # Setup Cron task
 echo "*/2 * * * * www-data /usr/bin/php /var/www/html/glpi/front/cron.php &>/dev/null" >> /etc/cron.d/glpi
@@ -206,34 +212,15 @@ cd /var/www/html/glpi
 php bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password=$SQLGLPIPWD --default-language="fr_FR" --no-interaction --force
 rm -rf /var/www/html/glpi/install
 
-mkdir /etc/glpi
-cat > /etc/glpi/local_define.php << EOF
-<?php
-define('GLPI_VAR_DIR', '/var/lib/glpi');
-define('GLPI_LOG_DIR', '/var/log/glpi');
-EOF
-mv /var/www/html/glpi/config /etc/glpi
-chown -R www-data:www-data  /etc/glpi/
-mv /var/www/html/glpi/files /var/lib/glpi
-mkdir /var/log/glpi
-chown www-data:www-data  /var/log/glpi
-cat > /var/www/html/glpi/inc/downstream.php << EOF
-<?php
-define('GLPI_CONFIG_DIR', '/etc/glpi/');
-if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
-require_once GLPI_CONFIG_DIR . '/local_define.php';
-}
-EOF
-
 # Add permissions
-chown -R www-data:www-data /var/www/html
-chmod 755 /var/www/html
+#chown -R www-data:www-data /var/www/html
+#chmod 755 /var/www/html
 }
 
 function display_credentials(){
 info "===========================> Détail de l'installation de GLPI <=================================="
 warn "Il est important d'enregistrer ces informations. Si vous les perdez, elles seront irrécupérables."
-info "==> GLPI :"
+echo ""
 info "Les comptes utilisateurs par défaut sont :"
 info "UTILISATEUR       -  MOT DE PASSE       -  ACCÈS"
 info "glpi              -  glpi               -  compte admin,"
@@ -258,7 +245,6 @@ cat <<EOF > $HOME/sauve_mdp.txt
 ==============================> GLPI installation details  <=====================================
 Il est important d'enregistrer ces informations. Si vous les perdez, elles seront irrécupérables.
 
-==> GLPI :
 Les comptes utilisateurs par défaut sont :
 UTILISATEUR       -  MOT DE PASSE       -  ACCÈS
 glpi              -  glpi               -  compte admin
@@ -279,13 +265,14 @@ Si vous rencontrez un problème avec ce script, veuillez le signaler sur GitHub 
 EOF
 chmod 700 $HOME/sauve_mdp.txt
 echo ""
-warn "Fichier de sauvegarde des mots de passe enregistrer dans /home"
+warn "Fichier de sauve_mdp.txt enregistrer dans /home"
 echo ""
 }
 
 clear
 check_root
 check_distro
+update_distro
 network_info
 install_packages
 mariadb_configure
