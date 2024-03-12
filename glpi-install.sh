@@ -132,13 +132,15 @@ function setup_db(){
         cd /var/www/html/glpi
         php bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password=$SQLGLPIPWD --default-language="fr_FR" --no-interaction --force
         rm -rf /var/www/html/glpi/install
-        
+        sleep 1
         mkdir /etc/glpi
+        sleep 1
         cat > /etc/glpi/local_define.php << EOF
         <?php
         define('GLPI_VAR_DIR', '/var/lib/glpi');
         define('GLPI_LOG_DIR', '/var/log/glpi');
 EOF
+        sleep 1
         cat > /var/www/html/glpi/inc/downstream.php << EOF
         <?php
         define('GLPI_CONFIG_DIR', '/etc/glpi/');
@@ -150,12 +152,15 @@ EOF
         mv /var/www/html/glpi/files /var/lib/glpi
         chown -R www-data:www-data  /etc/glpi
         chmod -R 775 /etc/glpi
+        sleep 1
         mkdir /var/log/glpi
         chown -R www-data:www-data  /var/log/glpi
         chmod -R 775 /var/log/glpi
+        sleep 1
         # Add permissions
         chown -R www-data:www-data /var/www/html
         chmod -R 775 /var/www/html
+        sleep 1
         # Setup vhost
         cat > /etc/apache2/sites-available/glpi.conf << EOF
         <VirtualHost *:80>
@@ -172,6 +177,7 @@ EOF
                 CustomLog /var/log/glpi/access.log combined
         </VirtualHost>
 EOF
+        sleep 1
         # Disable Apache Web Server Signature
         echo "ServerSignature Off" >> /etc/apache2/apache2.conf
         echo "ServerTokens Prod" >> /etc/apache2/apache2.conf
@@ -185,8 +191,6 @@ EOF
 
         # Setup Cron task
         echo "*/2 * * * * www-data /usr/bin/php /var/www/html/glpi/front/cron.php &>/dev/null" >> /etc/cron.d/glpi
-        # Restart d'apache
-        systemctl restart apache2 > /dev/null 2>&1
 }
 
 function display_credentials(){
