@@ -252,7 +252,9 @@ update_distro
 network_info
 install_packages
 mariadb_configure
+sleep 5
 install_glpi
+sleep 5
 setup_db
 display_credentials
 write_credentials
