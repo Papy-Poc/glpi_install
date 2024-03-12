@@ -128,30 +128,6 @@ function install_glpi(){
         wget -O /tmp/glpi-latest.tgz $DOWNLOADLINK > /dev/null 2>&1
         tar xzf /tmp/glpi-latest.tgz -C /var/www/html/
 
-        mkdir /etc/glpi
-        cat > /etc/glpi/local_define.php << EOF
-        <?php
-        define('GLPI_VAR_DIR', '/var/lib/glpi');
-        define('GLPI_LOG_DIR', '/var/log/glpi');
-EOF
-        cat > /var/www/html/glpi/inc/downstream.php << EOF
-        <?php
-        define('GLPI_CONFIG_DIR', '/etc/glpi/');
-        if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
-        require_once GLPI_CONFIG_DIR . '/local_define.php';
-        }
-EOF
-        mv /var/www/html/glpi/config /etc/glpi
-        mv /var/www/html/glpi/files /var/lib/glpi
-        chown -R www-data:www-data  /etc/glpi
-        chmod -R 775 /etc/glpi
-        mkdir /var/log/glpi
-        chown -R www-data:www-data  /var/log/glpi
-        chmod -R 775 /var/log/glpi
-        # Add permissions
-        chown -R www-data:www-data /var/www/html
-        chmod -R 775 /var/www/html
-
         # Setup vhost
         cat > /etc/apache2/sites-available/glpi.conf << EOF
         <VirtualHost *:80>
@@ -190,10 +166,30 @@ function setup_db(){
         cd /var/www/html/glpi
         php bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password=$SQLGLPIPWD --default-language="fr_FR" --no-interaction --force
         rm -rf /var/www/html/glpi/install
-
+        
+        mkdir /etc/glpi
+        cat > /etc/glpi/local_define.php << EOF
+        <?php
+        define('GLPI_VAR_DIR', '/var/lib/glpi');
+        define('GLPI_LOG_DIR', '/var/log/glpi');
+EOF
+        cat > /var/www/html/glpi/inc/downstream.php << EOF
+        <?php
+        define('GLPI_CONFIG_DIR', '/etc/glpi/');
+        if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
+        require_once GLPI_CONFIG_DIR . '/local_define.php';
+        }
+EOF
+        mv /var/www/html/glpi/config /etc/glpi
+        mv /var/www/html/glpi/files /var/lib/glpi
+        chown -R www-data:www-data  /etc/glpi
+        chmod -R 775 /etc/glpi
+        mkdir /var/log/glpi
+        chown -R www-data:www-data  /var/log/glpi
+        chmod -R 775 /var/log/glpi
         # Add permissions
         chown -R www-data:www-data /var/www/html
-        chmod 755 /var/www/html
+        chmod -R 775 /var/www/html
 }
 
 function display_credentials(){
