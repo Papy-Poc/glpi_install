@@ -96,12 +96,6 @@ function mariadb_configure(){
         (echo ""; echo "y"; echo "y"; echo "$SLQROOTPWD"; echo "$SLQROOTPWD"; echo "y"; echo "y"; echo "y"; echo "y") | mysql_secure_installation > /dev/null 2>&1
         sleep 1
 
-        # Set the root password
-        mysql -e "UPDATE mysql.user SET Password = PASSWORD('$SLQROOTPWD') WHERE User = 'root'"
-        # Disable remote root login
-        mysql -e "DELETE FROM mysql.user WHERE User = 'root' AND Host NOT IN ('localhost', '127.0.0.1', '::1')"
-        # Reload privileges
-        mysql -e "FLUSH PRIVILEGES"
         # Create a new database
         mysql -e "CREATE DATABASE glpi" > /dev/null 2>&1
         # Create a new user
@@ -127,38 +121,10 @@ function install_glpi(){
         DOWNLOADLINK=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.assets[0].browser_download_url')
         wget -O /tmp/glpi-latest.tgz $DOWNLOADLINK > /dev/null 2>&1
         tar xzf /tmp/glpi-latest.tgz -C /var/www/html/
+        chown -R www-data:www-data /var/www/html/glpi/
+        chmod -R 755 /var/www/html/glpi/
+        systemctl restart apache2
 
-        # Setup vhost
-        cat > /etc/apache2/sites-available/glpi.conf << EOF
-        <VirtualHost *:80>
-                DocumentRoot /var/www/html/glpi/public
-                <Directory /var/www/html/glpi/public>
-                        Require all granted
-                        RewriteEngine On
-                        RewriteCond %{HTTP:Authorization} ^(.+)$
-                        RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
-                        RewriteCond %{REQUEST_FILENAME} !-f
-                        RewriteRule ^(.*)$ index.php [QSA,L]
-                </Directory>
-                ErrorLog /var/log/glpi/error.log
-                CustomLog /var/log/glpi/access.log combined
-        </VirtualHost>
-EOF
-        # Disable Apache Web Server Signature
-        echo "ServerSignature Off" >> /etc/apache2/apache2.conf
-        echo "ServerTokens Prod" >> /etc/apache2/apache2.conf
-        # Activation du module rewrite d'apache
-        a2enmod rewrite > /dev/null 2>&1
-        # Déactivation du site par défaut et activation site glpi
-        a2dissite 000-default.conf > /dev/null 2>&1
-        a2ensite glpi.conf > /dev/null 2>&1
-        # Restart d'apache
-        systemctl restart apache2 > /dev/null 2>&1
-
-        # Setup Cron task
-        echo "*/2 * * * * www-data /usr/bin/php /var/www/html/glpi/front/cron.php &>/dev/null" >> /etc/cron.d/glpi
-        # Restart d'apache
-        systemctl restart apache2 > /dev/null 2>&1
 }
 
 function setup_db(){
@@ -190,6 +156,37 @@ EOF
         # Add permissions
         chown -R www-data:www-data /var/www/html
         chmod -R 775 /var/www/html
+        # Setup vhost
+        cat > /etc/apache2/sites-available/glpi.conf << EOF
+        <VirtualHost *:80>
+                DocumentRoot /var/www/html/glpi/public
+                <Directory /var/www/html/glpi/public>
+                        Require all granted
+                        RewriteEngine On
+                        RewriteCond %{HTTP:Authorization} ^(.+)$
+                        RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+                        RewriteCond %{REQUEST_FILENAME} !-f
+                        RewriteRule ^(.*)$ index.php [QSA,L]
+                </Directory>
+                ErrorLog /var/log/glpi/error.log
+                CustomLog /var/log/glpi/access.log combined
+        </VirtualHost>
+EOF
+        # Disable Apache Web Server Signature
+        echo "ServerSignature Off" >> /etc/apache2/apache2.conf
+        echo "ServerTokens Prod" >> /etc/apache2/apache2.conf
+        # Activation du module rewrite d'apache
+        a2enmod rewrite > /dev/null 2>&1
+        # Déactivation du site par défaut et activation site glpi
+        a2dissite 000-default.conf > /dev/null 2>&1
+        a2ensite glpi.conf > /dev/null 2>&1
+        # Restart d'apache
+        systemctl restart apache2 > /dev/null 2>&1
+
+        # Setup Cron task
+        echo "*/2 * * * * www-data /usr/bin/php /var/www/html/glpi/front/cron.php &>/dev/null" >> /etc/cron.d/glpi
+        # Restart d'apache
+        systemctl restart apache2 > /dev/null 2>&1
 }
 
 function display_credentials(){
