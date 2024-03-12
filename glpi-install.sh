@@ -131,8 +131,6 @@ function setup_db(){
         php bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password=$SQLGLPIPWD --default-language="fr_FR" --no-interaction --force
         rm -rf /var/www/html/glpi/install
         sleep 5
-        chown -R www-data:www-data  /var/log/glpi
-        chmod -R 775 /var/log/glpi
 }
 
 function conf_glpi(){
