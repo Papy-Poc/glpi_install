@@ -138,13 +138,6 @@ cat > /etc/glpi/local_define.php << EOF
 define('GLPI_VAR_DIR', '/var/lib/glpi');
 define('GLPI_LOG_DIR', '/var/log/glpi');
 EOF
-mv /var/www/html/glpi/config /etc/glpi
-mv /var/www/html/glpi/files /var/lib/glpi
-chown -R www-data:www-data  /etc/glpi
-chmod -R 775 /etc/glpi
-mkdir /var/log/glpi
-chown -R www-data:www-data  /var/log/glpi
-chmod -R 775 /var/log/glpi
 cat > /var/www/html/glpi/inc/downstream.php << EOF
 <?php
 define('GLPI_CONFIG_DIR', '/etc/glpi/');
@@ -152,6 +145,14 @@ if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
 require_once GLPI_CONFIG_DIR . '/local_define.php';
 }
 EOF
+mv /var/www/html/glpi/config /etc/glpi
+mv /var/www/html/glpi/files /var/lib/glpi
+chown -R www-data:www-data  /etc/glpi
+chmod -R 775 /etc/glpi
+mkdir /var/log/glpi
+chown -R www-data:www-data  /var/log/glpi
+chmod -R 775 /var/log/glpi
+
 
 # Add permissions
 chown -R www-data:www-data /var/www/html
