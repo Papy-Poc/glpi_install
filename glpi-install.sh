@@ -152,7 +152,7 @@ EOF
         require_once GLPI_CONFIG_DIR . '/local_define.php';
         }
 EOF
-        mv /var/www/html/glpi/config /etc/glpi/
+        mv /var/www/html/glpi/config/*.* /etc/glpi/
         mv /var/www/html/glpi/files /var/lib/glpi/
         chown -R www-data:www-data  /etc/glpi
         chmod -R 775 /etc/glpi
