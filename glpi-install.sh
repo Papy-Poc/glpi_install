@@ -90,6 +90,7 @@ function mariadb_configure(){
         sleep 1
         SLQROOTPWD=$(openssl rand -base64 48 | cut -c1-12 )
         SQLGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
+        ADMINGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
         systemctl start mariadb > /dev/null 2>&1
         (echo ""; echo "y"; echo "y"; echo "$SLQROOTPWD"; echo "$SLQROOTPWD"; echo "y"; echo "y"; echo "y"; echo "y") | mysql_secure_installation > /dev/null 2>&1
         sleep 1
@@ -197,16 +198,26 @@ EOF
         echo "*/2 * * * * www-data /usr/bin/php /var/www/html/glpi/front/cron.php &>/dev/null" >> /etc/cron.d/glpi
 }
 
+function maj_user_glpi(){
+        # Create a new database
+        mysql -u glpi_user -p$SQLGLPIPWD -e "USE glpi" > /dev/null 2>&1
+        # Changer le mot de passe de l'admin glpi
+        mysql -u glpi_user -p$SQLGLPIPWD -e "UPDATE glpi_users SET password = MD5('$ADMINGLPIPWD') WHERE name = 'glpi';" > /dev/null 2>&1
+        # Efface utilisateur post-only
+        mysql -u glpi_user -p$SQLGLPIPWD -e "DELETE FROM Users WHERE nom='post-only'" > /dev/null 2>&1
+        # Efface utilisateur tech
+        mysql -u glpi_user -p$SQLGLPIPWD -e "DELETE FROM Users WHERE nom='tech'" > /dev/null 2>&1
+        # Efface utilisateur normal
+        mysql -u glpi_user -p$SQLGLPIPWD -e "DELETE FROM Users WHERE nom='normal'" > /dev/null 2>&1
+}
+
 function display_credentials(){
         info "===========================> Détail de l'installation de GLPI <=================================="
         warn "Il est important d'enregistrer ces informations. Si vous les perdez, elles seront irrécupérables."
         echo ""
         info "Les comptes utilisateurs par défaut sont :"
         info "UTILISATEUR       -  MOT DE PASSE       -  ACCÈS"
-        info "glpi              -  glpi               -  compte admin,"
-        info "tech              -  tech               -  compte technicien,"
-        info "normal            -  normal             -  compte normal,"
-        info "post-only         -  postonly           -  compte post-simple."
+        info "glpi              -  $ADMINGLPIPWD      -  compte admin"
         echo ""
         info "Vous pouvez accéder à la page web de GLPI à partir d'une adresse IP ou d'un nom d'hôte :"
         info "http://$IPADRESS" 
@@ -227,10 +238,7 @@ function write_credentials(){
 
         Les comptes utilisateurs par défaut sont :
         UTILISATEUR       -  MOT DE PASSE       -  ACCÈS
-        glpi              -  glpi               -  compte admin
-        tech              -  tech               -  compte technicien
-        normal            -  normal             -  compte normal
-        post-only         -  postonly           -  compte post-simple
+        glpi              -  $ADMINGLPIPWD      -  compte admin
 
         Vous pouvez accéder à la page web de GLPI à partir d'une adresse IP ou d'un nom d'hôte :
         http://$IPADRESS 
@@ -262,5 +270,6 @@ sleep 5
 setup_db
 sleep 5
 conf_glpi
+maj_user_glpi
 display_credentials
 write_credentials
