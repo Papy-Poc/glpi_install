@@ -200,15 +200,15 @@ EOF
 
 function maj_user_glpi(){
         # Create a new database
-        mysql -u glpi_user -p$SQLGLPIPWD -e "USE glpi" > /dev/null 2>&1
+        mysql -u glpi_user -p$SQLGLPIPWD -e "USE glpi" 
         # Changer le mot de passe de l'admin glpi
-        mysql -u glpi_user -p$SQLGLPIPWD -e "UPDATE glpi_users SET password = MD5('$ADMINGLPIPWD') WHERE name = 'glpi';" > /dev/null 2>&1
+        mysql -u glpi_user -p$SQLGLPIPWD -e "UPDATE glpi_users SET password = MD5('$ADMINGLPIPWD') WHERE name = 'glpi';" 
         # Efface utilisateur post-only
-        mysql -u glpi_user -p$SQLGLPIPWD -e "DELETE FROM Users WHERE nom='post-only'" > /dev/null 2>&1
+        mysql -u glpi_user -p$SQLGLPIPWD -e "DELETE FROM Users WHERE nom='post-only'" 
         # Efface utilisateur tech
-        mysql -u glpi_user -p$SQLGLPIPWD -e "DELETE FROM Users WHERE nom='tech'" > /dev/null 2>&1
+        mysql -u glpi_user -p$SQLGLPIPWD -e "DELETE FROM Users WHERE nom='tech'"
         # Efface utilisateur normal
-        mysql -u glpi_user -p$SQLGLPIPWD -e "DELETE FROM Users WHERE nom='normal'" > /dev/null 2>&1
+        mysql -u glpi_user -p$SQLGLPIPWD -e "DELETE FROM Users WHERE nom='normal'" 
 }
 
 function display_credentials(){
