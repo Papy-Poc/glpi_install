@@ -206,7 +206,7 @@ function maj_user_glpi(){
         # Efface utilisateur tech
         mysql -u glpi_user -p$SQLGLPIPWD -e "USE glpi; DELETE FROM Users WHERE nom='tech'"
         # Efface utilisateur normal
-        mysql -u glpi_user -p$SQLGLPIPWD -e "USE glpi; DELETE FROM Users WHERE nom='normal'" 
+        mysql -u glpi_user -p$SQLGLPIPWD -e "USE glpi; DELETE FROM Users WHERE nom='normal'"
 }
 
 function display_credentials(){
