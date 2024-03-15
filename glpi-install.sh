@@ -1,4 +1,4 @@
- #!/bin/bash
+#!/bin/bash
 #
 # GLPI install script
 #
