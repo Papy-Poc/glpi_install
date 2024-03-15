@@ -202,11 +202,11 @@ function maj_user_glpi(){
         # Changer le mot de passe de l'admin glpi
         mysql -u glpi_user -p$SQLGLPIPWD -e "USE glpi; UPDATE glpi_users SET password = MD5('$ADMINGLPIPWD') WHERE name = 'glpi';" 
         # Efface utilisateur post-only
-        mysql -u glpi_user -p$SQLGLPIPWD -e "USE glpi; DELETE FROM Users WHERE nom='post-only'" 
+        mysql -u glpi_user -p$SQLGLPIPWD -e "USE glpi; DELETE FROM glpi_users WHERE name = 'post-only';" 
         # Efface utilisateur tech
-        mysql -u glpi_user -p$SQLGLPIPWD -e "USE glpi; DELETE FROM Users WHERE nom='tech'"
+        mysql -u glpi_user -p$SQLGLPIPWD -e "USE glpi; DELETE FROM glpi_users WHERE name = 'tech';"
         # Efface utilisateur normal
-        mysql -u glpi_user -p$SQLGLPIPWD -e "USE glpi; DELETE FROM Users WHERE nom='normal'"
+        mysql -u glpi_user -p$SQLGLPIPWD -e "USE glpi; DELETE FROM glpi_users WHERE name = 'normal';"
 }
 
 function display_credentials(){
