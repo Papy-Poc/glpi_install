@@ -94,15 +94,15 @@ function mariadb_configure(){
         systemctl start mariadb > /dev/null 2>&1
         (echo ""; echo "y"; echo "y"; echo "$SLQROOTPWD"; echo "$SLQROOTPWD"; echo "y"; echo "y"; echo "y"; echo "y") | mysql_secure_installation > /dev/null 2>&1
         sleep 1
-
+        mysql -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost';" > /dev/null 2>&1
         # Create a new database
-        mysql -e "CREATE DATABASE glpi" > /dev/null 2>&1
+        mysql -e "CREATE DATABASE glpi;" > /dev/null 2>&1
         # Create a new user
-        mysql -e "CREATE USER 'glpi_user'@'localhost' IDENTIFIED BY '$SQLGLPIPWD'" > /dev/null 2>&1
+        mysql -e "CREATE USER 'glpi_user'@'localhost' IDENTIFIED BY '$SQLGLPIPWD';" > /dev/null 2>&1
         # Grant privileges to the new user for the new database
-        mysql -e "GRANT ALL PRIVILEGES ON glpi.* TO 'glpi_user'@'localhost'" > /dev/null 2>&1
+        mysql -e "GRANT ALL PRIVILEGES ON glpi.* TO 'glpi_user'@'localhost';" > /dev/null 2>&1
         # Reload privileges
-        mysql -e "FLUSH PRIVILEGES" > /dev/null 2>&1
+        mysql -e "FLUSH PRIVILEGES;" > /dev/null 2>&1
 
         # Initialize time zones datas
         info "Configuration de TimeZone"
@@ -127,17 +127,12 @@ function install_glpi(){
 }
 
 function setup_db(){
-        info "Setting up GLPI..."
+        info "Configuration de GLPI..."
         cd /var/www/html/glpi
         php bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password=$SQLGLPIPWD --default-language="fr_FR" --no-interaction --force
         rm -rf /var/www/html/glpi/install
         sleep 5
-}
-
-function conf_glpi(){
-        sleep 1
         mkdir /etc/glpi
-        sleep 1
         cat > /etc/glpi/local_define.php << EOF
         <?php
         define('GLPI_VAR_DIR', '/var/lib/glpi');
@@ -193,20 +188,19 @@ EOF
         a2ensite glpi.conf > /dev/null 2>&1
         # Restart d'apache
         systemctl restart apache2 > /dev/null 2>&1
-
         # Setup Cron task
         echo "*/2 * * * * www-data /usr/bin/php /var/www/html/glpi/front/cron.php &>/dev/null" >> /etc/cron.d/glpi
 }
 
 function maj_user_glpi(){
         # Changer le mot de passe de l'admin glpi
-        mysql -u glpi_user -p$SQLGLPIPWD -e "USE glpi; UPDATE glpi_users SET password = MD5('$ADMINGLPIPWD') WHERE name = 'glpi';" 
+        mysql -u glpi_user -p$SQLGLPIPWD -e "USE glpi; UPDATE glpi_users SET password = MD5('$ADMINGLPIPWD') WHERE name = 'glpi';" > /dev/null 2>&1
         # Efface utilisateur post-only
-        mysql -u glpi_user -p$SQLGLPIPWD -e "USE glpi; DELETE FROM glpi_users WHERE name = 'post-only';" 
+        mysql -u glpi_user -p$SQLGLPIPWD -e "USE glpi; DELETE FROM glpi_users WHERE name = 'post-only';" > /dev/null 2>&1
         # Efface utilisateur tech
-        mysql -u glpi_user -p$SQLGLPIPWD -e "USE glpi; DELETE FROM glpi_users WHERE name = 'tech';"
+        mysql -u glpi_user -p$SQLGLPIPWD -e "USE glpi; DELETE FROM glpi_users WHERE name = 'tech';" > /dev/null 2>&1
         # Efface utilisateur normal
-        mysql -u glpi_user -p$SQLGLPIPWD -e "USE glpi; DELETE FROM glpi_users WHERE name = 'normal';"
+        mysql -u glpi_user -p$SQLGLPIPWD -e "USE glpi; DELETE FROM glpi_users WHERE name = 'normal';" > /dev/null 2>&1
 }
 
 function display_credentials(){
@@ -267,7 +261,6 @@ install_glpi
 sleep 5
 setup_db
 sleep 5
-conf_glpi
 maj_user_glpi
 display_credentials
 write_credentials
