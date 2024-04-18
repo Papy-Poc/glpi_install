@@ -22,7 +22,6 @@ function check_root(){
                 info "Privilège Root: OK"
         fi
 }
-
 function check_distro(){
         # Constante pour les versions de Debian acceptables
         DEBIAN_VERSIONS=("11" "12")
