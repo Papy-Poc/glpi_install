@@ -23,6 +23,28 @@ function check_root(){
         fi
 }
 
+function check_install(){
+        rep="/var/www/html/glpi"
+        # Vérifie si le répertoire existe
+        if [ -d "$rep" ]; then
+                warn "Le site est déjà installé."
+                read -p "Voulez-vous mettre à jour GLPI (O/N): " MàJ
+                case "$MàJ" in
+                        "O")
+                                update
+                                exit 0
+                        "N")
+                                info "Sortie du programme."
+                                exit 0
+                        *)
+                                warn "Action non reconnue. Sortie du programme."
+                                exit 0
+                esac
+        else
+                install
+        fi
+}
+
 function check_distro(){
         # Constante pour les versions de Debian acceptables
         DEBIAN_VERSIONS=("11" "12")
@@ -193,7 +215,7 @@ EOF
 }
 
 function maj_user_glpi(){
-        # Changer le mot de passe de l'admin glpi
+        # Changer le mot de passe de l'admin glpi 
         mysql -u glpi_user -p$SQLGLPIPWD -e "USE glpi; UPDATE glpi_users SET password = MD5('$ADMINGLPIPWD') WHERE name = 'glpi';" > /dev/null 2>&1
         # Efface utilisateur post-only
         mysql -u glpi_user -p$SQLGLPIPWD -e "USE glpi; DELETE FROM glpi_users WHERE name = 'post-only';" > /dev/null 2>&1
@@ -249,18 +271,44 @@ EOF
         echo ""
 }
 
+function maintenance(){
+        if ( $1 == "1" ); then
+                cd /var/www/html/glpi
+                php bin/console glpi:maintenance:enable
+        else if ( $1 == "0" ); then
+                cd /var/www/html/glpi
+                php bin/console glpi:maintenance:disable
+        fi
+}
+function backup(){
+        mkdir /home/glpi_sauve
+        mysqldump -u root -p --databases glpi > /home/glpi_adm/backup_glpi.sql
+}
+
+function install(){
+        check_distro
+        update_distro
+        network_info
+        install_packages
+        mariadb_configure
+        sleep 5
+        install_glpi
+        sleep 5
+        setup_db
+        sleep 5
+        maj_user_glpi
+        display_credentials
+        write_credentials
+}
+function update(){
+        check_distro
+        maintenance (1)
+
+        install_glpi
+
+        maintenance(0)
+}
+
 clear
 check_root
-check_distro
-update_distro
-network_info
-install_packages
-mariadb_configure
-sleep 5
-install_glpi
-sleep 5
-setup_db
-sleep 5
-maj_user_glpi
-display_credentials
-write_credentials
+check_install
