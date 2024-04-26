@@ -249,18 +249,26 @@ EOF
         echo ""
 }
 
-clear
-check_root
-check_distro
-update_distro
-network_info
-install_packages
-mariadb_configure
-sleep 5
-install_glpi
-sleep 5
-setup_db
-sleep 5
-maj_user_glpi
-display_credentials
-write_credentials
+function install(){
+        clear
+        check_root
+        check_distro
+        update_distro
+        network_info
+        install_packages
+        mariadb_configure
+        sleep 5
+        install_glpi
+        sleep 5
+        setup_db
+        sleep 5
+        maj_user_glpi
+        display_credentials
+        write_credentials
+}
+function update(){
+        clear
+        check_root
+        check_distro
+        install_glpi
+}
