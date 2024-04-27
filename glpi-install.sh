@@ -243,7 +243,7 @@ function display_credentials(){
 }
 
 function write_credentials(){
-        cat <<EOF > $HOME/sauve_mdp.txt
+        cat <<EOF > /home/sauve_mdp.txt
         ==============================> GLPI installation details  <=====================================
         Il est important d'enregistrer ces informations. Si vous les perdez, elles seront irrécupérables.
 
