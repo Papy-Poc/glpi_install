@@ -2,7 +2,7 @@
 #
 # GLPI install script
 # Author: PapyPoc
-# Version: 1.0.0
+# Version: 1.1.0
 #
 
 function warn(){
@@ -13,18 +13,18 @@ function info(){
 }
 
 function check_root(){
-        # V�rification des privil�ges root
+        # Vérification des privilèges root
         if [[ "$(id -u)" -ne 0 ]]; then
                 warn "Ce script doit étre exécuté en tant que root" >&2
                 exit 1
         else
-                info "Privil�ge Root: OK"
+                info "Privilège Root: OK"
         fi
 }
 
 function check_install(){
         rep="/var/www/html/glpi"
-        # V�rifie si le r�pertoire existe
+        # Vérifie si le répertoire existe
         if [ -d "$rep" ]; then
                 warn "Le site est déjà installé."
                 read -p "Voulez-vous mettre à jour GLPI (O/N): " MaJ
@@ -49,26 +49,26 @@ function check_distro(){
         DEBIAN_VERSIONS=("11" "12")
         # Constante pour les versions d'Ubuntu acceptables
         UBUNTU_VERSIONS=("23.10")
-        # V�rifie si c'est une distribution Debian ou Ubuntu
+        # Vérifie si c'est une distribution Debian ou Ubuntu
         if [ -f /etc/os-release ]; then
         # Source le fichier /etc/os-release pour obtenir les informations de la distribution
         . /etc/os-release
-        # V�rifie si la distribution est bas�e sur Debian ou Ubuntu
+        # Vérifie si la distribution est basée sur Debian ou Ubuntu
                 if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
                         if [[ " ${DEBIAN_VERSIONS[*]} " == *" $VERSION_ID "* || " ${UBUNTU_VERSIONS[*]} " == *" $VERSION_ID "* ]]; then
                                 info "La version de votre systeme d'exploitation ($ID $VERSION_ID) est compatible."
                         else
-                                warn "La version de votre syst�me d'exploitation ($ID $VERSION_ID) n'est pas consid�r�e comme compatible."
-                                warn "Voulez-vous toujours forcer l'installation ? Attention, si vous choisissez de forcer le script, c'est � vos risques et p�rils."
-                                info "�tes-vous s�r de vouloir continuer ? [yes/no]"
+                                warn "La version de votre système d'exploitation ($ID $VERSION_ID) n'est pas considérée comme compatible."
+                                warn "Voulez-vous toujours forcer l'installation ? Attention, si vous choisissez de forcer le script, c'est à vos risques et périls."
+                                info "Etes-vous sûr de vouloir continuer ? [yes/no]"
                                 read response
-                                if [ $response == "yes" ]; then
+                                if [ "$response" == "yes" ]; then
                                         info "Continuing..."
-                                elif [ $response == "no" ]; then
+                                elif [ "$response" == "no" ]; then
                                         info "Exiting..."
                                         exit 1
                                 else
-                                        warn "R�ponse non valide. Quitter..."
+                                        warn "Réponse non valide. Quitter..."
                                         exit 1
                                 fi
                         fi
@@ -80,15 +80,15 @@ function check_distro(){
 }
 
 function update_distro(){
-        info "Recherche des mise � jour"
+        info "Recherche des mise à jour"
         apt-get update > /dev/null 2>&1
-        info "Application des mise � jour"
+        info "Application des mise à jour"
         apt-get upgrade -y > /dev/null 2>&1
 }
 
 function network_info(){
         INTERFACE=$(ip route | awk 'NR==1 {print $5}')
-        IPADRESS=$(ip addr show $INTERFACE | grep inet | awk '{ print $2; }' | sed 's/\/.*$//' | head -n 1)
+        IPADRESS=$(ip addr show "$INTERFACE" | grep inet | awk '{ print $2; }' | sed 's/\/.*$//' | head -n 1)
         HOST=$(hostname)
 }
 
@@ -102,7 +102,7 @@ function install_packages(){
         systemctl enable mariadb > /dev/null 2>&1
         info "Activation d'Apache"
         systemctl enable apache2 > /dev/null 2>&1
-        info "Red�marage d'Apache"
+        info "Redémarage d'Apache"
         systemctl restart apache2 > /dev/null 2>&1
 }
 
@@ -136,7 +136,7 @@ function mariadb_configure(){
 }
 
 function install_glpi(){
-        info "T�l�chargement et installation de la derni�re version de GLPI..."
+        info "Téléchargement et installation de la dernière version de GLPI..."
         # Get download link for the latest release
         DOWNLOADLINK=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.assets[0].browser_download_url')
         wget -O /tmp/glpi-latest.tgz $DOWNLOADLINK > /dev/null 2>&1
@@ -148,8 +148,7 @@ function install_glpi(){
 
 function setup_db(){
         info "Configuration de GLPI..."
-        cd /var/www/html/glpi
-        php bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password=$SQLGLPIPWD --default-language="fr_FR" --no-interaction --force
+        php /var/www/html/glpi/bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password=$SQLGLPIPWD --default-language="fr_FR" --no-interaction --force
         rm -rf /var/www/html/glpi/install
         sleep 5
         mkdir /etc/glpi
@@ -203,7 +202,7 @@ EOF
         echo "ServerTokens Prod" >> /etc/apache2/apache2.conf
         # Activation du module rewrite d'apache
         a2enmod rewrite > /dev/null 2>&1
-        # D�activation du site par d�faut et activation site glpi
+        # Déactivation du site par défaut et activation site glpi
         a2dissite 000-default.conf > /dev/null 2>&1
         a2ensite glpi.conf > /dev/null 2>&1
         # Restart d'apache
@@ -224,46 +223,46 @@ function maj_user_glpi(){
 }
 
 function display_credentials(){
-        info "===========================> D�tail de l'installation de GLPI <=================================="
-        warn "Il est important d'enregistrer ces informations. Si vous les perdez, elles seront irr�cup�rables."
+        info "===========================> Détail de l'installation de GLPI <=================================="
+        warn "Il est important d'enregistrer ces informations. Si vous les perdez, elles seront irrécupérables."
         echo ""
-        info "Les comptes utilisateurs par d�faut sont :"
-        info "UTILISATEUR       -  MOT DE PASSE       -  ACC�S"
+        info "Les comptes utilisateurs par défaut sont :"
+        info "UTILISATEUR       -  MOT DE PASSE       -  ACCES"
         info "glpi              -  $ADMINGLPIPWD      -  compte admin"
         echo ""
-        info "Vous pouvez acc�der � la page web de GLPI � partir d'une adresse IP ou d'un nom d'h�te :"
+        info "Vous pouvez accéder à la page web de GLPI à partir d'une adresse IP ou d'un nom d'hôte :"
         info "http://$IPADRESS" 
         echo ""
         info "==> Database:"
         info "Mot de passe root: $SLQROOTPWD"
         info "Mot de passe glpi_user: $SQLGLPIPWD"
-        info "Nom de la base de donn� GLPI: glpi"
+        info "Nom de la base de données GLPI: glpi"
         info "<===============================================================================================>"
         echo ""
-        info "Si vous rencontrez un probl�me avec ce script, veuillez le signaler sur GitHub : https://github.com/PapyPoc/glpi_install/issues"
+        info "Si vous rencontrez un problème avec ce script, veuillez le signaler sur GitHub : https://github.com/PapyPoc/glpi_install/issues"
 }
 
 function write_credentials(){
         cat <<EOF > $HOME/sauve_mdp.txt
         ==============================> GLPI installation details  <=====================================
-        Il est important d'enregistrer ces informations. Si vous les perdez, elles seront irr�cup�rables.
+        Il est important d'enregistrer ces informations. Si vous les perdez, elles seront irrécupérables.
 
-        Les comptes utilisateurs par d�faut sont :
-        UTILISATEUR       -  MOT DE PASSE       -  ACC�S
+        Les comptes utilisateurs par défaut sont :
+        UTILISATEUR       -  MOT DE PASSE       -  ACCES
         glpi              -  $ADMINGLPIPWD      -  compte admin
-
-        Vous pouvez acc�der � la page web de GLPI � partir d'une adresse IP ou d'un nom d'h�te :
-        http://$IPADRESS 
+        
+        Vous pouvez accéder à la page web de GLPI à partir d'une adresse IP ou d'un nom d'hôte :
+        http://$IPADRESS" 
 
         ==> Database:
         Mot de passe root: $SLQROOTPWD
         Mot de passe glpi_user: $SQLGLPIPWD
-        Nom de la base de donn� GLPI: glpi
+        Nom de la base de données GLPI: glpi
         <===============================================================================================>
 
-        Si vous rencontrez un probl�me avec ce script, veuillez le signaler sur GitHub : https://github.com/PapyPoc/glpi_install/issues
+        Si vous rencontrez un probléme avec ce script, veuillez le signaler sur GitHub : https://github.com/PapyPoc/glpi_install/issues
 EOF
-        chmod 700 $HOME/sauve_mdp.txt
+        chmod 700 /home/sauve_mdp.txt
         echo ""
         warn "Fichier de sauve_mdp.txt enregistrer dans /home"
         echo ""
