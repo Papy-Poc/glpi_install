@@ -22,28 +22,6 @@ function check_root(){
         fi
 }
 
-function check_install(){
-        rep="/var/www/html/glpi"
-        # Vérifie si le répertoire existe
-        if [ -d "$rep" ]; then
-                warn "Le site est déjà installé."
-                read -p "Voulez-vous mettre à jour GLPI (O/N): " MàJ
-                case "$MàJ" in
-                        "O")
-                                update
-                                exit 0
-                        "N")
-                                info "Sortie du programme."
-                                exit 0
-                        *)
-                                warn "Action non reconnue. Sortie du programme."
-                                exit 0
-                esac
-        else
-                install
-        fi
-}
-
 function check_distro(){
         # Constante pour les versions de Debian acceptables
         DEBIAN_VERSIONS=("11" "12")
