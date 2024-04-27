@@ -1,7 +1,6 @@
 #!/bin/bash
 #
 # GLPI install script
-#
 # Author: PapyPoc
 # Version: 1.0.0
 #
@@ -20,6 +19,28 @@ function check_root(){
                 exit 1
         else
                 info "Privilège Root: OK"
+        fi
+}
+
+function check_install(){
+        rep="/var/www/html/glpi"
+        # Vérifie si le répertoire existe
+        if [ -d "$rep" ]; then
+                warn "Le site est déjà installé."
+                read -p "Voulez-vous mettre à jour GLPI (O/N): " MàJ
+                case "$MàJ" in
+                        "O")
+                                update
+                                exit 0
+                        "N")
+                                info "Sortie du programme."
+                                exit 0
+                        *)
+                                warn "Action non reconnue. Sortie du programme."
+                                exit 0
+                esac
+        else
+                install
         fi
 }
 
@@ -123,7 +144,6 @@ function install_glpi(){
         chown -R www-data:www-data /var/www/html/glpi/
         chmod -R 755 /var/www/html/glpi/
         systemctl restart apache2
-
 }
 
 function setup_db(){
@@ -193,7 +213,7 @@ EOF
 }
 
 function maj_user_glpi(){
-        # Changer le mot de passe de l'admin glpi
+        # Changer le mot de passe de l'admin glpi 
         mysql -u glpi_user -p$SQLGLPIPWD -e "USE glpi; UPDATE glpi_users SET password = MD5('$ADMINGLPIPWD') WHERE name = 'glpi';" > /dev/null 2>&1
         # Efface utilisateur post-only
         mysql -u glpi_user -p$SQLGLPIPWD -e "USE glpi; DELETE FROM glpi_users WHERE name = 'post-only';" > /dev/null 2>&1
