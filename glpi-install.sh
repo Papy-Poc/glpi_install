@@ -52,7 +52,8 @@ function check_distro(){
         # Vérifie si c'est une distribution Debian ou Ubuntu
         if [ -f /etc/os-release ]; then
         # Source le fichier /etc/os-release pour obtenir les informations de la distribution
-        . /etc/os-release
+        # shellcheck disable=SC1091
+        . /etc/os-release # . /etc/os-release
         # Vérifie si la distribution est basée sur Debian ou Ubuntu
                 if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
                         if [[ " ${DEBIAN_VERSIONS[*]} " == *" $VERSION_ID "* || " ${UBUNTU_VERSIONS[*]} " == *" $VERSION_ID "* ]]; then
@@ -89,7 +90,7 @@ function update_distro(){
 function network_info(){
         INTERFACE=$(ip route | awk 'NR==1 {print $5}')
         IPADRESS=$(ip addr show "$INTERFACE" | grep inet | awk '{ print $2; }' | sed 's/\/.*$//' | head -n 1)
-        HOST=$(hostname)
+        # HOST=$(hostname)
 }
 
 function install_packages(){
@@ -268,18 +269,57 @@ EOF
         echo ""
 }
 
-clear
-check_root
-check_distro
-update_distro
-network_info
-install_packages
-mariadb_configure
-sleep 5
-install_glpi
-sleep 5
-setup_db
-sleep 5
-maj_user_glpi
-display_credentials
-write_credentials
+function install(){
+        clear
+        check_root
+        check_distro
+        update_distro
+        network_info
+        install_packages
+        mariadb_configure
+        sleep 5
+        install_glpi
+        sleep 5
+        setup_db
+        sleep 5
+        maj_user_glpi
+        display_credentials
+        write_credentials
+        wp-admin
+}
+
+function maintenance(){
+        if [ "$1" == "1" ]; then
+                php /var/www/glpi/bin/console glpi:maintenance:enable
+        elif [ "$1" == "0" ]; then
+                php /var/www/glpi/bin/console glpi:maintenance:disable
+        fi
+}
+
+function backup_glpi(){
+        # Sauvergarde de la bdd
+        PASSWORD=$(sed -n 's/.*Mot de passe: \([^ ]*\).*/\1/p' /home/sauve_mdp.txt | head -n 1)
+        mysqldump -u root -p"$PASSWORD" --databases db23_glpi > /home/glpi_adm/backup_db23_glpi.sql
+        # Sauvegarde des fichiers
+        cp -Rf /var/www/html/glpi/ /home/glpi_sauve/backup_glpi
+        rm -Rf /var/www/html/glpi/
+}
+function update_glpi(){
+        cp -Rf /home/glpi_sauve/backup_glpi/files /var/www/html/glpi/
+        cp -Rf /home/glpi_sauve/backup_glpi/plugins /var/www/html/glpi/
+        cp -Rf /home/glpi_sauve/backup_glpi/config /var/www/html/glpi/
+        cp -Rf /home/glpi_sauve/backup_glpi/marketplace /var/www/html/glpi/
+        chown -R www-data:www-data /var/www/html/glpi/
+        php /var/www/html/glpi/bin/console db:update
+        rm -Rf /var/www/html/glpi/install
+}
+
+function update(){
+        clear
+        check_root
+        maintenance "1"
+        backup_glpi
+        install_glpi
+        update_glpi
+        maintenance "0"
+}
