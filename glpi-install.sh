@@ -144,7 +144,6 @@ function install_glpi(){
         chown -R www-data:www-data /var/www/html/glpi/
         chmod -R 755 /var/www/html/glpi/
         systemctl restart apache2
-
 }
 
 function setup_db(){
@@ -280,10 +279,36 @@ function maintenance(){
         fi
 }
 function backup(){
-        mkdir /home/glpi_sauve
-        mysqldump -u root -p --databases glpi > /home/glpi_adm/backup_glpi.sql
+        password_root=$(sed -n 's/.*Mot de passe: \([^ ]*\).*/\1/p' /home/sauve_mdp.txt | head -n 1)
+        rep="/home/glpi_sauve"
+        # Vérifie si le répertoire du site existe
+        if [ -d "$rep" ]; then
+                warn "Le site est déjà installé."
+        else
+                mkdir /home/glpi_sauve
+                chmod 700 /home/glpi_sauve
+        fi
+        backup_bdd_glpi="backup_bdd_glpi-" & date +"%d-%m-%Y %H:%M:%S" & ".sql"
+        mysqldump -u root -p $password_root --databases glpi > /home/glpi_sauve/$backup_bdd_glpi
+        rep="/home/glpi_sauve/backup_fichier_glpi"
+        # Vérifie si le répertoire backup_fichier_glpi existe
+        if [ -d "$rep" ]; then
+                rm -rf /home/glpi_sauve/backup_fichier_glpi
+        fi
+        cp -Rf /var/www/html/glpi/ /home/glpi_sauve/backup_fichier_glpi
+        # Effacement du dossier de GLPI
+        rm -rf /var/www/html/glpi/
 }
-
+function update_glpi(){
+        cp -Rf /home/glpi_adm/glpi_sauve/backup_fichier_glpi/files /var/www/html/glpi/
+        cp -Rf /home/glpi_adm/glpi_sauve/backup_fichier_glpi/plugins /var/www/html/glpi/
+        cp -Rf /home/glpi_adm/glpi_sauve/backup_fichier_glpi/config /var/www/html/glpi/
+        cp -Rf /home/glpi_adm/glpi_sauve/backup_fichier_glpi/marketplace /var/www/html/glpi/
+        chown -R www-data:www-data /var/www/html/glpi/
+        chmod -R 755 /var/www/html/glpi/
+        php /var/www/html/glpi/bin/console db:update
+        rm -rf /var/www/html/glpi/install
+}
 function install(){
         check_distro
         update_distro
@@ -302,9 +327,9 @@ function install(){
 function update(){
         check_distro
         maintenance (1)
-
+        backup
         install_glpi
-
+        update_glpi
         maintenance(0)
 }
 
