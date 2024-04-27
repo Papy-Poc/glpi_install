@@ -6,10 +6,10 @@
 #
 
 function warn(){
-    echo -e '\e[31m'$1'\e[0m';
+    echo -e '\e[31m'"$1"'\e[0m';
 }
 function info(){
-    echo -e '\e[36m'$1'\e[0m';
+    echo -e '\e[36m'"$1"'\e[0m';
 }
 
 function check_root(){
@@ -27,7 +27,7 @@ function check_install(){
         # Vérifie si le répertoire existe
         if [ -d "$rep" ]; then
                 warn "Le site est déjà installé."
-                read -p "Voulez-vous mettre à jour GLPI (O/N): " MaJ
+                read -r "Voulez-vous mettre à jour GLPI (O/N): " MaJ
                 case "$MaJ" in
                         "O")
                                 update;
@@ -61,7 +61,7 @@ function check_distro(){
                                 warn "La version de votre système d'exploitation ($ID $VERSION_ID) n'est pas considérée comme compatible."
                                 warn "Voulez-vous toujours forcer l'installation ? Attention, si vous choisissez de forcer le script, c'est à vos risques et périls."
                                 info "Etes-vous sûr de vouloir continuer ? [yes/no]"
-                                read response
+                                read -r response
                                 if [ "$response" == "yes" ]; then
                                         info "Continuing..."
                                 elif [ "$response" == "no" ]; then
@@ -139,7 +139,7 @@ function install_glpi(){
         info "Téléchargement et installation de la dernière version de GLPI..."
         # Get download link for the latest release
         DOWNLOADLINK=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.assets[0].browser_download_url')
-        wget -O /tmp/glpi-latest.tgz $DOWNLOADLINK > /dev/null 2>&1
+        wget -O /tmp/glpi-latest.tgz "$DOWNLOADLINK" > /dev/null 2>&1
         tar xzf /tmp/glpi-latest.tgz -C /var/www/html/
         chown -R www-data:www-data /var/www/html/glpi/
         chmod -R 755 /var/www/html/glpi/
@@ -148,7 +148,7 @@ function install_glpi(){
 
 function setup_db(){
         info "Configuration de GLPI..."
-        php /var/www/html/glpi/bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password=$SQLGLPIPWD --default-language="fr_FR" --no-interaction --force
+        php /var/www/html/glpi/bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force
         rm -rf /var/www/html/glpi/install
         sleep 5
         mkdir /etc/glpi
@@ -195,7 +195,7 @@ EOF
         </VirtualHost>
 EOF
         phpversion=$(php -v | grep -i '(cli)' | awk '{print $2}' | cut -c 1,2,3)
-        sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 =on/' /etc/php/$phpversion/apache2/php.ini
+        sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 =on/' /etc/php/"$phpversion"/apache2/php.ini
         sleep 1
         # Disable Apache Web Server Signature
         echo "ServerSignature Off" >> /etc/apache2/apache2.conf
@@ -213,13 +213,13 @@ EOF
 
 function maj_user_glpi(){
         # Changer le mot de passe de l'admin glpi 
-        mysql -u glpi_user -p$SQLGLPIPWD -e "USE glpi; UPDATE glpi_users SET password = MD5('$ADMINGLPIPWD') WHERE name = 'glpi';" > /dev/null 2>&1
+        mysql -u glpi_user -p"$SQLGLPIPWD" -e "USE glpi; UPDATE glpi_users SET password = MD5('$ADMINGLPIPWD') WHERE name = 'glpi';" > /dev/null 2>&1
         # Efface utilisateur post-only
-        mysql -u glpi_user -p$SQLGLPIPWD -e "USE glpi; DELETE FROM glpi_users WHERE name = 'post-only';" > /dev/null 2>&1
+        mysql -u glpi_user -p"$SQLGLPIPWD" -e "USE glpi; DELETE FROM glpi_users WHERE name = 'post-only';" > /dev/null 2>&1
         # Efface utilisateur tech
-        mysql -u glpi_user -p$SQLGLPIPWD -e "USE glpi; DELETE FROM glpi_users WHERE name = 'tech';" > /dev/null 2>&1
+        mysql -u glpi_user -p"$SQLGLPIPWD" -e "USE glpi; DELETE FROM glpi_users WHERE name = 'tech';" > /dev/null 2>&1
         # Efface utilisateur normal
-        mysql -u glpi_user -p$SQLGLPIPWD -e "USE glpi; DELETE FROM glpi_users WHERE name = 'normal';" > /dev/null 2>&1
+        mysql -u glpi_user -p"$SQLGLPIPWD" -e "USE glpi; DELETE FROM glpi_users WHERE name = 'normal';" > /dev/null 2>&1
 }
 
 function display_credentials(){
