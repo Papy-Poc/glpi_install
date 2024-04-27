@@ -298,8 +298,9 @@ function maintenance(){
 
 function backup_glpi(){
         # Sauvergarde de la bdd
-        PASSWORD=$(sed -n 's/.*Mot de passe: \([^ ]*\).*/\1/p' /home/sauve_mdp.txt | head -n 1)
-        mysqldump -u root -p"$PASSWORD" --databases db23_glpi > /home/glpi_adm/backup_db23_glpi.sql
+        bdd_backup="backup_bdd_glpi-" & date '+%d-%m-%Y %H:%M:%S' & ".sql"
+        PASSWORD=$(sed -n 's/.*Mot de passe: \([^ ]*\).*/\1/p' /home/"$bdd_backup" | head -n 1)
+        mysqldump -u root -p"$PASSWORD" --databases glpi > /home/glpi_adm/backup_bdd_glpi-" & "" & ".sql
         # Sauvegarde des fichiers
         cp -Rf /var/www/html/glpi/ /home/glpi_sauve/backup_glpi
         rm -Rf /var/www/html/glpi/
@@ -312,6 +313,7 @@ function update_glpi(){
         chown -R www-data:www-data /var/www/html/glpi/
         php /var/www/html/glpi/bin/console db:update
         rm -Rf /var/www/html/glpi/install
+        rm -Rf /home/glpi_sauve/backup_glpi
 }
 
 function update(){
