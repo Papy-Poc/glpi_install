@@ -1,4 +1,4 @@
-# Instalation de GLPI en automatique
+# Instalation et mise à jour de GLPI en automatique
  ![GLPI](https://glpi-project.org/wp-content/uploads/2022/01/hero-img-2.png)
 ## A propos de ce script
 
@@ -22,7 +22,7 @@ post-only|postonly|compte post-only
 
 ### Lire la documentation
 Sachez que je n'ai aucun lien avec l'équipe qui développe GLPI et/ou TecLib.
-Si vous rencontrez un problème avec ce script sur une des distributions compatibles, vous pouvez créer un problème, je vous aiderai avec plaisir.
+Si vous rencontrez un problème avec ce script sur une des distributions compatibles, vous pouvez créer une requète, je vous aiderai avec plaisir.
 Si vous rencontrez un problème avec GLPI et/ou avez besoin de plus d'informations sur son fonctionnement, je vous recommande de lire les documentations :
 
 [GLPI Administrators Docs](https://glpi-install.readthedocs.io/),   [GLPI Users Docs](https://glpi-user-documentation.readthedocs.io/)
@@ -41,5 +41,6 @@ Ce script a été testé sur les distributions suivantes :
 
 ## Comment utiliser
 GLPI_install_script s'installe en lançant l'une des commandes suivantes dans votre terminal. Vous pouvez l'installer via la ligne de commande avec curl ou wget.
+S'assurer qu'il n'y a plus le script dans le répertoire /root, sinon rm /root/glpi-install.sh
 
     wget https://raw.githubusercontent.com/PapyPoc/glpi_install/dev/glpi-install.sh && chmod 777 glpi-install.sh && ./glpi-install.sh
