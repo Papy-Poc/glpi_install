@@ -30,7 +30,7 @@ function check_install(){
                 read -r "Voulez-vous mettre à jour GLPI (O/N): " MaJ
                 case "$MaJ" in
                         "O")
-                                update;
+                                update
                                 exit 0;;
                         "N")
                                 info "Sortie du programme."
@@ -244,7 +244,7 @@ function display_credentials(){
 }
 
 function write_credentials(){
-        cat <<EOF > /home/sauve_mdp.txt
+        cat <<EOF > /root/sauve_mdp.txt
         ==============================> GLPI installation details  <=====================================
         Il est important d'enregistrer ces informations. Si vous les perdez, elles seront irrécupérables.
 
@@ -263,12 +263,21 @@ function write_credentials(){
 
         Si vous rencontrez un probléme avec ce script, veuillez le signaler sur GitHub : https://github.com/PapyPoc/glpi_install/issues
 EOF
-        chmod 700 /home/sauve_mdp.txt
+        chmod 700 /root/sauve_mdp.txt
         echo ""
         warn "Fichier de sauve_mdp.txt enregistrer dans /home"
         echo ""
 }
 
+function efface_script(){
+        rep_script="/root/glpi-install.sh"
+        # Vérifie si le répertoire existe
+        if [ -e "$rep_script" ]; then
+                warn "Le script est déjà présent."
+                warn "Effacement en cours"
+                rm -f "$rep_script"
+        fi
+}
 function install(){
         clear
         check_root
@@ -285,35 +294,53 @@ function install(){
         maj_user_glpi
         display_credentials
         write_credentials
-        wp-admin
+        efface_script
 }
 
 function maintenance(){
         if [ "$1" == "1" ]; then
-                php /var/www/glpi/bin/console glpi:maintenance:enable
+                php /var/www/html/glpi/bin/console glpi:maintenance:enable
         elif [ "$1" == "0" ]; then
-                php /var/www/glpi/bin/console glpi:maintenance:disable
+                php /var/www/html/glpi/bin/console glpi:maintenance:disable
         fi
 }
 
-function backup_glpi(){
-        # Sauvergarde de la bdd
-        bdd_backup="backup_bdd_glpi-" & date '+%d-%m-%Y %H:%M:%S' & ".sql"
-        PASSWORD=$(sed -n 's/.*Mot de passe: \([^ ]*\).*/\1/p' /home/"$bdd_backup" | head -n 1)
-        mysqldump -u root -p"$PASSWORD" --databases glpi > /home/glpi_adm/backup_bdd_glpi-" & "" & ".sql
-        # Sauvegarde des fichiers
-        cp -Rf /var/www/html/glpi/ /home/glpi_sauve/backup_glpi
-        rm -Rf /var/www/html/glpi/
+function backup_glpi(){        
+        rep_backup="/home/glpi_sauve/"
+        # Vérifie si le répertoire existe
+        if [ ! -d "$rep_backup" ]; then
+                info "Création du  répertoire de sauvegarde avant mise à jour"
+                mkdir "$rep_backup"
+                rep_glpi="/var/www/html/glpi/"
+                current_date_time=$(date +"%Y-%m-%d_%H-%M-%S")
+                bdd_backup="backup_bdd_glpi-""$current_date_time"".sql"
+                # Sauvergarde de la bdd
+                info "Dump de la base de donnée"
+                PASSWORD=$(sed -n 's/.*Mot de passe root: \([^ ]*\).*/\1/p' sauve_mdp.txt)
+                mysqldump -u root -p"$PASSWORD" --databases glpi > "${rep_backup}${bdd_backup}"
+                info "La base de donnée a été sauvergardé avec succè."
+                # Sauvegarde des fichiers
+                info "Sauvegarde des fichiers du sites"
+                cp -Rf "$rep_glpi" "$rep_backup"backup_glpi
+                info "Les fichiers du site GLPI ont été sauvegardés avec succès."
+                info "Suppression des fichiers du sites"
+                rm -Rf "$rep_glpi"
+                info "Les fichiers du site GLPI ont été supprimés avec succès."
+        fi
 }
+
 function update_glpi(){
-        cp -Rf /home/glpi_sauve/backup_glpi/files /var/www/html/glpi/
-        cp -Rf /home/glpi_sauve/backup_glpi/plugins /var/www/html/glpi/
-        cp -Rf /home/glpi_sauve/backup_glpi/config /var/www/html/glpi/
-        cp -Rf /home/glpi_sauve/backup_glpi/marketplace /var/www/html/glpi/
-        chown -R www-data:www-data /var/www/html/glpi/
-        php /var/www/html/glpi/bin/console db:update
-        rm -Rf /var/www/html/glpi/install
-        rm -Rf /home/glpi_sauve/backup_glpi
+        info "Remise en place des dossiers 'Files', 'plugins', 'config' et marketplace"
+        cp -Rf "$rep_backup"backup_glpi/files "$rep_glpi"
+        cp -Rf "$rep_backup"backup_glpi/plugins "$rep_glpi"
+        cp -Rf "$rep_backup"backup_glpi/config "$rep_glpi"
+        cp -Rf "$rep_backup"backup_glpi/marketplace "$rep_glpi"
+        chown -R www-data:www-data "$rep_glpi"
+        info "Mise à jour de la base de donnée du site"
+        php "$rep_glpi"/bin/console db:update
+        info "Nettoyage de la mise à jour"
+        rm -Rf "$rep_glpi"install
+        #rm -Rf "$rep_backup"backup_glpi
 }
 
 function update(){
@@ -324,4 +351,5 @@ function update(){
         install_glpi
         update_glpi
         maintenance "0"
+        efface_script
 }
