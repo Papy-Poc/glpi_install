@@ -372,9 +372,3 @@ clear
 check_root
 check_distro
 check_install "$rep_glpi"
-
-exit0
-
-if php /var/www/html/glpi/bin/console -V; then
-  grep -i "GLPI CLI" <(php /var/www/html/glpi/bin/console -V)
-fi
