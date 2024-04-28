@@ -27,12 +27,12 @@ function check_install(){
         # Vérifie si le répertoire existe
         if [ -d "$rep" ]; then
                 warn "Le site est déjà installé."
-                read -r "Voulez-vous mettre à jour GLPI (O/N): " MaJ
+                read -p "Voulez-vous mettre à jour GLPI (O/N): " MaJ
                 case "$MaJ" in
-                        "O")
+                        "O" | "o")
                                 update
                                 exit 0;;
-                        "N")
+                        "N" | "n")
                                 info "Sortie du programme."
                                 exit 0;;
                         *)
