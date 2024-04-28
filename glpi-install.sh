@@ -323,17 +323,20 @@ function backup_glpi(){
 }
 
 function update_glpi(){
-        info "Remise en place des dossiers 'Files', 'plugins', 'config' et marketplace"
-        cp -Rf "$rep_backup"backup_glpi/files "$rep_glpi"
-        cp -Rf "$rep_backup"backup_glpi/plugins "$rep_glpi"
-        cp -Rf "$rep_backup"backup_glpi/config "$rep_glpi"
+        info "Remise en place des dossiers marketplace"
         cp -Rf "$rep_backup"backup_glpi/marketplace "$rep_glpi"
+        cat > "$rep_glpi"inc/downstream.php << EOF
+        <?php
+        define('GLPI_CONFIG_DIR', '/etc/glpi');
+        if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
+        require_once GLPI_CONFIG_DIR . '/local_define.php';
+        }
+EOF
         chown -R www-data:www-data "$rep_glpi"
         info "Mise à jour de la base de donnée du site"
         php "$rep_glpi"/bin/console db:update
         info "Nettoyage de la mise à jour"
         rm -Rf "$rep_glpi"install
-        info "Suppression des fichiers du sites"
         #rm -Rf "$rep_backup"backup_glpi
 }
 
@@ -351,6 +354,6 @@ function update(){
 rep_script="/root/glpi-install.sh"
 rep_backup="/home/glpi_sauve/"
 rep_glpi="/var/www/html/glpi/"
-current_date_time=$(date +"%Y-%m-%d_%H-%M-%S")
-bdd_backup="backup_bdd_glpi-""$current_date_time"".sql"
+current_date_time=$(date +"%d-%m-%Y_%H-%M-%S")
+bdd_backup="bdd_glpi-""$current_date_time"".sql"
 check_install
