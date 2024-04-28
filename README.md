@@ -41,6 +41,7 @@ Ce script a été testé sur les distributions suivantes :
 
 ## Comment utiliser
 GLPI_install_script s'installe en lançant l'une des commandes suivantes dans votre terminal. Vous pouvez l'installer via la ligne de commande avec curl ou wget.
+
 S'assurer qu'il n'y a plus le script dans le répertoire /root, sinon rm /root/glpi-install.sh
 
     wget https://raw.githubusercontent.com/PapyPoc/glpi_install/dev/glpi-install.sh && chmod 777 glpi-install.sh && ./glpi-install.sh
