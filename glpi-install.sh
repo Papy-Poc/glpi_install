@@ -310,18 +310,18 @@ function backup_glpi(){
         if [ ! -d "$rep_backup" ]; then
                 info "Création du  répertoire de sauvegarde avant mise à jour"
                 mkdir "$rep_backup"
-                # Sauvergarde de la bdd
-                info "Dump de la base de donnée"
-                PASSWORD=$(sed -n 's/.*Mot de passe root: \([^ ]*\).*/\1/p' /root/sauve_mdp.txt)
-                mysqldump -u root -p"$PASSWORD" --databases glpi > "${rep_backup}${bdd_backup}"
-                info "La base de donnée a été sauvergardé avec succè."
-                # Sauvegarde des fichiers
-                info "Sauvegarde des fichiers du sites"
-                cp -Rf "$rep_glpi" "$rep_backup"backup_glpi
-                info "Les fichiers du site GLPI ont été sauvegardés avec succès."
-                info "Suppression des fichiers du site"
-                rm -Rf "$rep_glpi"
         fi
+        # Sauvergarde de la bdd
+        info "Dump de la base de donnée"
+        PASSWORD=$(sed -n 's/.*Mot de passe root: \([^ ]*\).*/\1/p' /root/sauve_mdp.txt)
+        mysqldump -u root -p"$PASSWORD" --databases glpi > "${rep_backup}${bdd_backup}"
+        info "La base de donnée a été sauvergardé avec succè."
+        # Sauvegarde des fichiers
+        info "Sauvegarde des fichiers du sites"
+        cp -Rf "$rep_glpi" "$rep_backup"backup_glpi
+        info "Les fichiers du site GLPI ont été sauvegardés avec succès."
+        info "Suppression des fichiers du site"
+        rm -Rf "$rep_glpi"
 }
 
 function update_glpi(){
