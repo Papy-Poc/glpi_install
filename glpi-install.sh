@@ -353,3 +353,5 @@ function update(){
         maintenance "0"
         efface_script
 }
+
+check_install
