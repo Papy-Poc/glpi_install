@@ -30,16 +30,15 @@ Si vous rencontrez un problème avec GLPI et/ou avez besoin de plus d'informatio
 
 ## Compatibilité
 Comme ce script utilise apt, il ne fonctionne actuellement que sur les distributions basées sur debian.
-Ce script a été testé sur les distributions suivantes :
-| OS | VERSION| COMPATIBILITÉ|
-|--|--|--|
-|Debian|10|⚠️ Jamais testé, si vous choisissez de forcer le script, c'est à vos risques et périls. |
-|Debian|11|✅|
-|Debian|12|✅|
-|Ubuntu|22.04|⚠️ Tester, ne marche pas|
-|Ubuntu|23.10|✅|
+>[!IMPORTANT]
+>| OS | VERSION| COMPATIBILITÉ|
+>|--|--|--|
+>|Debian|10|⚠️ Jamais testé, si vous choisissez de forcer le script, c'est à vos risques et périls. |
+>|Debian|11|✅|
+>|Debian|12|✅|
+>|Ubuntu|22.04|⚠️ Tester, ne marche pas|
+>|Ubuntu|23.10|✅|
 
-[branch]
 ## Comment utiliser
 GLPI_install_script s'installe en lançant l'une des commandes suivantes dans votre terminal. Vous pouvez l'installer via la ligne de commande avec curl ou wget.
 
@@ -47,5 +46,5 @@ GLPI_install_script s'installe en lançant l'une des commandes suivantes dans vo
 >⚠️ S'assurer qu'il n'y a plus le script dans le répertoire ```/root```, sinon ```rm /root/glpi-install.sh```
 
 ```bash
-wget https://raw.githubusercontent.com/PapyPoc/glpi_install/[branch]/glpi-install.sh && chmod 777 glpi-install.sh && ./glpi-install.sh
+wget https://raw.githubusercontent.com/PapyPoc/glpi_install/dev/glpi-install.sh && chmod 777 glpi-install.sh && ./glpi-install.sh
 ```
