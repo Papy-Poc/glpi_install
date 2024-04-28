@@ -27,7 +27,8 @@ function check_install(){
         # Vérifie si le répertoire existe
         if [ -d "$rep" ]; then
                 warn "Le site est déjà installé."
-                read -p "Voulez-vous mettre à jour GLPI (O/N): " MaJ
+                info "Voulez-vous mettre à jour GLPI (O/N): "
+                read -r MaJ
                 case "$MaJ" in
                         "O" | "o")
                                 update
@@ -270,7 +271,6 @@ EOF
 }
 
 function efface_script(){
-        rep_script="/root/glpi-install.sh"
         # Vérifie si le répertoire existe
         if [ -e "$rep_script" ]; then
                 warn "Le script est déjà présent."
@@ -305,27 +305,20 @@ function maintenance(){
         fi
 }
 
-function backup_glpi(){        
-        rep_backup="/home/glpi_sauve/"
+function backup_glpi(){
         # Vérifie si le répertoire existe
         if [ ! -d "$rep_backup" ]; then
                 info "Création du  répertoire de sauvegarde avant mise à jour"
                 mkdir "$rep_backup"
-                rep_glpi="/var/www/html/glpi/"
-                current_date_time=$(date +"%Y-%m-%d_%H-%M-%S")
-                bdd_backup="backup_bdd_glpi-""$current_date_time"".sql"
                 # Sauvergarde de la bdd
                 info "Dump de la base de donnée"
-                PASSWORD=$(sed -n 's/.*Mot de passe root: \([^ ]*\).*/\1/p' sauve_mdp.txt)
+                PASSWORD=$(sed -n 's/.*Mot de passe root: \([^ ]*\).*/\1/p' /root/sauve_mdp.txt)
                 mysqldump -u root -p"$PASSWORD" --databases glpi > "${rep_backup}${bdd_backup}"
                 info "La base de donnée a été sauvergardé avec succè."
                 # Sauvegarde des fichiers
                 info "Sauvegarde des fichiers du sites"
                 cp -Rf "$rep_glpi" "$rep_backup"backup_glpi
                 info "Les fichiers du site GLPI ont été sauvegardés avec succès."
-                info "Suppression des fichiers du sites"
-                rm -Rf "$rep_glpi"
-                info "Les fichiers du site GLPI ont été supprimés avec succès."
         fi
 }
 
@@ -340,6 +333,7 @@ function update_glpi(){
         php "$rep_glpi"/bin/console db:update
         info "Nettoyage de la mise à jour"
         rm -Rf "$rep_glpi"install
+        info "Suppression des fichiers du sites"
         #rm -Rf "$rep_backup"backup_glpi
 }
 
@@ -354,4 +348,9 @@ function update(){
         efface_script
 }
 
+rep_script="/root/glpi-install.sh"
+rep_backup="/home/glpi_sauve/"
+rep_glpi="/var/www/html/glpi/"
+current_date_time=$(date +"%Y-%m-%d_%H-%M-%S")
+bdd_backup="backup_bdd_glpi-""$current_date_time"".sql"
 check_install
