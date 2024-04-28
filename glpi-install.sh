@@ -67,21 +67,27 @@ function check_install(){
                 warn "Le site est déjà installé. Version ""$glpi_cli_version"
                 new_version=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.name')
                 info "Nouvelle version trouver : GLPI version $new_version"
-                info "Voulez-vous mettre à jour GLPI (O/N): "
-                read -r MaJ
-                case "$MaJ" in
-                        "O" | "o")
-                                update
-                                exit 0;;
-                        "N" | "n")
-                                info "Sortie du programme."
-                                efface_script
-                                exit 0;;
-                        *)
-                                warn "Action non reconnue. Sortie du programme."
-                                efface_script
-                                exit 0;;
-                esac
+                if [ "$glpi_cli_version" == "$new_version" ]; then
+                        info "Vous avez déjà la dernière version de GLPI. Mise à jour annuler"
+                        sleep 5
+                        exit 0;
+                else
+                        info "Voulez-vous mettre à jour GLPI (O/N): "
+                        read -r MaJ
+                        case "$MaJ" in
+                                "O" | "o")
+                                        update
+                                        exit 0;;
+                                "N" | "n")
+                                        info "Sortie du programme."
+                                        efface_script
+                                        exit 0;;
+                                *)
+                                        warn "Action non reconnue. Sortie du programme."
+                                        efface_script
+                                        exit 0;;
+                        esac
+                fi
         else
                 install
         fi
