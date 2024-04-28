@@ -62,8 +62,9 @@ function check_install(){
         # Vérifie si le répertoire existe
         if [ -d "$1" ]; then
                 output=$(php "$rep_glpi"bin/console -V 2>&1)
+                sleep 2
                 glpi_cli_version=$(sed -n 's/.*GLPI CLI \([^ ]*\).*/\1/p' <<< "$output")
-                warn "Le site est déjà installé. Version $glpi_cli_version"
+                warn "Le site est déjà installé. Version ""$glpi_cli_version"
                 new_version=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.name')
                 info "Nouvelle version trouver : GLPI version $new_version"
                 info "Voulez-vous mettre à jour GLPI (O/N): "
