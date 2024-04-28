@@ -299,9 +299,11 @@ function install(){
 
 function maintenance(){
         if [ "$1" == "1" ]; then
-                php /var/www/html/glpi/bin/console glpi:maintenance:enable
+                warn "Mode maintenance activer"
+                php /var/www/html/glpi/bin/console glpi:maintenance:enable  > /dev/null 2>&1
         elif [ "$1" == "0" ]; then
-                php /var/www/html/glpi/bin/console glpi:maintenance:disable
+                info "Mode maintenance désactiver"
+                php /var/www/html/glpi/bin/console glpi:maintenance:disable > /dev/null 2>&1
         fi
 }
 
@@ -314,7 +316,7 @@ function backup_glpi(){
         # Sauvergarde de la bdd
         info "Dump de la base de donnée"
         PASSWORD=$(sed -n 's/.*Mot de passe root: \([^ ]*\).*/\1/p' /root/sauve_mdp.txt)
-        mysqldump -u root -p"$PASSWORD" --databases glpi > "${rep_backup}${bdd_backup}"
+        mysqldump -u root -p"$PASSWORD" --databases glpi > "${rep_backup}${bdd_backup}" > /dev/null 2>&1
         info "La base de donnée a été sauvergardé avec succè."
         # Sauvegarde des fichiers
         info "Sauvegarde des fichiers du sites"
@@ -326,8 +328,8 @@ function backup_glpi(){
 
 function update_glpi(){
         info "Remise en place des dossiers marketplace"
-        cp -Rf "$rep_backup"backup_glpi/plugins "$rep_glpi"
-        cp -Rf "$rep_backup"backup_glpi/marketplace "$rep_glpi"
+        cp -Rf "$rep_backup"backup_glpi/plugins "$rep_glpi" > /dev/null 2>&1
+        cp -Rf "$rep_backup"backup_glpi/marketplace "$rep_glpi" > /dev/null 2>&1
         cat > "$rep_glpi"inc/downstream.php << EOF
         <?php
         define('GLPI_CONFIG_DIR', '/etc/glpi');
@@ -335,12 +337,12 @@ function update_glpi(){
         require_once GLPI_CONFIG_DIR . '/local_define.php';
         }
 EOF
-        chown -R www-data:www-data "$rep_glpi"
+        chown -R www-data:www-data "$rep_glpi" > /dev/null 2>&1
         info "Mise à jour de la base de donnée du site"
         php "$rep_glpi"/bin/console db:update --no-interaction --force
         info "Nettoyage de la mise à jour"
-        rm -Rf "$rep_glpi"install
-        rm -Rf "$rep_backup"backup_glpi
+        rm -Rf "$rep_glpi"install > /dev/null 2>&1
+        rm -Rf "$rep_backup"backup_glpi > /dev/null 2>&1
 }
 
 function update(){
