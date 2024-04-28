@@ -319,11 +319,14 @@ function backup_glpi(){
                 info "Sauvegarde des fichiers du sites"
                 cp -Rf "$rep_glpi" "$rep_backup"backup_glpi
                 info "Les fichiers du site GLPI ont été sauvegardés avec succès."
+                info "Suppression des fichiers du site"
+                rm -Rf "$rep_glpi"
         fi
 }
 
 function update_glpi(){
         info "Remise en place des dossiers marketplace"
+        cp -Rf "$rep_backup"backup_glpi/plugins "$rep_glpi"
         cp -Rf "$rep_backup"backup_glpi/marketplace "$rep_glpi"
         cat > "$rep_glpi"inc/downstream.php << EOF
         <?php
@@ -337,7 +340,7 @@ EOF
         php "$rep_glpi"/bin/console db:update
         info "Nettoyage de la mise à jour"
         rm -Rf "$rep_glpi"install
-        #rm -Rf "$rep_backup"backup_glpi
+        rm -Rf "$rep_backup"backup_glpi
 }
 
 function update(){
