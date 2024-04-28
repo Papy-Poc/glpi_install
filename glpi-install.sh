@@ -155,14 +155,14 @@ function install_glpi(){
         DOWNLOADLINK=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.assets[0].browser_download_url')
         wget -O /tmp/glpi-latest.tgz "$DOWNLOADLINK" > /dev/null 2>&1
         tar xzf /tmp/glpi-latest.tgz -C /var/www/html/
-        chown -R www-data:www-data /var/www/html/glpi/
-        chmod -R 755 /var/www/html/glpi/
+        chown -R www-data:www-data "$rep_glpi"
+        chmod -R 755 "$rep_glpi"
         systemctl restart apache2
 }
 
 function setup_db(){
         info "Configuration de GLPI..."
-        php /var/www/html/glpi/bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
+        php "$rep_glpi"bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
         rm -rf /var/www/html/glpi/install
         sleep 5
         mkdir /etc/glpi
@@ -179,8 +179,8 @@ EOF
         require_once GLPI_CONFIG_DIR . '/local_define.php';
         }
 EOF
-        mv /var/www/html/glpi/config/*.* /etc/glpi/
-        mv /var/www/html/glpi/files /var/lib/glpi/
+        mv "$rep_glpi"config/*.* /etc/glpi/
+        mv "$rep_glpi"files /var/lib/glpi/
         chown -R www-data:www-data  /etc/glpi
         chmod -R 775 /etc/glpi
         sleep 1
@@ -189,8 +189,8 @@ EOF
         chmod -R 775 /var/log/glpi
         sleep 1
         # Add permissions
-        chown -R www-data:www-data /var/www/html
-        chmod -R 775 /var/www/html
+        chown -R www-data:www-data "$rep_glpi"
+        chmod -R 775 "$rep_glpi"
         sleep 1
         # Setup vhost
         cat > /etc/apache2/sites-available/glpi.conf << EOF
@@ -222,7 +222,7 @@ EOF
         # Restart d'apache
         systemctl restart apache2 > /dev/null 2>&1
         # Setup Cron task
-        echo "*/2 * * * * www-data /usr/bin/php /var/www/html/glpi/front/cron.php &>/dev/null" >> /etc/cron.d/glpi
+        echo "*/2 * * * * www-data /usr/bin/php '$rep_glpi'front/cron.php &>/dev/null" >> /etc/cron.d/glpi
 }
 
 function maj_user_glpi(){
