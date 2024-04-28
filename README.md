@@ -9,7 +9,7 @@ Une fois le script exécuté, la seule chose que vous aurez à faire sera de vou
 
 L'installation de GLPI se fait sans SSL. Si vous avez besoin d'ouvrir l'accès à GLPI depuis l'extérieur et/ou d'un certificat SSL, je vous recommande d'utiliser un reverse proxy.
 
-⚠️ Il est fortement recommandé d'exécuter ce script sur une nouvelle installation.
+⚠️ Il est fortement recommandé d'exécuter ce script sur une nouvelle installation ou sur une installation faite avec ce script.
 
 ### Comptes par défaut
 
@@ -42,6 +42,6 @@ Ce script a été testé sur les distributions suivantes :
 ## Comment utiliser
 GLPI_install_script s'installe en lançant l'une des commandes suivantes dans votre terminal. Vous pouvez l'installer via la ligne de commande avec curl ou wget.
 
-S'assurer qu'il n'y a plus le script dans le répertoire /root, sinon rm /root/glpi-install.sh
+⚠️ S'assurer qu'il n'y a plus le script dans le répertoire /root, sinon rm /root/glpi-install.sh
 
     wget https://raw.githubusercontent.com/PapyPoc/glpi_install/dev/glpi-install.sh && chmod 777 glpi-install.sh && ./glpi-install.sh
