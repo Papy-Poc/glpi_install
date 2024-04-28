@@ -253,7 +253,7 @@ function write_credentials(){
         glpi              -  $ADMINGLPIPWD      -  compte admin
         
         Vous pouvez accéder à la page web de GLPI à partir d'une adresse IP ou d'un nom d'hôte :
-        http://$IPADRESS" 
+        http://$IPADRESS
 
         ==> Database:
         Mot de passe root: $SLQROOTPWD
