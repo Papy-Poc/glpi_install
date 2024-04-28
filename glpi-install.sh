@@ -34,9 +34,11 @@ function check_install(){
                                 exit 0;;
                         "N" | "n")
                                 info "Sortie du programme."
+                                efface_script
                                 exit 0;;
                         *)
                                 warn "Action non reconnue. Sortie du programme."
+                                efface_script
                                 exit 0;;
                 esac
         else
