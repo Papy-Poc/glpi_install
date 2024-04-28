@@ -22,30 +22,6 @@ function check_root(){
         fi
 }
 
-function check_install(){
-        # Vérifie si le répertoire existe
-        if [ -d "$1" ]; then
-                warn "Le site est déjà installé."
-                info "Voulez-vous mettre à jour GLPI (O/N): "
-                read -r MaJ
-                case "$MaJ" in
-                        "O" | "o")
-                                update
-                                exit 0;;
-                        "N" | "n")
-                                info "Sortie du programme."
-                                efface_script
-                                exit 0;;
-                        *)
-                                warn "Action non reconnue. Sortie du programme."
-                                efface_script
-                                exit 0;;
-                esac
-        else
-                install
-        fi
-}
-
 function check_distro(){
         # Constante pour les versions de Debian acceptables
         DEBIAN_VERSIONS=("11" "12")
@@ -79,6 +55,35 @@ function check_distro(){
         else
         warn "Il s'agit d'une autre distribution que Debian ou Ubuntu qui n'est pas compatible."
         exit 1
+        fi
+}
+
+function check_install(){
+        # Vérifie si le répertoire existe
+        if [ -d "$1" ]; then
+                output=$(php bin/console -V 2>&1)
+                # Extract the line containing "GLPI CLI" using grep
+                glpi_cli_version=$(sed -n 's/.*GLPI CLI \([^ ]*\).*/\1/p' <<< "$output")
+                warn "Le site est déjà installé. Version $glpi_cli_version"
+                new_version=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.name')
+                info "Nouvelle version trouver : GLPI version $new_version"
+                info "Voulez-vous mettre à jour GLPI (O/N): "
+                read -r MaJ
+                case "$MaJ" in
+                        "O" | "o")
+                                update
+                                exit 0;;
+                        "N" | "n")
+                                info "Sortie du programme."
+                                efface_script
+                                exit 0;;
+                        *)
+                                warn "Action non reconnue. Sortie du programme."
+                                efface_script
+                                exit 0;;
+                esac
+        else
+                install
         fi
 }
 
@@ -141,7 +146,7 @@ function mariadb_configure(){
 function install_glpi(){
         info "Téléchargement et installation de la dernière version de GLPI..."
         # Get download link for the latest release
-        DOWNLOADLINK=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.assets[0].browser_download_url')
+         
         wget -O /tmp/glpi-latest.tgz "$DOWNLOADLINK" > /dev/null 2>&1
         tar xzf /tmp/glpi-latest.tgz -C /var/www/html/
         chown -R www-data:www-data /var/www/html/glpi/
@@ -280,7 +285,6 @@ function efface_script(){
         fi
 }
 function install(){
-        check_distro
         update_distro
         network_info
         install_packages
@@ -360,4 +364,11 @@ current_date_time=$(date +"%d-%m-%Y_%H-%M-%S")
 bdd_backup="bdd_glpi-""$current_date_time"".sql"
 clear
 check_root
+check_distro
 check_install "$rep_glpi"
+
+exit0
+
+if php /var/www/html/glpi/bin/console -V; then
+  grep -i "GLPI CLI" <(php /var/www/html/glpi/bin/console -V)
+fi
