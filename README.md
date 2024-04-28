@@ -16,10 +16,7 @@ L'installation de GLPI se fait sans SSL. Si vous avez besoin d'ouvrir l'accès �
 
 | Login | Mot de passe | Rôle |
 |--|--|--|
-glpi|glpi|compte administrateur
-tech|tech|compte technique
-normal|normal|compte normal
-post-only|postonly|compte post-only
+glpi|Défini à l'installation|compte administrateur
 
 ### Lire la documentation
 Sachez que je n'ai aucun lien avec l'équipe qui développe GLPI et/ou TecLib.
