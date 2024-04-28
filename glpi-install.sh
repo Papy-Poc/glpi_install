@@ -337,7 +337,7 @@ function update_glpi(){
 EOF
         chown -R www-data:www-data "$rep_glpi"
         info "Mise à jour de la base de donnée du site"
-        php "$rep_glpi"/bin/console db:update
+        php "$rep_glpi"/bin/console db:update --no-interaction --force
         info "Nettoyage de la mise à jour"
         rm -Rf "$rep_glpi"install
         rm -Rf "$rep_backup"backup_glpi
