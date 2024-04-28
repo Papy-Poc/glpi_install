@@ -65,7 +65,7 @@ function check_install(){
                 sleep 2
                 glpi_cli_version=$(sed -n 's/.*GLPI CLI \([^ ]*\).*/\1/p' <<< "$output")
                 warn "Le site est déjà installé. Version ""$glpi_cli_version"
-                new_version=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.assets[0].browser_download_url')
+                new_version=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.name')
                 info "Nouvelle version trouver : GLPI version $new_version"
                 info "Voulez-vous mettre à jour GLPI (O/N): "
                 read -r MaJ
@@ -146,7 +146,7 @@ function mariadb_configure(){
 function install_glpi(){
         info "Téléchargement et installation de la dernière version de GLPI..."
         # Get download link for the latest release
-         
+        DOWNLOADLINK=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.assets[0].browser_download_url')
         wget -O /tmp/glpi-latest.tgz "$DOWNLOADLINK" > /dev/null 2>&1
         tar xzf /tmp/glpi-latest.tgz -C /var/www/html/
         chown -R www-data:www-data /var/www/html/glpi/
