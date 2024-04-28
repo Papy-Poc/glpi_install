@@ -23,9 +23,8 @@ function check_root(){
 }
 
 function check_install(){
-        rep="/var/www/html/glpi"
         # Vérifie si le répertoire existe
-        if [ -d "$rep" ]; then
+        if [ -d "$1" ]; then
                 warn "Le site est déjà installé."
                 info "Voulez-vous mettre à jour GLPI (O/N): "
                 read -r MaJ
@@ -279,8 +278,6 @@ function efface_script(){
         fi
 }
 function install(){
-        clear
-        check_root
         check_distro
         update_distro
         network_info
@@ -346,8 +343,6 @@ EOF
 }
 
 function update(){
-        clear
-        check_root
         maintenance "1"
         backup_glpi
         install_glpi
@@ -361,4 +356,6 @@ rep_backup="/home/glpi_sauve/"
 rep_glpi="/var/www/html/glpi/"
 current_date_time=$(date +"%d-%m-%Y_%H-%M-%S")
 bdd_backup="bdd_glpi-""$current_date_time"".sql"
-check_install
+clear
+check_root
+check_install "$rep_glpi"
