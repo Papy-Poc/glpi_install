@@ -1,4 +1,4 @@
-# Instalation et mise à jour de GLPI en automatique
+# Installation et mise à jour de GLPI en automatique
  ![GLPI](https://glpi-project.org/wp-content/uploads/2022/01/hero-img-2.png)
 ## A propos de ce script
 
