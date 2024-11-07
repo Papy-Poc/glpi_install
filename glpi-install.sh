@@ -126,6 +126,9 @@ function mariadb_configure(){
         SLQROOTPWD=$(openssl rand -base64 48 | cut -c1-12 )
         SQLGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
         ADMINGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
+       9 POSTGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
+        TECHGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
+        NORMGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
         systemctl start mariadb > /dev/null 2>&1
         (echo ""; echo "y"; echo "y"; echo "$SLQROOTPWD"; echo "$SLQROOTPWD"; echo "y"; echo "y"; echo "y"; echo "y") | mysql_secure_installation > /dev/null 2>&1
         sleep 1
@@ -228,12 +231,12 @@ EOF
 function maj_user_glpi(){
         # Changer le mot de passe de l'admin glpi 
         mysql -u glpi_user -p"$SQLGLPIPWD" -e "USE glpi; UPDATE glpi_users SET password = MD5('$ADMINGLPIPWD') WHERE name = 'glpi';" > /dev/null 2>&1
-        # Efface utilisateur post-only
-        mysql -u glpi_user -p"$SQLGLPIPWD" -e "USE glpi; DELETE FROM glpi_users WHERE name = 'post-only';" > /dev/null 2>&1
-        # Efface utilisateur tech
-        mysql -u glpi_user -p"$SQLGLPIPWD" -e "USE glpi; DELETE FROM glpi_users WHERE name = 'tech';" > /dev/null 2>&1
-        # Efface utilisateur normal
-        mysql -u glpi_user -p"$SQLGLPIPWD" -e "USE glpi; DELETE FROM glpi_users WHERE name = 'normal';" > /dev/null 2>&1
+        # Changer le mot de passe de l'utilisateur post-only
+        mysql -u glpi_user -p"$SQLGLPIPWD" -e "USE glpi; UPDATE glpi_users SET password = MD5('$POSTGLPIPWD') WHERE name = 'post-only';" > /dev/null 2>&1
+        # Changer le mot de passe de l'utilisateur tech
+        mysql -u glpi_user -p"$SQLGLPIPWD" -e "USE glpi; UPDATE glpi_users SET password = MD5('$TECHGLPIPWD') WHERE name = 'tech';" > /dev/null 2>&1
+        # Changer le mot de passe de l'utilisateur normal
+        mysql -u glpi_user -p"$SQLGLPIPWD" -e "USE glpi; UPDATE glpi_users SET password = MD5('$NORMGLPIPWD') WHERE name = 'normal';" > /dev/null 2>&1
 }
 
 function display_credentials(){
@@ -243,6 +246,10 @@ function display_credentials(){
         info "Les comptes utilisateurs par défaut sont :"
         info "UTILISATEUR       -  MOT DE PASSE       -  ACCES"
         info "glpi              -  $ADMINGLPIPWD      -  compte admin"
+        info "post-only         -  $POSTGLPIPWD  -  compte post-only"
+        info "tech              -  $TECHGLPIPWD  -  compte tech"
+        info "normal            -  $NORMGLPIPWD  -  compte normal"
+
         echo ""
         info "Vous pouvez accéder à la page web de GLPI à partir d'une adresse IP ou d'un nom d'hôte :"
         info "http://$IPADRESS" 
