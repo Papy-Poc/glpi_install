@@ -40,7 +40,7 @@ Comme ce script utilise apt, il ne fonctionne actuellement que sur les distribut
 >|Ubuntu|23.10|✅|
 
 ## Comment utiliser
-GLPI s'installe en lançant la commande suivantes dans votre terminal.
+GLPI s'installe en lançant la commande suivante dans votre terminal.
 
 >[!IMPORTANT]
 >⚠️ S'assurer qu'il n'y a plus le script dans le répertoire ```/root```, sinon ```rm /root/glpi-install.sh```
