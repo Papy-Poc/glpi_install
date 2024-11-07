@@ -244,11 +244,11 @@ function display_credentials(){
         warn "Il est important d'enregistrer ces informations. Si vous les perdez, elles seront irrécupérables."
         echo ""
         info "Les comptes utilisateurs par défaut sont :"
-        info "UTILISATEUR       -  MOT DE PASSE       -  ACCES"
-        info "glpi              -  $ADMINGLPIPWD      -  compte admin"
-        info "post-only         -  $POSTGLPIPWD  -  compte post-only"
-        info "tech              -  $TECHGLPIPWD  -  compte tech"
-        info "normal            -  $NORMGLPIPWD  -  compte normal"
+        info "UTILISATEUR  -  MOT DE PASSE       -  ACCES"
+        info "glpi         -  $ADMINGLPIPWD      -  compte admin"
+        info "post-only    -  $POSTGLPIPWD       -  compte post-only"
+        info "tech         -  $TECHGLPIPWD       -  compte tech"
+        info "normal       -  $NORMGLPIPWD       -  compte normal"
 
         echo ""
         info "Vous pouvez accéder à la page web de GLPI à partir d'une adresse IP ou d'un nom d'hôte :"
@@ -270,7 +270,10 @@ function write_credentials(){
 
         Les comptes utilisateurs par défaut sont :
         UTILISATEUR       -  MOT DE PASSE       -  ACCES
-        glpi              -  $ADMINGLPIPWD      -  compte admin
+        info "glpi        -  $ADMINGLPIPWD      -  compte admin"
+        info "post-only   -  $POSTGLPIPWD       -  compte post-only"
+        info "tech        -  $TECHGLPIPWD       -  compte tech"
+        info "normal      -  $NORMGLPIPWD       -  compte normal"
         
         Vous pouvez accéder à la page web de GLPI à partir d'une adresse IP ou d'un nom d'hôte :
         http://$IPADRESS
