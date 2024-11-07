@@ -46,5 +46,5 @@ GLPI_install_script s'installe en lançant l'une des commandes suivantes dans vo
 >⚠️ S'assurer qu'il n'y a plus le script dans le répertoire ```/root```, sinon ```rm /root/glpi-install.sh```
 
 ```bash
-wget https://raw.githubusercontent.com/PapyPoc/glpi_install/dev/glpi-install.sh && chmod 777 glpi-install.sh && ./glpi-install.sh
+wget https://raw.githubusercontent.com/PapyPoc/glpi_install/dev/glpi-install.sh && chmod 700 glpi-install.sh && ./glpi-install.sh
 ```
