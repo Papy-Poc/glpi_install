@@ -101,7 +101,7 @@ function update_distro(){
 }
 
 function network_info(){
-        INTERFACE=$(ip route | awk 'NR==1 {print $5}')
+        INTERFACE=$(ip route | awk 'NR==1 {print $3}')
         IPADRESS=$(ip addr show "$INTERFACE" | grep inet | awk '{ print $2; }' | sed 's/\/.*$//' | head -n 1)
         # HOST=$(hostname)
 }
@@ -156,7 +156,6 @@ function install_glpi(){
         info "Téléchargement et installation de la dernière version de GLPI..."
         new_version=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.name')
         info "GLPI version $new_version"
-        network_info
         # Get download link for the latest release
         DOWNLOADLINK=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.assets[0].browser_download_url')
         wget -O /tmp/glpi-latest.tgz "$DOWNLOADLINK" > /dev/null 2>&1
@@ -306,6 +305,7 @@ function efface_script(){
 function install(){
         update_distro
         install_packages
+        network_info
         mariadb_configure
         sleep 5
         install_glpi
