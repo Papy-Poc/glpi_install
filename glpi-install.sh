@@ -260,7 +260,7 @@ function write_credentials(){
 
         Les comptes utilisateurs par défaut sont :
         UTILISATEUR       -  MOT DE PASSE       -  ACCES
-        info "glpi        -  $ADMINGLPIPWD      -  compte admin"
+        info "glpi        -  $ADMINGLPIPWD     -  compte admin"
         info "post-only   -  $POSTGLPIPWD       -  compte post-only"
         info "tech        -  $TECHGLPIPWD       -  compte tech"
         info "normal      -  $NORMGLPIPWD       -  compte normal"
