@@ -89,6 +89,7 @@ function check_install(){
                         esac
                 fi
         else
+                new_version=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.name')
                 info "Installation de GLPI version $new_version"
                 install
         fi
