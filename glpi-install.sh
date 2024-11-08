@@ -126,7 +126,7 @@ function mariadb_configure(){
         SLQROOTPWD=$(openssl rand -base64 48 | cut -c1-12 )
         SQLGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
         ADMINGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
-       9 POSTGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
+        POSTGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
         TECHGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
         NORMGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
         systemctl start mariadb > /dev/null 2>&1
