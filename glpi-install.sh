@@ -89,6 +89,7 @@ function check_install(){
                         esac
                 fi
         else
+                info "Installation de GLPI version $new_version"
                 install
         fi
 }
