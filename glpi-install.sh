@@ -101,7 +101,7 @@ function update_distro(){
 }
 
 function network_info(){
-        INTERFACE=$(ip route | awk 'NR==1 {print $3}')
+        INTERFACE=$(ip route | awk 'NR==1 {print $5}')
         IPADRESS=$(ip addr show "$INTERFACE" | grep inet | awk '{ print $2; }' | sed 's/\/.*$//' | head -n 1)
         # HOST=$(hostname)
 }
