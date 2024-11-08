@@ -11,7 +11,6 @@ function warn(){
 function info(){
     echo -e '\e[36m'"$1"'\e[0m';
 }
-
 function check_root(){
         # Vérification des privilèges root
         if [[ "$(id -u)" -ne 0 ]]; then
@@ -21,7 +20,6 @@ function check_root(){
                 info "Privilège Root: OK"
         fi
 }
-
 function check_distro(){
         # Constante pour les versions de Debian acceptables
         DEBIAN_VERSIONS=("11" "12")
@@ -57,7 +55,6 @@ function check_distro(){
         exit 1
         fi
 }
-
 function check_install(){
         # Vérifie si le répertoire existe
         if [ -d "$1" ]; then
@@ -92,20 +89,17 @@ function check_install(){
                 install
         fi
 }
-
 function update_distro(){
         info "Recherche des mise à jour"
         apt-get update > /dev/null 2>&1
         info "Application des mise à jour"
         apt-get upgrade -y > /dev/null 2>&1
 }
-
 function network_info(){
         INTERFACE=$(ip route | awk 'NR==1 {print $5}')
         IPADRESS=$(ip addr show "$INTERFACE" | grep inet | awk '{ print $2; }' | sed 's/\/.*$//' | head -n 1)
         # HOST=$(hostname)
 }
-
 function install_packages(){
         sleep 1
         info "Installation des service lamp..."
@@ -119,7 +113,6 @@ function install_packages(){
         info "Redémarage d'Apache"
         systemctl restart apache2 > /dev/null 2>&1
 }
-
 function mariadb_configure(){
         info "Configuration de MariaDB"
         sleep 1
@@ -151,7 +144,6 @@ function mariadb_configure(){
         sleep 1
         mysql -e "GRANT SELECT ON mysql.time_zone_name TO 'glpi_user'@'localhost'" > /dev/null 2>&1
 }
-
 function install_glpi(){
         info "Téléchargement et installation de la dernière version de GLPI..."
         new_version=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.name')
@@ -164,7 +156,6 @@ function install_glpi(){
         chmod -R 755 "$rep_glpi"
         systemctl restart apache2
 }
-
 function setup_db(){
         info "Configuration de GLPI..."
         php "$rep_glpi"bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
@@ -229,7 +220,6 @@ EOF
         # Setup Cron task
         echo "*/2 * * * * www-data /usr/bin/php '$rep_glpi'front/cron.php &>/dev/null" >> /etc/cron.d/glpi
 }
-
 function maj_user_glpi(){
         # Changer le mot de passe de l'admin glpi 
         mysql -u glpi_user -p"$SQLGLPIPWD" -e "USE glpi; UPDATE glpi_users SET password = MD5('$ADMINGLPIPWD') WHERE name = 'glpi';" > /dev/null 2>&1
@@ -240,7 +230,6 @@ function maj_user_glpi(){
         # Changer le mot de passe de l'utilisateur normal
         mysql -u glpi_user -p"$SQLGLPIPWD" -e "USE glpi; UPDATE glpi_users SET password = MD5('$NORMGLPIPWD') WHERE name = 'normal';" > /dev/null 2>&1
 }
-
 function display_credentials(){
         info "===========================> Détail de l'installation de GLPI <=================================="
         warn "Il est important d'enregistrer ces informations. Si vous les perdez, elles seront irrécupérables."
@@ -264,7 +253,6 @@ function display_credentials(){
         echo ""
         info "Si vous rencontrez un problème avec ce script, veuillez le signaler sur GitHub : https://github.com/PapyPoc/glpi_install/issues"
 }
-
 function write_credentials(){
         cat <<EOF > /root/sauve_mdp.txt
         ==============================> GLPI installation details  <=====================================
@@ -293,7 +281,6 @@ EOF
         warn "Fichier de sauve_mdp.txt enregistrer dans /home"
         echo ""
 }
-
 function efface_script(){
         # Vérifie si le répertoire existe
         if [ -e "$rep_script" ]; then
@@ -317,7 +304,6 @@ function install(){
         write_credentials
         efface_script
 }
-
 function maintenance(){
         if [ "$1" == "1" ]; then
                 warn "Mode maintenance activer"
@@ -327,7 +313,6 @@ function maintenance(){
                 php /var/www/html/glpi/bin/console glpi:maintenance:disable > /dev/null 2>&1
         fi
 }
-
 function backup_glpi(){
         # Vérifie si le répertoire existe
         if [ ! -d "$rep_backup" ]; then
@@ -346,7 +331,6 @@ function backup_glpi(){
         info "Suppression des fichiers du site"
         rm -Rf "$rep_glpi"
 }
-
 function update_glpi(){
         info "Remise en place des dossiers marketplace"
         cp -Rf "$rep_backup"backup_glpi/plugins "$rep_glpi" > /dev/null 2>&1
@@ -365,7 +349,6 @@ EOF
         rm -Rf "$rep_glpi"install > /dev/null 2>&1
         rm -Rf "$rep_backup"backup_glpi > /dev/null 2>&1
 }
-
 function update(){
         maintenance "1"
         backup_glpi
@@ -374,7 +357,6 @@ function update(){
         maintenance "0"
         efface_script
 }
-
 rep_script="/root/glpi-install.sh"
 rep_backup="/home/glpi_sauve/"
 rep_glpi="/var/www/html/glpi/"
