@@ -89,6 +89,7 @@ function check_install(){
                         esac
                 fi
         else
+                update_distro
                 new_version=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.name')
                 info "Installation de GLPI version $new_version"
                 install
@@ -303,7 +304,6 @@ function efface_script(){
         fi
 }
 function install(){
-        update_distro
         network_info
         install_packages
         mariadb_configure
