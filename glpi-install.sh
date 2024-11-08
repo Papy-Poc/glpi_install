@@ -89,9 +89,6 @@ function check_install(){
                         esac
                 fi
         else
-                update_distro
-                new_version=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.name')
-                info "Installation de GLPI version $new_version"
                 install
         fi
 }
@@ -157,6 +154,8 @@ function mariadb_configure(){
 
 function install_glpi(){
         info "Téléchargement et installation de la dernière version de GLPI..."
+        new_version=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.name')
+        info "GLPI version $new_version"network_info
         # Get download link for the latest release
         DOWNLOADLINK=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.assets[0].browser_download_url')
         wget -O /tmp/glpi-latest.tgz "$DOWNLOADLINK" > /dev/null 2>&1
@@ -304,7 +303,7 @@ function efface_script(){
         fi
 }
 function install(){
-        network_info
+        update_distro
         install_packages
         mariadb_configure
         sleep 5
