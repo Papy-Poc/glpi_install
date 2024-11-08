@@ -2,7 +2,7 @@
 #
 # GLPI install script
 # Author: PapyPoc
-# Version: 1.1.0
+# Version: 1.2.0
 #
 
 function warn(){
@@ -73,7 +73,7 @@ function check_install(){
                         read -r MaJ
                         case "$MaJ" in
                                 "O" | "o")
-                                        Update
+                                        update
                                         exit 0;;
                                 "N" | "n")
                                         info "Sortie du programme."
@@ -119,6 +119,9 @@ function mariadb_configure(){
         SLQROOTPWD=$(openssl rand -base64 48 | cut -c1-12 )
         SQLGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
         ADMINGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
+        POSTGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
+        TECHGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
+        NORMGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
         systemctl start mariadb > /dev/null 2>&1
         (echo ""; echo "y"; echo "y"; echo "$SLQROOTPWD"; echo "$SLQROOTPWD"; echo "y"; echo "y"; echo "y"; echo "y") | mysql_secure_installation > /dev/null 2>&1
         sleep 1
@@ -143,6 +146,8 @@ function mariadb_configure(){
 }
 function install_glpi(){
         info "Téléchargement et installation de la dernière version de GLPI..."
+        new_version=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.name')
+        info "GLPI version $new_version"
         # Get download link for the latest release
         DOWNLOADLINK=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.assets[0].browser_download_url')
         wget -O /tmp/glpi-latest.tgz "$DOWNLOADLINK" > /dev/null 2>&1
@@ -218,20 +223,23 @@ EOF
 function maj_user_glpi(){
         # Changer le mot de passe de l'admin glpi 
         mysql -u glpi_user -p"$SQLGLPIPWD" -e "USE glpi; UPDATE glpi_users SET password = MD5('$ADMINGLPIPWD') WHERE name = 'glpi';" > /dev/null 2>&1
-        # Efface utilisateur post-only
-        mysql -u glpi_user -p"$SQLGLPIPWD" -e "USE glpi; DELETE FROM glpi_users WHERE name = 'post-only';" > /dev/null 2>&1
-        # Efface utilisateur tech
-        mysql -u glpi_user -p"$SQLGLPIPWD" -e "USE glpi; DELETE FROM glpi_users WHERE name = 'tech';" > /dev/null 2>&1
-        # Efface utilisateur normal
-        mysql -u glpi_user -p"$SQLGLPIPWD" -e "USE glpi; DELETE FROM glpi_users WHERE name = 'normal';" > /dev/null 2>&1
+        # Changer le mot de passe de l'utilisateur post-only
+        mysql -u glpi_user -p"$SQLGLPIPWD" -e "USE glpi; UPDATE glpi_users SET password = MD5('$POSTGLPIPWD') WHERE name = 'post-only';" > /dev/null 2>&1
+        # Changer le mot de passe de l'utilisateur tech
+        mysql -u glpi_user -p"$SQLGLPIPWD" -e "USE glpi; UPDATE glpi_users SET password = MD5('$TECHGLPIPWD') WHERE name = 'tech';" > /dev/null 2>&1
+        # Changer le mot de passe de l'utilisateur normal
+        mysql -u glpi_user -p"$SQLGLPIPWD" -e "USE glpi; UPDATE glpi_users SET password = MD5('$NORMGLPIPWD') WHERE name = 'normal';" > /dev/null 2>&1
 }
 function display_credentials(){
         info "===========================> Détail de l'installation de GLPI <=================================="
         warn "Il est important d'enregistrer ces informations. Si vous les perdez, elles seront irrécupérables."
         echo ""
         info "Les comptes utilisateurs par défaut sont :"
-        info "UTILISATEUR       -  MOT DE PASSE       -  ACCES"
-        info "glpi              -  $ADMINGLPIPWD      -  compte admin"
+        info "UTILISATEUR  -  MOT DE PASSE       -  ACCES"
+        info "glpi         -  $ADMINGLPIPWD       -  compte admin"
+        info "post-only    -  $POSTGLPIPWD       -  compte post-only"
+        info "tech         -  $TECHGLPIPWD       -  compte tech"
+        info "normal       -  $NORMGLPIPWD       -  compte normal"
         echo ""
         info "Vous pouvez accéder à la page web de GLPI à partir d'une adresse IP ou d'un nom d'hôte :"
         info "http://$IPADRESS" 
@@ -251,7 +259,10 @@ function write_credentials(){
 
         Les comptes utilisateurs par défaut sont :
         UTILISATEUR       -  MOT DE PASSE       -  ACCES
-        glpi              -  $ADMINGLPIPWD      -  compte admin
+        info "glpi        -  $ADMINGLPIPWD       -  compte admin"
+        info "post-only   -  $POSTGLPIPWD       -  compte post-only"
+        info "tech        -  $TECHGLPIPWD       -  compte tech"
+        info "normal      -  $NORMGLPIPWD       -  compte normal"
         
         Vous pouvez accéder à la page web de GLPI à partir d'une adresse IP ou d'un nom d'hôte :
         http://$IPADRESS
@@ -279,8 +290,8 @@ function efface_script(){
 }
 function install(){
         update_distro
-        network_info
         install_packages
+        network_info
         mariadb_configure
         sleep 5
         install_glpi
@@ -331,7 +342,7 @@ function update_glpi(){
         }
 EOF
         chown -R www-data:www-data "$rep_glpi" > /dev/null 2>&1
-        info "Mise à jour de la base de données du site"
+        info "Mise à jour de la base de donnée du site"
         php "$rep_glpi"/bin/console db:update --quiet --no-interaction --force  > /dev/null 2>&1
         info "Nettoyage de la mise à jour"
         rm -Rf "$rep_glpi"install > /dev/null 2>&1
