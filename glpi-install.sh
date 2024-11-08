@@ -240,7 +240,6 @@ function display_credentials(){
         info "post-only    -  $POSTGLPIPWD       -  compte post-only"
         info "tech         -  $TECHGLPIPWD       -  compte tech"
         info "normal       -  $NORMGLPIPWD       -  compte normal"
-
         echo ""
         info "Vous pouvez accéder à la page web de GLPI à partir d'une adresse IP ou d'un nom d'hôte :"
         info "http://$IPADRESS" 
