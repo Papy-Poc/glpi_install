@@ -12,13 +12,13 @@ function info(){
     echo -e '\e[36m'"$1"'\e[0m';
 }
 function check_root(){
-        # Vérification des privilèges root
-        if [[ "$(id -u)" -ne 0 ]]; then
-                warn "Ce script doit étre exécuté en tant que root" >&2
-                exit 1
-        else
-                info "Privilège Root: OK"
-        fi
+    # Vérification des privilèges root
+    if [[ "$(id -u)" -ne 0 ]]; then
+            warn "Ce script doit étre exécuté en tant que root" >&2
+            exit 1
+    else
+            info "Privilège Root: OK"
+    fi
 }
 function check_distro(){
     # Constante pour les versions de Debian acceptables
@@ -62,52 +62,60 @@ function check_distro(){
     fi
 }
 function check_install(){
-        # Vérifie si le répertoire existe
-        if [ -d "$1" ]; then
-                output=$(php "$rep_glpi"bin/console -V 2>&1)
-                sleep 2
-                glpi_cli_version=$(sed -n 's/.*GLPI CLI \([^ ]*\).*/\1/p' <<< "$output")
-                warn "Le site est déjà installé. Version ""$glpi_cli_version"
-                new_version=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.name')
-                info "Nouvelle version trouver : GLPI version $new_version"
-                if [ "$glpi_cli_version" == "$new_version" ]; then
-                        info "Vous avez déjà la dernière version de GLPI. Mise à jour annuler"
-                        sleep 5
-                        exit 0;
-                else
-                        info "Voulez-vous mettre à jour GLPI (O/N): "
-                        read -r MaJ
-                        case "$MaJ" in
-                                "O" | "o")
-                                        update
-                                        exit 0;;
-                                "N" | "n")
-                                        info "Sortie du programme."
-                                        efface_script
-                                        exit 0;;
-                                *)
-                                        warn "Action non reconnue. Sortie du programme."
-                                        efface_script
-                                        exit 0;;
-                        esac
-                fi
-        else
-                info "Nouvelle installation de GLPI"
-                install
-        fi
+    # Vérifie si le répertoire existe
+    if [ -d "$1" ]; then
+            output=$(php "$rep_glpi"bin/console -V 2>&1)
+            sleep 2
+            glpi_cli_version=$(sed -n 's/.*GLPI CLI \([^ ]*\).*/\1/p' <<< "$output")
+            warn "Le site est déjà installé. Version ""$glpi_cli_version"
+            new_version=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.name')
+            info "Nouvelle version trouver : GLPI version $new_version"
+            if [ "$glpi_cli_version" == "$new_version" ]; then
+                    info "Vous avez déjà la dernière version de GLPI. Mise à jour annuler"
+                    sleep 5
+                    exit 0;
+            else
+                    info "Voulez-vous mettre à jour GLPI (O/N): "
+                    read -r MaJ
+                    case "$MaJ" in
+                            "O" | "o")
+                                    update
+                                    exit 0;;
+                            "N" | "n")
+                                    info "Sortie du programme."
+                                    efface_script
+                                    exit 0;;
+                            *)
+                                    warn "Action non reconnue. Sortie du programme."
+                                    efface_script
+                                    exit 0;;
+                    esac
+            fi
+    else
+            info "Nouvelle installation de GLPI"
+            install
+    fi
 }
 function update_distro(){
+    if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
         info "Recherche des mise à jour"
         apt-get update > /dev/null 2>&1
         info "Application des mise à jour"
         apt-get upgrade -y > /dev/null 2>&1
+    elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]
+        info "Recherche des mise à jour"
+        dnf update > /dev/null 2>&1
+        info "Application des mise à jour"
+        dnf upgrade -y > /dev/null 2>&1
+    fi
 }
 function network_info(){
-        INTERFACE=$(ip route | awk 'NR==1 {print $5}')
-        IPADRESS=$(ip addr show "$INTERFACE" | grep inet | awk '{ print $2; }' | sed 's/\/.*$//' | head -n 1)
-        # HOST=$(hostname)
+    INTERFACE=$(ip route | awk 'NR==1 {print $5}')
+    IPADRESS=$(ip addr show "$INTERFACE" | grep inet | awk '{ print $2; }' | sed 's/\/.*$//' | head -n 1)
+    # HOST=$(hostname)
 }
 function install_packages(){
+    if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
         sleep 1
         info "Installation des service lamp..."
         apt-get install -y --no-install-recommends apache2 mariadb-server perl curl jq php > /dev/null 2>&1
@@ -119,84 +127,102 @@ function install_packages(){
         systemctl enable apache2 > /dev/null 2>&1
         info "Redémarage d'Apache"
         systemctl restart apache2 > /dev/null 2>&1
+    elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]
+        sleep 1
+        info "Installation des service lamp..."
+        dnf install -y --no-install-recommends nginx mariadb-server perl curl jq php > /dev/null 2>&1
+        info "Installation des extensions de php"
+        dnf install -y --no-install-recommends php-mysql php-mbstring php-curl php-gd php-xml php-intl php-ldap php-apcu php-xmlrpc php-zip php-bz2 > /dev/null 2>&1
+        info "Activation de MariaDB"
+        systemctl enable mariadb > /dev/null 2>&1
+        info "Activation d'Nginx"
+        systemctl enable nginx > /dev/null 2>&1
+        info "Redémarage d'Nginx"
+        systemctl restart nginx > /dev/null 2>&1
+    fi
 }
 function mariadb_configure(){
-        info "Configuration de MariaDB"
-        sleep 1
-        SLQROOTPWD=$(openssl rand -base64 48 | cut -c1-12 )
-        SQLGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
-        ADMINGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
-        POSTGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
-        TECHGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
-        NORMGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
-        systemctl start mariadb > /dev/null 2>&1
-        (echo ""; echo "y"; echo "y"; echo "$SLQROOTPWD"; echo "$SLQROOTPWD"; echo "y"; echo "y"; echo "y"; echo "y") | mysql_secure_installation > /dev/null 2>&1
-        sleep 1
-        mysql -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost';" > /dev/null 2>&1
-        # Create a new database
-        mysql -e "CREATE DATABASE glpi;" > /dev/null 2>&1
-        # Create a new user
-        mysql -e "CREATE USER 'glpi_user'@'localhost' IDENTIFIED BY '$SQLGLPIPWD';" > /dev/null 2>&1
-        # Grant privileges to the new user for the new database
-        mysql -e "GRANT ALL PRIVILEGES ON glpi.* TO 'glpi_user'@'localhost';" > /dev/null 2>&1
-        # Reload privileges
-        mysql -e "FLUSH PRIVILEGES;" > /dev/null 2>&1
+    info "Configuration de MariaDB"
+    sleep 1
+    SLQROOTPWD=$(openssl rand -base64 48 | cut -c1-12 )
+    SQLGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
+    ADMINGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
+    POSTGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
+    TECHGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
+    NORMGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
+    systemctl start mariadb > /dev/null 2>&1
+    (echo ""; echo "y"; echo "y"; echo "$SLQROOTPWD"; echo "$SLQROOTPWD"; echo "y"; echo "y"; echo "y"; echo "y") | mysql_secure_installation > /dev/null 2>&1
+    sleep 1
+    mysql -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost';" > /dev/null 2>&1
+    # Create a new database
+    mysql -e "CREATE DATABASE glpi;" > /dev/null 2>&1
+    # Create a new user
+    mysql -e "CREATE USER 'glpi_user'@'localhost' IDENTIFIED BY '$SQLGLPIPWD';" > /dev/null 2>&1
+    # Grant privileges to the new user for the new database
+    mysql -e "GRANT ALL PRIVILEGES ON glpi.* TO 'glpi_user'@'localhost';" > /dev/null 2>&1
+    # Reload privileges
+    mysql -e "FLUSH PRIVILEGES;" > /dev/null 2>&1
 
-        # Initialize time zones datas
-        info "Configuration de TimeZone"
-        mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root -p"$SLQROOTPWD" mysql > /dev/null 2>&1
-        # Ask tz
-        echo "Europe/Paris" | dpkg-reconfigure -f noninteractive tzdata > /dev/null 2>&1
-        systemctl restart mariadb
-        sleep 1
-        mysql -e "GRANT SELECT ON mysql.time_zone_name TO 'glpi_user'@'localhost'" > /dev/null 2>&1
+    # Initialize time zones datas
+    info "Configuration de TimeZone"
+    mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root -p"$SLQROOTPWD" mysql > /dev/null 2>&1
+    # Ask tz
+    echo "Europe/Paris" | dpkg-reconfigure -f noninteractive tzdata > /dev/null 2>&1
+    systemctl restart mariadb
+    sleep 1
+    mysql -e "GRANT SELECT ON mysql.time_zone_name TO 'glpi_user'@'localhost'" > /dev/null 2>&1
 }
 function install_glpi(){
-        info "Téléchargement et installation de la dernière version de GLPI..."
-        new_version=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.name')
-        info "GLPI version $new_version"
-        # Get download link for the latest release
-        DOWNLOADLINK=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.assets[0].browser_download_url')
-        wget -O /tmp/glpi-latest.tgz "$DOWNLOADLINK" > /dev/null 2>&1
-        tar xzf /tmp/glpi-latest.tgz -C /var/www/html/
-        chown -R www-data:www-data "$rep_glpi"
-        chmod -R 755 "$rep_glpi"
+    info "Téléchargement et installation de la dernière version de GLPI..."
+    new_version=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.name')
+    info "GLPI version $new_version"
+    # Get download link for the latest release
+    DOWNLOADLINK=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.assets[0].browser_download_url')
+    wget -O /tmp/glpi-latest.tgz "$DOWNLOADLINK" > /dev/null 2>&1
+    tar xzf /tmp/glpi-latest.tgz -C /var/www/html/
+    chown -R www-data:www-data "$rep_glpi"
+    chmod -R 755 "$rep_glpi"
+    if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
         systemctl restart apache2
+    elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]
+        systemctl restart nginx
+    fi
 }
 function setup_db(){
-        info "Configuration de GLPI..."
-        php "$rep_glpi"bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
-        rm -rf /var/www/html/glpi/install
-        sleep 5
-        mkdir /etc/glpi
-        cat > /etc/glpi/local_define.php << EOF
-        <?php
-        define('GLPI_VAR_DIR', '/var/lib/glpi');
-        define('GLPI_LOG_DIR', '/var/log/glpi');
+    info "Configuration de GLPI..."
+    php "$rep_glpi"bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
+    rm -rf /var/www/html/glpi/install
+    sleep 5
+    mkdir /etc/glpi
+    cat > /etc/glpi/local_define.php << EOF
+    <?php
+    define('GLPI_VAR_DIR', '/var/lib/glpi');
+    define('GLPI_LOG_DIR', '/var/log/glpi');
 EOF
-        sleep 1
-        cat > /var/www/html/glpi/inc/downstream.php << EOF
-        <?php
-        define('GLPI_CONFIG_DIR', '/etc/glpi');
-        if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
-        require_once GLPI_CONFIG_DIR . '/local_define.php';
-        }
+    sleep 1
+    cat > /var/www/html/glpi/inc/downstream.php << EOF
+    <?php
+    define('GLPI_CONFIG_DIR', '/etc/glpi');
+    if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
+    require_once GLPI_CONFIG_DIR . '/local_define.php';
+    }
 EOF
-        mv "$rep_glpi"config/*.* /etc/glpi/
-        mv "$rep_glpi"files /var/lib/glpi/
-        chown -R www-data:www-data  /etc/glpi
-        chmod -R 775 /etc/glpi
-        sleep 1
-        mkdir /var/log/glpi
-        chown -R www-data:www-data  /var/log/glpi
-        chmod -R 775 /var/log/glpi
-        sleep 1
-        # Add permissions
-        chown -R www-data:www-data "$rep_glpi"
-        chmod -R 775 "$rep_glpi"
-        sleep 1
-        # Setup vhost
-        cat > /etc/apache2/sites-available/glpi.conf << EOF
+    mv "$rep_glpi"config/*.* /etc/glpi/
+    mv "$rep_glpi"files /var/lib/glpi/
+    chown -R www-data:www-data  /etc/glpi
+    chmod -R 775 /etc/glpi
+    sleep 1
+    mkdir /var/log/glpi
+    chown -R www-data:www-data  /var/log/glpi
+    chmod -R 775 /var/log/glpi
+    sleep 1
+    # Add permissions
+    chown -R www-data:www-data "$rep_glpi"
+    chmod -R 775 "$rep_glpi"
+    sleep 1
+    # Setup vhost
+    if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
+         cat > /etc/apache2/sites-available/glpi.conf << EOF
         <VirtualHost *:80>
                 DocumentRoot /var/www/html/glpi/public
                 <Directory /var/www/html/glpi/public>
@@ -224,8 +250,26 @@ EOF
         a2ensite glpi.conf > /dev/null 2>&1
         # Restart d'apache
         systemctl restart apache2 > /dev/null 2>&1
-        # Setup Cron task
-        echo "*/2 * * * * www-data /usr/bin/php '$rep_glpi'front/cron.php &>/dev/null" >> /etc/cron.d/glpi
+    elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]
+        cat > /etc/nginx/sites-available/glpi.conf << EOF
+        server {
+            listen 80;
+            server_name glpi;
+
+            location / {
+                root /var/www/html/glpi/public;
+                index index.html index.htm;
+            }
+
+            error_page 500 502 503 504  /50x.html;
+            location = /50x.html {
+            root /usr/share/nginx/html; 
+            }
+        }
+EOF
+    fi
+    # Setup Cron task
+    echo "*/2 * * * * www-data /usr/bin/php '$rep_glpi'front/cron.php &>/dev/null" >> /etc/cron.d/glpi
 }
 function maj_user_glpi(){
         # Changer le mot de passe de l'admin glpi 
