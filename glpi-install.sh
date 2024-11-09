@@ -120,7 +120,7 @@ function install_packages(){
         info "Installation des service lamp..."
         apt-get install -y --no-install-recommends apache2 mariadb-server perl curl jq php > /dev/null 2>&1
         info "Installation des extensions de php"
-        apt install -y --no-install-recommends php-mysql php-mbstring php-curl php-gd php-xml php-intl php-ldap php-apcu php-xmlrpc php-zip php-bz2 > /dev/null 2>&1
+        apt install -y --no-install-recommends php-mysql php-mbstring php-curl php-gd php-xml php-intl php-ldap php-apcu php-xmlrpc php-zip php-bz2 php-intl > /dev/null 2>&1
         info "Activation de MariaDB"
         systemctl enable mariadb > /dev/null 2>&1
         info "Activation d'Apache"
@@ -130,15 +130,20 @@ function install_packages(){
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]
         sleep 1
         info "Installation des service lamp..."
-        dnf install -y --no-install-recommends nginx mariadb-server perl curl jq php > /dev/null 2>&1
+        dnf install -y nginx mariadb-server perl curl jq php > /dev/null 2>&1
         info "Installation des extensions de php"
-        dnf install -y --no-install-recommends php-mysql php-mbstring php-curl php-gd php-xml php-intl php-ldap php-apcu php-xmlrpc php-zip php-bz2 > /dev/null 2>&1
+        dnf install -y php-mbstring php-curl php-gd php-xml php-intl php-ldap php-apcu php-zip php-bz2 php-intl > /dev/null 2>&1
         info "Activation de MariaDB"
         systemctl enable mariadb > /dev/null 2>&1
+        info "Démarage de MariaDB"
+        systemctl start mariadb > /dev/null 2>&1
         info "Activation d'Nginx"
         systemctl enable nginx > /dev/null 2>&1
-        info "Redémarage d'Nginx"
-        systemctl restart nginx > /dev/null 2>&1
+        info "Démarage d'Nginx"
+        systemctl start nginx > /dev/null 2>&1
+        firewall-cmd --permanent --zone=public --add-service=http > /dev/null 2>&1
+        firewall-cmd --permanent --zone=public --add-service=https > /dev/null 2>&1
+        firewall-cmd --reload > /dev/null 2>&1
     fi
 }
 function mariadb_configure(){
@@ -190,6 +195,9 @@ function install_glpi(){
 }
 function setup_db(){
     info "Configuration de GLPI..."
+    # Problème ici sous Alma
+    
+    
     php "$rep_glpi"bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
     rm -rf /var/www/html/glpi/install
     sleep 5
