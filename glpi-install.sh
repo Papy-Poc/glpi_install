@@ -118,7 +118,7 @@ function install_packages(){
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
         sleep 1
         info "Installation des service lamp..."
-        apt-get install -y --no-install-recommends apache2 mariadb-server perl curl jq php epel-release > /dev/null 2>&1
+        apt-get install -y --no-install-recommends apache2 mariadb-server perl curl jq php > /dev/null 2>&1
         info "Installation des extensions de php"
         apt install -y --no-install-recommends php-mysql php-mbstring php-curl php-gd php-xml php-intl php-ldap php-apcu php-xmlrpc php-zip php-bz2 php-intl > /dev/null 2>&1
         info "Activation de MariaDB"
@@ -130,9 +130,9 @@ function install_packages(){
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]
         sleep 1
         info "Installation des service lamp..."
-        dnf install -y nginx mariadb-server perl curl jq php > /dev/null 2>&1
+        dnf install -y nginx mariadb-server perl curl jq php epel-release > /dev/null 2>&1
         info "Installation des extensions de php"
-        dnf install -y php-mbstring php-curl php-gd php-xml php-intl php-ldap php-apcu php-zip php-bz2 php-intl > /dev/null 2>&1
+        dnf install -y php-mysql php-mbstring php-curl php-gd php-xml php-intl php-ldap php-apcu php-zip php-bz2 php-intl > /dev/null 2>&1
         info "Activation de MariaDB"
         systemctl enable mariadb > /dev/null 2>&1
         info "Démarage de MariaDB"
@@ -277,23 +277,18 @@ events {
 }
 http {
     server {
-         listen       80;
-         server_name   glpi.lan;
-         root         /var/www/html/glpi/public;
-
-         access_log /var/log/nginx/example.journaldev.com-access.log;
-         error_log  /var/log/nginx/example.journaldev.com-error.log error;
-         index index.html index.htm index.php;
-
-         location / {
-                      try_files $uri $uri/ /index.php$is_args$args;
-         }
-
-         location ~ \.php$ {
-            fastcgi_split_path_info ^(.+\.php)(/.+)$;
-            fastcgi_pass unix:/var/run/php-fpm-glpi-site.sock;
-            fastcgi_index index.php;
-            include fastcgi.conf;
+        listen 80;
+        server_name glpi.localhost;
+        root /var/www/glpi/public;
+        location / {
+            try_files $uri /index.php$is_args$args;
+        }
+        location ~ ^/index\.php$ {
+            # the following line needs to be adapted, as it changes depending on OS distributions and PHP versions
+            fastcgi_pass unix:/run/php/php-fpm.sock;
+            fastcgi_split_path_info ^(.+\.php)(/.*)$;
+            include fastcgi_params;
+            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
         }
     }
 }
