@@ -21,45 +21,45 @@ function check_root(){
         fi
 }
 function check_distro(){
-        # Constante pour les versions de Debian acceptables
-        DEBIAN_VERSIONS=("11" "12")
-        # Constante pour les versions d'Ubuntu acceptables
-        UBUNTU_VERSIONS=("23.10" "24.10")
-        # Constante pour les versions d'Almalinux acceptables
-        ALMA_VERSIONS=("9.4")
-        # Constante pour les versions de Centos acceptables
-        CENTOS_VERSIONS=("9")
-        # Constante pour les versions de Rocky Linux acceptables
-        ROCKY_VERSIONS=("9.4")
-        # Vérifie si c'est une distribution Debian ou Ubuntu
-        if [ -f /etc/os-release ]; then
-        # Source le fichier /etc/os-release pour obtenir les informations de la distribution
-        # shellcheck disable=SC1091
-        . /etc/os-release # . /etc/os-release
-        # Vérifie si la distribution est basée sur Debian ou Ubuntu
-                if [[ "$ID" == "debian" || "$ID" == "ubuntu" || "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
-                        if [[ " ${DEBIAN_VERSIONS[*]} " == *" $VERSION_ID "* || " ${UBUNTU_VERSIONS[*]} " == *" $VERSION_ID "* || " ${ALMA_VERSIONS[*]} " == *" $VERSION_ID "* || " ${CENTOS_VERSIONS[*]} " == *" $VERSION_ID "* || " ${ROCKY_VERSIONS[*]} " == *" $VERSION_ID "* ]]; then
-                                info "La version de votre systeme d'exploitation ($ID $VERSION_ID) est compatible."
-                        else
-                                warn "La version de votre système d'exploitation ($ID $VERSION_ID) n'est pas considérée comme compatible."
-                                warn "Voulez-vous toujours forcer l'installation ? Attention, si vous choisissez de forcer le script, c'est à vos risques et périls."
-                                info "Etes-vous sûr de vouloir continuer ? [yes/no]"
-                                read -r response
-                                if [ "$response" == "yes" ]; then
-                                        info "Continuing..."
-                                elif [ "$response" == "no" ]; then
-                                        info "Exiting..."
-                                        exit 1
-                                else
-                                        warn "Réponse non valide. Quitter..."
-                                        exit 1
-                                fi
-                        fi
+    # Constante pour les versions de Debian acceptables
+    DEBIAN_VERSIONS=("11" "12")
+    # Constante pour les versions d'Ubuntu acceptables
+     UBUNTU_VERSIONS=("23.10" "24.10")
+    # Constante pour les versions d'Almalinux acceptables
+    ALMA_VERSIONS=("9.4")
+    # Constante pour les versions de Centos acceptables
+    CENTOS_VERSIONS=("9")
+    # Constante pour les versions de Rocky Linux acceptables
+    ROCKY_VERSIONS=("9.4")
+    # Vérifie si c'est une distribution Debian ou Ubuntu
+    if [ -f /etc/os-release ]; then
+    # Source le fichier /etc/os-release pour obtenir les informations de la distribution
+    # shellcheck disable=SC1091
+    . /etc/os-release # Récupere les variables d'environnement
+    # Vérifie si la distribution est basée sur Debian, Ubuntu, Alma Linux, Centos ou Rocky Linux
+        if [[ "$ID" == "debian" || "$ID" == "ubuntu" || "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
+            if [[ " ${DEBIAN_VERSIONS[*]} " == *" $VERSION_ID "* || " ${UBUNTU_VERSIONS[*]} " == *" $VERSION_ID "* || " ${ALMA_VERSIONS[*]} " == *" $VERSION_ID "* || " ${CENTOS_VERSIONS[*]} " == *" $VERSION_ID "* || " ${ROCKY_VERSIONS[*]} " == *" $VERSION_ID "* ]]; then
+                info "La version de votre systeme d'exploitation ($ID $VERSION_ID) est compatible."
+            else
+                warn "La version de votre système d'exploitation ($ID $VERSION_ID) n'est pas considérée comme compatible."
+                warn "Voulez-vous toujours forcer l'installation ? Attention, si vous choisissez de forcer le script, c'est à vos risques et périls."
+                info "Etes-vous sûr de vouloir continuer ? [yes/no]"
+                read -r response
+                if [ "$response" == "yes" ]; then
+                    info "Continuing..."
+                elif [ "$response" == "no" ]; then
+                    info "Exiting..."
+                    exit 1
+                else
+                    warn "Réponse non valide. Quitter..."
+                    exit 1
                 fi
-        else
+            fi
+        fi
+    else
         warn "Il s'agit d'une autre distribution que Debian ou Ubuntu qui n'est pas compatible."
         exit 1
-        fi
+    fi
 }
 function check_install(){
         # Vérifie si le répertoire existe
