@@ -31,10 +31,8 @@ Si vous rencontrez un problème avec GLPI et/ou avez besoin de plus d'informatio
 >[!IMPORTANT]
 >| OS | VERSION| COMPATIBILITÉ|
 >|--|--|--|
->|Debian|10|⚠️ Jamais testé, si vous choisissez de forcer le script, c'est à vos risques et périls. |
 >|Debian|11|✅|
 >|Debian|12|✅|
->|Ubuntu|22.04|⚠️ Tester, ne marche pas|
 >|Ubuntu|23.10|✅|
 >|Ubuntu|24.10|⚠️ A tester|
 >|Alma Linux|9|⚠️ En cours de test|
