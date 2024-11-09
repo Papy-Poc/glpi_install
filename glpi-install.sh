@@ -26,7 +26,7 @@ function check_distro(){
     # Constante pour les versions d'Ubuntu acceptables
     UBUNTU_VERSIONS=("23.10" "24.10")
     # Constante pour les versions d'Almalinux acceptables
-    ALMA_VERSIONS=("9.4")
+    ALMA_VERSIONS=("9")
     # Constante pour les versions de Centos acceptables
     CENTOS_VERSIONS=("9")
     # Constante pour les versions de Rocky Linux acceptables
@@ -130,9 +130,9 @@ function install_packages(){
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]
         sleep 1
         info "Installation des service lamp..."
-        dnf install -y nginx mariadb-server perl curl jq php epel-release > /dev/null 2>&1
+        trace "dnf install -y nginx mariadb-server perl curl jq php epel-release" > /dev/null 2>&1
         info "Installation des extensions de php"
-        dnf install -y php-mysql php-mbstring php-curl php-gd php-xml php-intl php-ldap php-apcu php-zip php-bz2 php-intl > /dev/null 2>&1
+        trace "dnf install -y php-mysql php-mbstring php-curl php-gd php-xml php-intl php-ldap php-apcu php-zip php-bz2 php-intl" > /dev/null 2>&1
         info "Activation de MariaDB"
         systemctl enable mariadb > /dev/null 2>&1
         info "Démarage de MariaDB"
@@ -170,7 +170,7 @@ function mariadb_configure(){
 
     # Initialize time zones datas
     info "Configuration de TimeZone"
-    mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root -p"$SLQROOTPWD" mysql > /dev/null 2>&1
+    trace "mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root -p"$SLQROOTPWD" mysql" > /dev/null 2>&1
     # Ask tz
     echo "Europe/Paris" | dpkg-reconfigure -f noninteractive tzdata > /dev/null 2>&1
     systemctl restart mariadb
@@ -184,7 +184,7 @@ function install_glpi(){
     # Get download link for the latest release
     DOWNLOADLINK=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.assets[0].browser_download_url')
     wget -O /tmp/glpi-latest.tgz "$DOWNLOADLINK" > /dev/null 2>&1
-    tar xzf /tmp/glpi-latest.tgz -C /var/www/html/
+    trace "tar xzf /tmp/glpi-latest.tgz -C /var/www/html/"
     chown -R www-data:www-data "$rep_glpi"
     chmod -R 755 "$rep_glpi"
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
@@ -333,27 +333,27 @@ function display_credentials(){
         info "Si vous rencontrez un problème avec ce script, veuillez le signaler sur GitHub : https://github.com/PapyPoc/glpi_install/issues"
 }
 function write_credentials(){
-        cat <<EOF > /root/sauve_mdp.txt
-        ==============================> GLPI installation details  <=====================================
-        Il est important d'enregistrer ces informations. Si vous les perdez, elles seront irrécupérables.
+        cat > /root/sauve_mdp.txt <<EOF
+==============================> GLPI installation details  <=====================================
+Il est important d'enregistrer ces informations. Si vous les perdez, elles seront irrécupérables.
 
-        Les comptes utilisateurs par défaut sont :
-        UTILISATEUR       -  MOT DE PASSE       -  ACCES
-        info "glpi        -  $ADMINGLPIPWD       -  compte admin"
-        info "post-only   -  $POSTGLPIPWD       -  compte post-only"
-        info "tech        -  $TECHGLPIPWD       -  compte tech"
-        info "normal      -  $NORMGLPIPWD       -  compte normal"
+Les comptes utilisateurs par défaut sont :
+UTILISATEUR       -  MOT DE PASSE       -  ACCES
+info "glpi        -  $ADMINGLPIPWD       -  compte admin"
+info "post-only   -  $POSTGLPIPWD       -  compte post-only"
+info "tech        -  $TECHGLPIPWD       -  compte tech"
+info "normal      -  $NORMGLPIPWD       -  compte normal"
         
-        Vous pouvez accéder à la page web de GLPI à partir d'une adresse IP ou d'un nom d'hôte :
-        http://$IPADRESS
+Vous pouvez accéder à la page web de GLPI à partir d'une adresse IP ou d'un nom d'hôte :
+http://$IPADRESS
 
-        ==> Database:
-        Mot de passe root: $SLQROOTPWD
-        Mot de passe glpi_user: $SQLGLPIPWD
-        Nom de la base de données GLPI: glpi
-        <===============================================================================================>
+==> Database:
+Mot de passe root: $SLQROOTPWD
+Mot de passe glpi_user: $SQLGLPIPWD
+Nom de la base de données GLPI: glpi
+<===============================================================================================>
 
-        Si vous rencontrez un probléme avec ce script, veuillez le signaler sur GitHub : https://github.com/PapyPoc/glpi_install/issues
+Si vous rencontrez un probléme avec ce script, veuillez le signaler sur GitHub : https://github.com/PapyPoc/glpi_install/issues
 EOF
         chmod 700 /root/sauve_mdp.txt
         echo ""
@@ -436,6 +436,16 @@ function update(){
         maintenance "0"
         efface_script
 }
+function trace() {
+    local COMMAND="$@"
+    log INFO "Exécution de la commande : $COMMAND"
+    eval "$COMMAND" 2>&1 | tee -a "$LOG_FILE"
+    local STATUS=${PIPESTATUS[0]}
+    if [ $STATUS -ne 0 ]; then
+        log ERROR "La commande a échoué avec le code $STATUS"
+    fi
+}
+LOG_FILE="/root/glpi-install.log"
 rep_script="/root/glpi-install.sh"
 rep_backup="/home/glpi_sauve/"
 rep_glpi="/var/www/html/glpi/"
