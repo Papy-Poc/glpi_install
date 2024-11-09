@@ -231,19 +231,20 @@ EOF
         sleep 1
         # Setup vhost
          cat > /etc/apache2/sites-available/glpi.conf << EOF
-        <VirtualHost *:80>
-                DocumentRoot /var/www/html/glpi/public
-                <Directory /var/www/html/glpi/public>
-                        Require all granted
-                        RewriteEngine On
-                        RewriteCond %{HTTP:Authorization} ^(.+)$
-                        RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
-                        RewriteCond %{REQUEST_FILENAME} !-f
-                        RewriteRule ^(.*)$ index.php [QSA,L]
-                </Directory>
-                ErrorLog /var/log/glpi/error.log
-                CustomLog /var/log/glpi/access.log combined
-        </VirtualHost>
+<VirtualHost *:80>
+    ServerName glpi.lan
+    DocumentRoot /var/www/glpi/public
+    <Directory /var/www/glpi/public>
+        Require all granted
+        RewriteEngine On
+        RewriteCond %{HTTP:Authorization} ^(.+)$
+        RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+        RewriteCond %{REQUEST_FILENAME} !-f
+        RewriteRule ^(.*)$ index.php [QSA,L]
+    </Directory>
+    ErrorLog /var/log/glpi/error.log
+    CustomLog /var/log/glpi/access.log combined
+</VirtualHost>
 EOF
         phpversion=$(php -v | grep -i '(cli)' | awk '{print $2}' | cut -c 1,2,3)
         sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 =on/' /etc/php/"$phpversion"/apache2/php.ini
