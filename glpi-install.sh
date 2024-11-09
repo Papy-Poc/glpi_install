@@ -24,7 +24,7 @@ function check_distro(){
     # Constante pour les versions de Debian acceptables
     DEBIAN_VERSIONS=("11" "12")
     # Constante pour les versions d'Ubuntu acceptables
-     UBUNTU_VERSIONS=("23.10" "24.10")
+    UBUNTU_VERSIONS=("23.10" "24.10")
     # Constante pour les versions d'Almalinux acceptables
     ALMA_VERSIONS=("9.4")
     # Constante pour les versions de Centos acceptables
@@ -118,7 +118,7 @@ function install_packages(){
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
         sleep 1
         info "Installation des service lamp..."
-        apt-get install -y --no-install-recommends apache2 mariadb-server perl curl jq php > /dev/null 2>&1
+        apt-get install -y --no-install-recommends apache2 mariadb-server perl curl jq php epel-release > /dev/null 2>&1
         info "Installation des extensions de php"
         apt install -y --no-install-recommends php-mysql php-mbstring php-curl php-gd php-xml php-intl php-ldap php-apcu php-xmlrpc php-zip php-bz2 php-intl > /dev/null 2>&1
         info "Activation de MariaDB"
@@ -217,19 +217,19 @@ EOF
 EOF
     mv "$rep_glpi"config/*.* /etc/glpi/
     mv "$rep_glpi"files /var/lib/glpi/
-    chown -R www-data:www-data  /etc/glpi
-    chmod -R 775 /etc/glpi
-    sleep 1
-    mkdir /var/log/glpi
-    chown -R www-data:www-data  /var/log/glpi
-    chmod -R 775 /var/log/glpi
-    sleep 1
-    # Add permissions
-    chown -R www-data:www-data "$rep_glpi"
-    chmod -R 775 "$rep_glpi"
-    sleep 1
-    # Setup vhost
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
+        chown -R www-data:www-data  /etc/glpi
+        chmod -R 775 /etc/glpi
+        sleep 1
+        mkdir /var/log/glpi
+        chown -R www-data:www-data  /var/log/glpi
+        chmod -R 775 /var/log/glpi
+        sleep 1
+        # Add permissions
+        chown -R www-data:www-data "$rep_glpi"
+        chmod -R 775 "$rep_glpi"
+        sleep 1
+        # Setup vhost
          cat > /etc/apache2/sites-available/glpi.conf << EOF
         <VirtualHost *:80>
                 DocumentRoot /var/www/html/glpi/public
@@ -259,22 +259,47 @@ EOF
         # Restart d'apache
         systemctl restart apache2 > /dev/null 2>&1
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]
-        cat > /etc/nginx/sites-available/glpi.conf << EOF
-        server {
-            listen 80;
-            server_name glpi;
+        chown -R nginx:nginx  /etc/glpi
+        chmod -R 775 /etc/glpi
+        sleep 1
+        mkdir /var/log/glpi
+        chown -R nginx:nginx  /var/log/glpi
+        chmod -R 775 /var/log/glpi
+        sleep 1
+        # Add permissions
+        chown -R nginx:nginx "$rep_glpi"
+        chmod -R 775 "$rep_glpi"
+        sleep 1
+        mv /etc/nginx/nginx.conf /etc/nginx.conf.bak
+        cat > /etc/nginx/nginx.conf << EOF
+events {
+    worker_connections  1024;
+}
+http {
+    server {
+         listen       80;
+         server_name   glpi.lan;
+         root         /var/www/html/glpi/public;
 
-            location / {
-                root /var/www/html/glpi/public;
-                index index.html index.htm;
-            }
+         access_log /var/log/nginx/example.journaldev.com-access.log;
+         error_log  /var/log/nginx/example.journaldev.com-error.log error;
+         index index.html index.htm index.php;
 
-            error_page 500 502 503 504  /50x.html;
-            location = /50x.html {
-            root /usr/share/nginx/html; 
-            }
+         location / {
+                      try_files $uri $uri/ /index.php$is_args$args;
+         }
+
+         location ~ \.php$ {
+            fastcgi_split_path_info ^(.+\.php)(/.+)$;
+            fastcgi_pass unix:/var/run/php-fpm-glpi-site.sock;
+            fastcgi_index index.php;
+            include fastcgi.conf;
         }
+    }
+}
 EOF
+        # Restart de Nginx
+        systemctl restart nginx > /dev/null 2>&1
     fi
     # Setup Cron task
     echo "*/2 * * * * www-data /usr/bin/php '$rep_glpi'front/cron.php &>/dev/null" >> /etc/cron.d/glpi
