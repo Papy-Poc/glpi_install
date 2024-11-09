@@ -36,6 +36,7 @@ Si vous rencontrez un problème avec GLPI et/ou avez besoin de plus d'informatio
 >|Debian|12|✅|
 >|Ubuntu|22.04|⚠️ Tester, ne marche pas|
 >|Ubuntu|23.10|✅|
+>|Ubuntu|24.10|⚠️ A tester|
 >|Alma Linux|9|⚠️ En cours de test|
 >|Centos|9|⚠️ A tester|
 >|Rocky Linux|9.4|⚠️ A tester|
