@@ -102,7 +102,7 @@ function update_distro(){
         apt-get update > /dev/null 2>&1
         info "Application des mise à jour"
         apt-get upgrade -y > /dev/null 2>&1
-    elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]
+    elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
         info "Recherche des mise à jour"
         dnf update > /dev/null 2>&1
         info "Application des mise à jour"
@@ -127,7 +127,7 @@ function install_packages(){
         systemctl enable apache2 > /dev/null 2>&1
         info "Redémarage d'Apache"
         systemctl restart apache2 > /dev/null 2>&1
-    elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]
+    elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
         sleep 1
         info "Installation des service lamp..."
         trace "dnf install -y nginx mariadb-server perl curl jq php epel-release" > /dev/null 2>&1
@@ -189,7 +189,7 @@ function install_glpi(){
     chmod -R 755 "$rep_glpi"
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
         systemctl restart apache2
-    elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]
+    elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
         systemctl restart nginx
     fi
 }
@@ -259,7 +259,7 @@ EOF
         a2ensite glpi.conf > /dev/null 2>&1
         # Restart d'apache
         systemctl restart apache2 > /dev/null 2>&1
-    elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]
+    elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
         chown -R nginx:nginx  /etc/glpi
         chmod -R 775 /etc/glpi
         sleep 1
