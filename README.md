@@ -38,9 +38,9 @@ Comme ce script utilise apt, il ne fonctionne actuellement que sur les distribut
 >|Debian|12|✅|
 >|Ubuntu|22.04|⚠️ Tester, ne marche pas|
 >|Ubuntu|23.10|✅|
->|Alma Linux|9|En cours de test|
->|Centos|9|A tester|
->|Rocky Linux|9|A tester|
+>|Alma Linux|9|⚠️ En cours de test|
+>|Centos|9|⚠️ A tester|
+>|Rocky Linux|9.4|⚠️ A tester|
 
 ## Comment utiliser
 GLPI s'installe en lançant la commande suivante dans votre terminal.
