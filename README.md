@@ -11,6 +11,8 @@ Ubuntu|Apache
 Débian|Apache
 tech|Défini à l'installation|
 normal|Défini à l'installation|
+
+
 Le script fera la mise à jour du système hôte et installera Apache ou Nginx (Apache pour Ubuntu et Débian, Nginx pour Alma Linux, Centos, RockyLinux), MariaDB, PHP et les dépendances, téléchargera et installera la dernière version depuis le [Dépôt Officiel de GLPI](https://github.com/glpi-project/glpi) et configurera la base de données pour vous.
 Une fois le script exécuté, la seule chose que vous aurez à faire sera de vous connecter à GLPI.
 
