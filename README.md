@@ -4,7 +4,7 @@
 
 Ce script a été écrit pour installer rapidement la dernière version de GLPI sur les serveurs Ubuntu, Debian, Alma Linux, Centos et Rocky Linux.
 
-### Distribution linux pris en charge
+### Distribution et serveur Web
 | Distribution | Serveur Web |
 |:--:|:--:|
 Ubuntu|Apache
