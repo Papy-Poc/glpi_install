@@ -18,3 +18,4 @@ jobs:
           # Extraire la valeur de la clé "nom" dans le JSON
           NOM=$(jq -r '.tag_name' data.json)
           echo "Le nom est : $NOM"
+          echo "NOM=$NOM" >> $GITHUB_ENV
