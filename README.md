@@ -6,7 +6,7 @@ Ce script a été écrit pour installer rapidement la dernière version de GLPI 
 
 ### Distribution linux pris en charge
 | Distribution | Serveur Web |
-|--|--|
+|:--:|:--:|
 Ubuntu|Apache
 Débian|Apache
 Alma Linux|Nginx
