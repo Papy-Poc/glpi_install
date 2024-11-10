@@ -16,6 +16,5 @@ jobs:
           curl -o data.json https://api.github.com/repos/glpi-project/glpi/releases/latest
 
           # Extraire la valeur de la clé "nom" dans le JSON
-          NOM=$(jq -r '.tag_name' data.json)
-          echo "Le nom est : $NOM"
-          echo "NOM=$NOM" >> $GITHUB_ENV
+          GLPI_V=$(jq -r '.tag_name' data.json)
+          echo "GLPI_V=$GLPI_V" >> $GITHUB_ENV
