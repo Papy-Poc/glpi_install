@@ -4,7 +4,7 @@
 
 Ce script a été écrit pour installer rapidement la dernière version de GLPI sur les serveurs Ubuntu, Debian, Alma Linux, Centos et Rocky Linux.
 
-Le script installera Apache, MariaDB, PHP et les dépendances, téléchargera et installera la dernière version depuis le [Dépôt Officiel de GLPI](https://github.com/glpi-project/glpi) et configurera la base de données pour vous.
+Le script installera Apache ou Nginx (Apache pour Ubuntu et Débian, Nginx pour Alma Linux, Centos, RockyLinux), MariaDB, PHP et les dépendances, téléchargera et installera la dernière version depuis le [Dépôt Officiel de GLPI](https://github.com/glpi-project/glpi) et configurera la base de données pour vous.
 Une fois le script exécuté, la seule chose que vous aurez à faire sera de vous connecter à GLPI.
 
 L'installation de GLPI se fait sans SSL. Si vous avez besoin d'ouvrir l'accès à GLPI depuis l'extérieur et/ou d'un certificat SSL, je vous recommande d'utiliser un reverse proxy.
