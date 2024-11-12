@@ -158,7 +158,8 @@ function mariadb_configure(){
     export TECHGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
     export NORMGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
     systemctl start mariadb > /dev/null 2>&1
-    trace "echo $SQLROOTPWD"  > /dev/null 2>&1
+    #######
+    exit 1
     #trace "mysql -e "ALTER USER 'root'@'localhost' IDENTIFIÉ PAR $SQLROOTPWD ;"" > /dev/null 2>&1
     (echo ""; echo "N";echo "Y"; echo $SQLROOTPWD; echo $SQLROOTPWD; echo "Y"; echo "Y"; echo "Y"; echo "Y") | trace "mysql_secure_installation" > /dev/null 2>&1
     sleep 1
@@ -189,8 +190,6 @@ function mariadb_configure(){
         systemctl restart mariadb
         sleep 1
     fi
-    ###############
-    exit 1
 }
 function install_glpi(){
     info "Téléchargement et installation de la dernière version de GLPI..."
