@@ -104,7 +104,7 @@ function update_distro(){
         apt-get upgrade -y > /dev/null 2>&1
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
         info "Recherche des mise à jour"
-        trace "dnf update" > /dev/null 2>&1
+        trace "dnf update -y" > /dev/null 2>&1
         info "Application des mise à jour"
         trace "dnf upgrade -y" > /dev/null 2>&1
     fi
