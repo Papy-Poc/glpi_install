@@ -129,22 +129,28 @@ function install_packages(){
         systemctl restart apache2 > /dev/null 2>&1
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
         sleep 1
-        info "Installation des service lamp..."
-        trace "dnf install -y nginx mariadb-server perl curl jq php epel-release" > /dev/null 2>&1
+        info "Installation des service lemp..."
+    # Modification du package "php" en "php-fpm"
+        trace "dnf install -y nginx mariadb-server perl curl jq php-fpm epel-release" > /dev/null 2>&1
         info "Installation des extensions de php"
-        trace "dnf install -y php-mysql php-mbstring php-curl php-gd php-xml php-intl php-ldap php-apcu php-zip php-bz2 php-intl" > /dev/null 2>&1
+    # Modification du package "php-mysql" en "php-mysqlnd"
+        trace "dnf install -y php-mysqlnd php-mbstring php-curl php-gd php-xml php-intl php-ldap php-apcu php-zip php-bz2 php-intl" > /dev/null 2>&1
+  
+    # Ouverture des ports 80 et 443 dans le firewall des distro RedHat
+        firewall-cmd --permanent --zone=public --add-service=http > /dev/null 2>&1
+        firewall-cmd --permanent --zone=public --add-service=https > /dev/null 2>&1
+        firewall-cmd --reload > /dev/null 2>&1
+   
+    # Démarrage des services MariaDB et Nginx        
         info "Activation de MariaDB"
         systemctl enable mariadb > /dev/null 2>&1
         info "Démarage de MariaDB"
         systemctl start mariadb > /dev/null 2>&1
-        info "Activation d'Nginx"
+        info "Activation d'(e)Nginx"
         systemctl enable nginx > /dev/null 2>&1
-        info "Démarage d'Nginx"
+        info "Démarage d'(e)Nginx"
         systemctl start nginx > /dev/null 2>&1
-        firewall-cmd --permanent --zone=public --add-service=http > /dev/null 2>&1
-        firewall-cmd --permanent --zone=public --add-service=https > /dev/null 2>&1
-        firewall-cmd --reload > /dev/null 2>&1
-    fi
+       fi
 }
 function mariadb_configure(){
     info "Configuration de MariaDB"
