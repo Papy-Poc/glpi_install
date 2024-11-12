@@ -102,7 +102,7 @@ function update_distro(){
         apt-get upgrade -y > /dev/null 2>&1
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
         info "Application des mise à jour"
-        trace "dnf upgrade -y" > /dev/null 2>&1
+        dnf upgrade -y > /dev/null 2>&1
     fi
 }
 function network_info(){
@@ -127,10 +127,10 @@ function install_packages(){
         sleep 1
         info "Installation des service lemp..."
     # Modification du package "php" en "php-fpm"
-        trace "dnf install -y nginx mariadb-server perl curl jq php-fpm epel-release" > /dev/null 2>&1
+        dnf install -y nginx mariadb-server perl curl jq php-fpm epel-release > /dev/null 2>&1
         info "Installation des extensions de php"
     # Modification du package "php-mysql" en "php-mysqlnd"
-        trace "dnf install -y php-mysqlnd php-mbstring php-curl php-gd php-xml php-intl php-ldap php-apcu php-zip php-bz2 php-intl" > /dev/null 2>&1
+        dnf install -y php-mysqlnd php-mbstring php-curl php-gd php-xml php-intl php-ldap php-apcu php-zip php-bz2 php-intl > /dev/null 2>&1
   
     # Ouverture des ports 80 et 443 dans le firewall des distro RedHat
         firewall-cmd --permanent --zone=public --add-service=http > /dev/null 2>&1
@@ -158,7 +158,7 @@ function mariadb_configure(){
     TECHGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
     NORMGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
     systemctl start mariadb > /dev/null 2>&1
-    mysql -e "ALTER USER 'root'@'localhost' IDENTIFIÉ PAR $SQLROOTPWD ;" > /dev/null 2>&1
+    trace "mysql -e "ALTER USER 'root'@'localhost' IDENTIFIÉ PAR $SQLROOTPWD ;"" > /dev/null 2>&1
     (echo "$SQLROOTPWD"; echo "Y"; echo "N"; echo "Y"; echo "Y"; echo "Y"; echo "Y") | trace "mysql_secure_installation" > /dev/null 2>&1
     sleep 1
     mysql -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost';" > /dev/null 2>&1
@@ -364,7 +364,7 @@ Vous pouvez accéder à la page web de GLPI à partir d'une adresse IP ou d'un n
 http://$IPADRESS
 
 ==> Database:
-Mot de passe root: $SLQROOTPWD
+Mot de passe root: $SQLROOTPWD
 Mot de passe glpi_user: $SQLGLPIPWD
 Nom de la base de données GLPI: glpi
 <===============================================================================================>
