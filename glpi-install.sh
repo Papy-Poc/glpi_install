@@ -173,7 +173,7 @@ function mariadb_configure(){
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
         # Initialize time zones datas
         info "Configuration de TimeZone"
-        trace "mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root -p"$SLQROOTPWD" mysql" > /dev/null 2>&1
+        trace "mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root -p"$SQLROOTPWD" mysql" > /dev/null 2>&1
         # Ask tz
         echo "Europe/Paris" | trace "dpkg-reconfigure -f noninteractive tzdata" > /dev/null 2>&1
         systemctl restart mariadb
@@ -182,7 +182,7 @@ function mariadb_configure(){
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
         # Initialize time zones datas
         info "Configuration de TimeZone"
-        trace "mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root -p"$SLQROOTPWD" mysql" > /dev/null 2>&1
+        trace "mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root -p"$SQLROOTPWD" mysql" > /dev/null 2>&1
         # A REMPLACER
         # echo "Europe/Paris" | trace "dpkg-reconfigure -f noninteractive tzdata" > /dev/null 2>&1
         systemctl restart mariadb
