@@ -104,9 +104,9 @@ function update_distro(){
         apt-get upgrade -y > /dev/null 2>&1
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
         info "Recherche des mise à jour"
-        dnf update > /dev/null 2>&1
+        trace "dnf update" > /dev/null 2>&1
         info "Application des mise à jour"
-        dnf upgrade -y > /dev/null 2>&1
+        trace "dnf upgrade -y" > /dev/null 2>&1
     fi
 }
 function network_info(){
