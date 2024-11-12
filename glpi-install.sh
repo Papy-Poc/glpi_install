@@ -158,7 +158,7 @@ function mariadb_configure(){
     TECHGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
     NORMGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
     systemctl start mariadb > /dev/null 2>&1
-    (echo ""; echo "y"; echo "y"; echo "$SLQROOTPWD"; echo "$SLQROOTPWD"; echo "y"; echo "y"; echo "y"; echo "y") | trace "mysql_secure_installation" > /dev/null 2>&1
+    (echo ""; echo "Y"; echo "Y"; echo "$SLQROOTPWD"; echo "$SLQROOTPWD"; echo "Y"; echo "Y"; echo "Y"; echo "Y") | trace "mysql_secure_installation" > /dev/null 2>&1
     sleep 1
     mysql -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost';" > /dev/null 2>&1
     # Create a new database
