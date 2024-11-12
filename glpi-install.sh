@@ -136,16 +136,16 @@ function install_packages(){
         firewall-cmd --permanent --zone=public --add-service=http > /dev/null 2>&1
         firewall-cmd --permanent --zone=public --add-service=https > /dev/null 2>&1
         firewall-cmd --reload > /dev/null 2>&1
-        info "Activation et démarage des service lemp"
+        info "Activation et démarrage des service lemp"
     # Démarrage des services MariaDB et Nginx        
-        info "Activation de MariaDB"
-        systemctl enable mariadb > /dev/null 2>&1
-        info "Démarage de MariaDB"
-        systemctl start mariadb > /dev/null 2>&1
-        info "Activation d'(e)Nginx"
-        systemctl enable nginx > /dev/null 2>&1
-        info "Démarage d'(e)Nginx"
-        systemctl start nginx > /dev/null 2>&1
+        info "Activation et démarrage de MariaDB"
+        systemctl enable --now mariadb > /dev/null 2>&1
+        #info "Démarage de MariaDB"
+        #systemctl start mariadb > /dev/null 2>&1
+        info "Activation et démarrage d'(e)Nginx"
+        systemctl enable --now nginx > /dev/null 2>&1
+        #info "Démarage d'(e)Nginx"
+        #systemctl start nginx > /dev/null 2>&1
        fi
 }
 function mariadb_configure(){
@@ -158,6 +158,7 @@ function mariadb_configure(){
     TECHGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
     NORMGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
     systemctl start mariadb > /dev/null 2>&1
+    trace "echo $SQLROOTPWD"  > /dev/null 2>&1
     trace "mysql -e "ALTER USER 'root'@'localhost' IDENTIFIÉ PAR $SQLROOTPWD ;"" > /dev/null 2>&1
     (echo "$SQLROOTPWD"; echo "Y"; echo "N"; echo "Y"; echo "Y"; echo "Y"; echo "Y") | trace "mysql_secure_installation" > /dev/null 2>&1
     sleep 1
@@ -188,6 +189,8 @@ function mariadb_configure(){
         systemctl restart mariadb
         sleep 1
     fi
+    ###############
+    exit 1
 }
 function install_glpi(){
     info "Téléchargement et installation de la dernière version de GLPI..."
