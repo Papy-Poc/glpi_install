@@ -98,13 +98,9 @@ function check_install(){
 }
 function update_distro(){
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
-        info "Recherche des mise à jour"
-        apt-get update > /dev/null 2>&1
         info "Application des mise à jour"
         apt-get upgrade -y > /dev/null 2>&1
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
-        info "Recherche des mise à jour"
-        trace "dnf update -y" > /dev/null 2>&1
         info "Application des mise à jour"
         trace "dnf upgrade -y" > /dev/null 2>&1
     fi
@@ -173,15 +169,24 @@ function mariadb_configure(){
     mysql -e "GRANT ALL PRIVILEGES ON glpi.* TO 'glpi_user'@'localhost';" > /dev/null 2>&1
     # Reload privileges
     mysql -e "FLUSH PRIVILEGES;" > /dev/null 2>&1
-
-    # Initialize time zones datas
-    info "Configuration de TimeZone"
-    trace "mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root -p"$SLQROOTPWD" mysql" > /dev/null 2>&1
-    # Ask tz
-    echo "Europe/Paris" | dpkg-reconfigure -f noninteractive tzdata > /dev/null 2>&1
-    systemctl restart mariadb
-    sleep 1
-    mysql -e "GRANT SELECT ON mysql.time_zone_name TO 'glpi_user'@'localhost'" > /dev/null 2>&1
+    if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
+        # Initialize time zones datas
+        info "Configuration de TimeZone"
+        trace "mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root -p"$SLQROOTPWD" mysql" > /dev/null 2>&1
+        # Ask tz
+        echo "Europe/Paris" | trace "dpkg-reconfigure -f noninteractive tzdata" > /dev/null 2>&1
+        systemctl restart mariadb
+        sleep 1
+        mysql -e "GRANT SELECT ON mysql.time_zone_name TO 'glpi_user'@'localhost'" > /dev/null 2>&1
+    elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
+        # Initialize time zones datas
+        info "Configuration de TimeZone"
+        trace "mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root -p"$SLQROOTPWD" mysql" > /dev/null 2>&1
+        # A REMPLACER
+        # echo "Europe/Paris" | trace "dpkg-reconfigure -f noninteractive tzdata" > /dev/null 2>&1
+        systemctl restart mariadb
+        sleep 1
+    fi
 }
 function install_glpi(){
     info "Téléchargement et installation de la dernière version de GLPI..."
