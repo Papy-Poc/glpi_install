@@ -451,6 +451,21 @@ function update(){
         maintenance "0"
         efface_script
 }
+function log() {
+    local COLOR=""
+    local NO_COLOR="\033[0m"
+    local LEVEL=$1
+    shift
+    local MESSAGE="$@"
+    
+    case "$LEVEL" in
+        INFO) COLOR="\033[0;32m" ;;    # Vert pour INFO
+        WARNING) COLOR="\033[0;33m" ;; # Jaune pour WARNING
+        ERROR) COLOR="\033[0;31m" ;;   # Rouge pour ERROR
+    esac
+    TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
+    echo -e "$COLOR$TIMESTAMP [$LEVEL] $MESSAGE$NO_COLOR" | tee -a "$LOG_FILE"
+}
 function trace() {
     local COMMAND="$@"
     log INFO "Exécution de la commande : $COMMAND"
