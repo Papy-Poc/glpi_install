@@ -131,12 +131,12 @@ function install_packages(){
         info "Installation des extensions de php"
     # Modification du package "php-mysql" en "php-mysqlnd"
         dnf install -y php-mysqlnd php-mbstring php-curl php-gd php-xml php-intl php-ldap php-apcu php-zip php-bz2 php-intl > /dev/null 2>&1
-  
+        info "Ouverture des port 80 et 443 sur le parefeu"
     # Ouverture des ports 80 et 443 dans le firewall des distro RedHat
         firewall-cmd --permanent --zone=public --add-service=http > /dev/null 2>&1
         firewall-cmd --permanent --zone=public --add-service=https > /dev/null 2>&1
         firewall-cmd --reload > /dev/null 2>&1
-   
+        info "Activation et démarage des service lemp"
     # Démarrage des services MariaDB et Nginx        
         info "Activation de MariaDB"
         systemctl enable mariadb > /dev/null 2>&1
