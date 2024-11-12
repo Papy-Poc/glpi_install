@@ -151,16 +151,16 @@ function install_packages(){
 function mariadb_configure(){
     info "Configuration de MariaDB"
     sleep 1
-    SQLROOTPWD=$(openssl rand -base64 48 | cut -c1-12 )
-    SQLGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
-    ADMINGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
-    POSTGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
-    TECHGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
-    NORMGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
+    export SQLROOTPWD=$(openssl rand -base64 48 | cut -c1-12 )
+    export SQLGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
+    export ADMINGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
+    export POSTGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
+    export TECHGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
+    export NORMGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
     systemctl start mariadb > /dev/null 2>&1
     trace "echo $SQLROOTPWD"  > /dev/null 2>&1
-    trace "mysql -e "ALTER USER 'root'@'localhost' IDENTIFIÉ PAR $SQLROOTPWD ;"" > /dev/null 2>&1
-    (echo "$SQLROOTPWD"; echo "Y"; echo "N"; echo "Y"; echo "Y"; echo "Y"; echo "Y") | trace "mysql_secure_installation" > /dev/null 2>&1
+    #trace "mysql -e "ALTER USER 'root'@'localhost' IDENTIFIÉ PAR $SQLROOTPWD ;"" > /dev/null 2>&1
+    (echo ""; echo "N";echo "Y"; echo $SQLROOTPWD; echo $SQLROOTPWD; echo "Y"; echo "Y"; echo "Y"; echo "Y") | trace "mysql_secure_installation" > /dev/null 2>&1
     sleep 1
     mysql -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost';" > /dev/null 2>&1
     # Create a new database
