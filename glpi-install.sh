@@ -151,14 +151,15 @@ function install_packages(){
 function mariadb_configure(){
     info "Configuration de MariaDB"
     sleep 1
-    SLQROOTPWD=$(openssl rand -base64 48 | cut -c1-12 )
+    SQLROOTPWD=$(openssl rand -base64 48 | cut -c1-12 )
     SQLGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
     ADMINGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
     POSTGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
     TECHGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
     NORMGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
     systemctl start mariadb > /dev/null 2>&1
-    (echo ""; echo "Y"; echo "Y"; echo "$SLQROOTPWD"; echo "$SLQROOTPWD"; echo "Y"; echo "Y"; echo "Y"; echo "Y") | trace "mysql_secure_installation" > /dev/null 2>&1
+    mysql -e "ALTER USER 'root'@'localhost' IDENTIFIÉ PAR $SQLROOTPWD ;" > /dev/null 2>&1
+    (echo "$SQLROOTPWD"; echo "Y"; echo "N"; echo "Y"; echo "Y"; echo "Y"; echo "Y") | trace "mysql_secure_installation" > /dev/null 2>&1
     sleep 1
     mysql -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost';" > /dev/null 2>&1
     # Create a new database
