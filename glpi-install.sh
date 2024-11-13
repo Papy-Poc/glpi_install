@@ -184,6 +184,7 @@ function mariadb_configure(){
             CREATE DATABASE glpi;
             CREATE USER 'glpi_user'@'localhost' IDENTIFIED BY '$SQLGLPIPWD';
             GRANT ALL PRIVILEGES ON glpi.* TO 'glpi_user'@'localhost';
+            GRANT SELECT ON mysql.time_zone_name TO 'glpi_user'@'localhost';
             FLUSH PRIVILEGES;
             
 EOF
@@ -235,7 +236,7 @@ function setup_db(){
     #php "$rep_glpi"bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
     trace "php /var/www/html/glpi/bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet"
     exit 1
-    rm -rf /var/www/html/glpi/install
+    rm -Rf /var/www/html/glpi/install
     sleep 5
     mkdir /etc/glpi
     cat > /etc/glpi/local_define.php << EOF
