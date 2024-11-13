@@ -26,7 +26,7 @@ function check_distro(){
     # Constante pour les versions d'Ubuntu acceptables
     UBUNTU_VERSIONS=("23.10" "24.10")
     # Constante pour les versions d'Almalinux acceptables
-    ALMA_VERSIONS=("9")
+    ALMA_VERSIONS=("9.4")
     # Constante pour les versions de Centos acceptables
     CENTOS_VERSIONS=("9")
     # Constante pour les versions de Rocky Linux acceptables
@@ -123,10 +123,10 @@ function update_distro(){
 function install_packages(){
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
         sleep 1
-        info "Installation des service lamp..."
+        info "Installation des service LAMP..."
         apt-get install -y --no-install-recommends apache2 mariadb-server perl curl jq php > /dev/null 2>&1
-        info "Installation des extensions de php"
-        apt install -y --no-install-recommends php-mysql php-mbstring php-curl php-gd php-xml php-intl php-ldap php-apcu php-xmlrpc php-zip php-bz2 > /dev/null 2>&1
+        info "Installation des extensions de PHP"
+        apt install -y --no-install-recommends php-mysql php-mbstring php-curl php-gd php-xml php-intl php-ldap php-apcu php-xmlrpc php-zip php-bz2 php-intl > /dev/null 2>&1
         info "Activation de MariaDB"
         systemctl enable mariadb > /dev/null 2>&1
         info "Activation d'Apache"
@@ -135,10 +135,10 @@ function install_packages(){
         systemctl restart apache2 > /dev/null 2>&1
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
         sleep 1
-        info "Installation des service lemp..."
+        info "Installation des services LEMP..."
     # Modification du package "php" en "php-fpm"
-        dnf install -y nginx mariadb-server perl curl jq php-fpm php epel-release > /dev/null 2>&1
-        info "Installation des extensions de php"
+        dnf install -y nginx mariadb-server perl curl jq php-fpm epel-release > /dev/null 2>&1
+        info "Installation des extensions de PHP"
     # Modification du package "php-mysql" en "php-mysqlnd"
         dnf install -y php-mysqlnd php-mbstring php-curl php-gd php-xml php-intl php-ldap php-apcu php-zip php-bz2 php-intl > /dev/null 2>&1
         info "Ouverture des port 80 et 443 sur le parefeu"
@@ -146,7 +146,7 @@ function install_packages(){
         firewall-cmd --permanent --zone=public --add-service=http > /dev/null 2>&1
         firewall-cmd --permanent --zone=public --add-service=https > /dev/null 2>&1
         firewall-cmd --reload > /dev/null 2>&1
-        info "Activation et démarrage des service lemp"
+        info "Activation et démarrage des service LEMP"
     # Démarrage des services MariaDB et Nginx        
         info "Activation et démarrage de MariaDB"
         systemctl enable --now mariadb > /dev/null 2>&1
@@ -173,7 +173,7 @@ function mariadb_configure(){
     export TECHGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
     export NORMGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
     systemctl start mariadb > /dev/null 2>&1
-    mysql -u root <<-EOF
+    trace "mysql -u root <<-EOF
             ALTER USER 'root'@'localhost' IDENTIFIED BY '$SQLROOTPWD';
             DELETE FROM mysql.user WHERE User='';
             DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost');
@@ -185,8 +185,10 @@ function mariadb_configure(){
             CREATE USER 'glpi_user'@'localhost' IDENTIFIED BY '$SQLGLPIPWD';
             GRANT ALL PRIVILEGES ON glpi.* TO 'glpi_user'@'localhost';
             FLUSH PRIVILEGES;
+            GRANT SELECT ON `mysql`.`time_zone_name` TO 'glpi_user'@'localhost';
+            FLUSH PRIVILEGES;
             
-EOF
+EOF"
     sleep 1
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
         # Initialize time zones datas
@@ -231,9 +233,12 @@ function setup_db(){
     ######################################################################################################
     ######################################################################################################
     ######################################################################################################
-    
+
+    #php "$rep_glpi"bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
+    php "$rep_glpi"bin/console database:enable_timezones
     php "$rep_glpi"bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
-    rm -rf /var/www/html/glpi/install
+    exit 1
+    rm -Rf /var/www/html/glpi/install
     sleep 5
     mkdir /etc/glpi
     cat > /etc/glpi/local_define.php << EOF
@@ -282,6 +287,8 @@ EOF
 EOF
         phpversion=$(php -v | grep -i '(cli)' | awk '{print $2}' | cut -c 1,2,3)
         sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 =on/' /etc/php/"$phpversion"/apache2/php.ini
+        sed -i 's/^\(;\?\)\(session.cookie_secure\).*/\2 =on/' /etc/php/"$phpversion"/apache2/php.ini
+        sed -i 's/^\(;\?\)\(session.cookie_samesite\).*/\2 =Lax/' /etc/php/"$phpversion"/apache2/php.ini
         sleep 1
         # Disable Apache Web Server Signature
         echo "ServerSignature Off" >> /etc/apache2/apache2.conf
@@ -293,6 +300,8 @@ EOF
         a2ensite glpi.conf > /dev/null 2>&1
         # Restart d'apache
         systemctl restart apache2 > /dev/null 2>&1
+        # Setup Cron task
+        echo "*/2 * * * * www-data /usr/bin/php '$rep_glpi'front/cron.php &>/dev/null" >> /etc/cron.d/glpi
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
         chown -R nginx:nginx /etc/glpi
         chmod -R 775 /etc/glpi
@@ -328,11 +337,15 @@ http {
     }
 }
 EOF
+        sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 =on/' /etc/php.ini
+        sed -i 's/^\(;\?\)\(session.cookie_secure\).*/\2 =on/' /etc/php.ini
+        sed -i 's/^\(;\?\)\(session.cookie_samesite\).*/\2 =Lax/' /etc/php.ini
+        sleep 1
         # Restart de Nginx
         systemctl restart nginx > /dev/null 2>&1
+        # Setup Cron task
+        echo "*/2 * * * * nginx /usr/bin/php '$rep_glpi'front/cron.php &>/dev/null" >> /etc/cron.d/glpi
     fi
-    # Setup Cron task
-    echo "*/2 * * * * www-data /usr/bin/php '$rep_glpi'front/cron.php &>/dev/null" >> /etc/cron.d/glpi
 }
 function maj_user_glpi(){
         # Changer le mot de passe de l'admin glpi 
@@ -359,7 +372,7 @@ function display_credentials(){
         info "http://$IPADRESS" 
         echo ""
         info "==> Database:"
-        info "Mot de passe root: $SLQROOTPWD"
+        info "Mot de passe root: $SQLROOTPWD"
         info "Mot de passe glpi_user: $SQLGLPIPWD"
         info "Nom de la base de données GLPI: glpi"
         info "<===============================================================================================>"
