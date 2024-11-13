@@ -135,7 +135,7 @@ function install_packages(){
         systemctl restart apache2 > /dev/null 2>&1
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
         sleep 1
-        info "Installation des service LEMP..."
+        info "Installation des services LEMP..."
     # Modification du package "php" en "php-fpm"
         dnf install -y nginx mariadb-server perl curl jq php-fpm epel-release > /dev/null 2>&1
         info "Installation des extensions de PHP"
