@@ -189,7 +189,10 @@ EOF
     sleep 5
     # Initialize time zones datas
     info "Configuration de TimeZone"
-    trace "mysql -u root -p$SQLROOTPWD "GRANT SELECT ON `mysql`.`time_zone_name` TO 'glpi_user'@'localhost'; FLUSH PRIVILEGES;""
+    mysql -u root -p$SQLROOTPWD <<-EOF
+        GRANT SELECT ON `mysql`.`time_zone_name` TO 'glpi_user'@'localhost';
+        FLUSH PRIVILEGES;
+EOF
     sleep 5
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
         #trace "mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root -p"$SQLROOTPWD" mysql" > /dev/null 2>&1
