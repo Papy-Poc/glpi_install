@@ -173,7 +173,7 @@ function mariadb_configure(){
     export TECHGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
     export NORMGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
     systemctl start mariadb > /dev/null 2>&1
-    mysql -u root <<-EOF
+    trace "mysql -u root <<-EOF
             ALTER USER 'root'@'localhost' IDENTIFIED BY '$SQLROOTPWD';
             DELETE FROM mysql.user WHERE User='';
             DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost');
@@ -188,7 +188,7 @@ function mariadb_configure(){
             GRANT SELECT ON `mysql`.`time_zone_name` TO 'glpi_user'@'localhost';
             FLUSH PRIVILEGES;
             
-EOF
+EOF"
     sleep 1
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
         # Initialize time zones datas
