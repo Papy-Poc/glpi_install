@@ -165,17 +165,22 @@ function mariadb_configure(){
             DROP DATABASE IF EXISTS test;
             DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';
             FLUSH PRIVILEGES;
+            GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost';
+            CREATE DATABASE glpi;
+            CREATE USER 'glpi_user'@'localhost' IDENTIFIED BY '$SQLGLPIPWD';
+            GRANT ALL PRIVILEGES ON glpi.* TO 'glpi_user'@'localhost';
+            FLUSH PRIVILEGES;
 EOF
     sleep 1
-    mysql -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost';" > /dev/null 2>&1
+    #mysql -u root -p$SQLROOTPWD "GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost';" > /dev/null 2>&1
     # Create a new database
-    mysql -e "CREATE DATABASE glpi;" > /dev/null 2>&1
+    #mysql -u root -p$SQLROOTPWD "CREATE DATABASE glpi;" > /dev/null 2>&1
     # Create a new user
-    mysql -e "CREATE USER 'glpi_user'@'localhost' IDENTIFIED BY '$SQLGLPIPWD';" > /dev/null 2>&1
+    #mysql -u root -p$SQLROOTPWD "CREATE USER 'glpi_user'@'localhost' IDENTIFIED BY '$SQLGLPIPWD';" > /dev/null 2>&1
     # Grant privileges to the new user for the new database
-    mysql -e "GRANT ALL PRIVILEGES ON glpi.* TO 'glpi_user'@'localhost';" > /dev/null 2>&1
+    #mysql -u root -p$SQLROOTPWD "GRANT ALL PRIVILEGES ON glpi.* TO 'glpi_user'@'localhost';" > /dev/null 2>&1
     # Reload privileges
-    mysql -e "FLUSH PRIVILEGES;" > /dev/null 2>&1
+    #mysql -u root -p$SQLROOTPWD "FLUSH PRIVILEGES;" > /dev/null 2>&1
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
         # Initialize time zones datas
         info "Configuration de TimeZone"
