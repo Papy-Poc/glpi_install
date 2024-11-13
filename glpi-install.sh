@@ -256,7 +256,7 @@ EOF
         chmod -R 775 /etc/glpi
         sleep 1
         mkdir /var/log/glpi
-        chown -R www-data:www-data  /var/log/glpi
+        chown -R www-data:www-data /var/log/glpi
         chmod -R 775 /var/log/glpi
         sleep 1
         # Add permissions
