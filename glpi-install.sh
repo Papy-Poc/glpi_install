@@ -214,11 +214,13 @@ function install_glpi(){
     DOWNLOADLINK=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.assets[0].browser_download_url')
     wget -O /tmp/glpi-latest.tgz "$DOWNLOADLINK" > /dev/null 2>&1
     trace "tar xzf /tmp/glpi-latest.tgz -C /var/www/html/"
-    chown -R www-data:www-data "$rep_glpi"
-    chmod -R 755 "$rep_glpi"
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
+        chown -R www-data:www-data "$rep_glpi"
+        chmod -R 755 "$rep_glpi"
         systemctl restart apache2
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
+        chown -R nginx:nginx "$rep_glpi"
+        chmod -R 755 "$rep_glpi"
         systemctl restart nginx
     fi
 }
@@ -229,7 +231,6 @@ function setup_db(){
     ######################################################################################################
     ######################################################################################################
     ######################################################################################################
-    
     
     php "$rep_glpi"bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
     rm -rf /var/www/html/glpi/install
