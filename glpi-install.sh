@@ -98,9 +98,9 @@ function check_install(){
 }
 function install(){
         update_distro
-        trace "install_packages"
+        install_packages
         network_info
-        trace "mariadb_configure"
+        mariadb_configure
         sleep 5
         install_glpi
         sleep 5
