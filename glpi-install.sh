@@ -97,12 +97,12 @@ function check_install(){
     fi
 }
 function install(){
-        update_distro
-        install_packages
-        network_info
-        mariadb_configure
+        #update_distro
+        #install_packages
+        #network_info
+        #mariadb_configure
         sleep 5
-        install_glpi
+        #install_glpi
         sleep 5
         setup_db
         sleep 5
@@ -189,6 +189,7 @@ EOF
     sleep 5
     # Initialize time zones datas
     info "Configuration de TimeZone"
+    alert $SQLROOTPWD
     mysql -u root -p"$SQLROOTPWD" <<-EOF
         USE mysql;
         GRANT SELECT ON time_zone_name TO 'glpi_user'@'localhost';
@@ -196,11 +197,9 @@ EOF
 EOF
     sleep 5
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
-        #trace "mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root -p"$SQLROOTPWD" mysql" > /dev/null 2>&1
         echo "Europe/Paris" | trace "dpkg-reconfigure -f noninteractive tzdata" > /dev/null 2>&1
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
-        #trace "mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root -p"$SQLROOTPWD" mysql" > /dev/null 2>&1
-        trace "timedatectl set-timezone "Europe/Paris"" > /dev/null 2>&1
+        timedatectl set-timezone "Europe/Paris" > /dev/null 2>&1
     fi
     systemctl restart mariadb
     sleep 1
