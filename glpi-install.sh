@@ -96,6 +96,21 @@ function check_install(){
             install
     fi
 }
+function install(){
+        update_distro
+        install_packages
+        network_info
+        mariadb_configure
+        sleep 5
+        install_glpi
+        sleep 5
+        setup_db
+        sleep 5
+        maj_user_glpi
+        display_credentials
+        write_credentials
+        efface_script
+}
 function update_distro(){
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
         info "Application des mise à jour"
@@ -104,11 +119,6 @@ function update_distro(){
         info "Application des mise à jour"
         dnf upgrade -y > /dev/null 2>&1
     fi
-}
-function network_info(){
-    INTERFACE=$(ip route | awk 'NR==1 {print $5}')
-    IPADRESS=$(ip addr show "$INTERFACE" | grep inet | awk '{ print $2; }' | sed 's/\/.*$//' | head -n 1)
-    # HOST=$(hostname)
 }
 function install_packages(){
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
@@ -148,6 +158,11 @@ function install_packages(){
         #systemctl start nginx > /dev/null 2>&1
        fi
 }
+function network_info(){
+    INTERFACE=$(ip route | awk 'NR==1 {print $5}')
+    IPADRESS=$(ip addr show "$INTERFACE" | grep inet | awk '{ print $2; }' | sed 's/\/.*$//' | head -n 1)
+    # HOST=$(hostname)
+}
 function mariadb_configure(){
     info "Configuration de MariaDB"
     sleep 1
@@ -170,17 +185,9 @@ function mariadb_configure(){
             CREATE USER 'glpi_user'@'localhost' IDENTIFIED BY '$SQLGLPIPWD';
             GRANT ALL PRIVILEGES ON glpi.* TO 'glpi_user'@'localhost';
             FLUSH PRIVILEGES;
+            
 EOF
     sleep 1
-    #mysql -u root -p$SQLROOTPWD "GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost';" > /dev/null 2>&1
-    # Create a new database
-    #mysql -u root -p$SQLROOTPWD "CREATE DATABASE glpi;" > /dev/null 2>&1
-    # Create a new user
-    #mysql -u root -p$SQLROOTPWD "CREATE USER 'glpi_user'@'localhost' IDENTIFIED BY '$SQLGLPIPWD';" > /dev/null 2>&1
-    # Grant privileges to the new user for the new database
-    #mysql -u root -p$SQLROOTPWD "GRANT ALL PRIVILEGES ON glpi.* TO 'glpi_user'@'localhost';" > /dev/null 2>&1
-    # Reload privileges
-    #mysql -u root -p$SQLROOTPWD "FLUSH PRIVILEGES;" > /dev/null 2>&1
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
         # Initialize time zones datas
         info "Configuration de TimeZone"
@@ -194,13 +201,10 @@ EOF
         # Initialize time zones datas
         info "Configuration de TimeZone"
         trace "mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root -p"$SQLROOTPWD" mysql" > /dev/null 2>&1
-        # A REMPLACER
-        # echo "Europe/Paris" | trace "dpkg-reconfigure -f noninteractive tzdata" > /dev/null 2>&1
+        trace "timedatectl set-timezone "Europe/Paris"" > /dev/null 2>&1
         systemctl restart mariadb
         sleep 1
     fi
-    #######
-    exit 1
 }
 function install_glpi(){
     info "Téléchargement et installation de la dernière version de GLPI..."
@@ -396,21 +400,6 @@ function efface_script(){
                 warn "Effacement en cours"
                 rm -f "$rep_script"
         fi
-}
-function install(){
-        update_distro
-        install_packages
-        network_info
-        mariadb_configure
-        sleep 5
-        install_glpi
-        sleep 5
-        setup_db
-        sleep 5
-        maj_user_glpi
-        display_credentials
-        write_credentials
-        efface_script
 }
 function maintenance(){
         if [ "$1" == "1" ]; then
