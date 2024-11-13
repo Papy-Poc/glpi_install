@@ -13,7 +13,6 @@ L'installation de GLPI se fait sans SSL. Si vous avez besoin d'ouvrir l'accès �
 >⚠️ Il est fortement recommandé d'exécuter ce script sur une nouvelle installation ou sur une installation faite avec ce script.
 
 ### Comptes par défaut
-
 | Identifiant | Mot de passe | Rôle |
 |--|--|--|
 glpi|Défini à l'installation|compte administrateur
@@ -28,16 +27,13 @@ Si vous rencontrez un problème avec GLPI et/ou avez besoin de plus d'informatio
 
 [Documentation Administrateurs de GLPI](https://glpi-install.readthedocs.io/), [Documentation Utilisateurs de GLPI](https://glpi-user-documentation.readthedocs.io/)
 
-## Compatibilité
-Comme ce script utilise apt, il ne fonctionne actuellement que sur les distributions basées sur debian.
 >[!IMPORTANT]
 >| OS | VERSION| COMPATIBILITÉ|
 >|--|--|--|
->|Debian|10|⚠️ Jamais testé, si vous choisissez de forcer le script, c'est à vos risques et périls. |
 >|Debian|11|✅|
 >|Debian|12|✅|
->|Ubuntu|22.04|⚠️ Tester, ne marche pas|
 >|Ubuntu|23.10|✅|
+>|Ubuntu|24.10|⚠️ A tester|
 
 ## Comment utiliser
 GLPI s'installe en lançant la commande suivante dans votre terminal.
@@ -46,5 +42,5 @@ GLPI s'installe en lançant la commande suivante dans votre terminal.
 >⚠️ S'assurer qu'il n'y a plus le script dans le répertoire ```/root```, sinon ```rm /root/glpi-install.sh```
 
 ```bash
-wget https://raw.githubusercontent.com/Papy-Poc/glpi_install/main/glpi-install.sh && chmod 700 glpi-install.sh && ./glpi-install.sh
+wget https://raw.githubusercontent.com/Papy-Poc/glpi_install/refs/heads/main/glpi-install.sh && chmod 700 glpi-install.sh && ./glpi-install.sh
 ```
