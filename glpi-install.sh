@@ -137,7 +137,7 @@ function install_packages(){
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
         info "Ajout et activation du repositorie php:remi-8.4"
         dnf install -y https://rpms.remirepo.net/enterprise/remi-release-9.rpm
-        dnf module enable php:remi-8.4 -y
+        dnf module enable php:remi-8.3 -y
         sleep 1
         info "Installation des services LEMP..."
     # Modification du package "php" en "php-fpm"
