@@ -137,11 +137,11 @@ function install_packages(){
         sleep 1
         info "Installation des services LEMP..."
     # Modification du package "php" en "php-fpm"
-        dnf install -y nginx mariadb-server perl curl jq php-fpm php epel-release > /dev/null 2>&1
+        dnf install -y nginx mariadb-server perl curl jq php-fpm epel-release php > /dev/null 2>&1
         info "Installation des extensions de PHP"
     # Modification du package "php-mysql" en "php-mysqlnd"
         dnf install -y php-mysqlnd php-mbstring php-curl php-gd php-xml php-intl php-ldap php-apcu php-zip php-bz2 php-intl > /dev/null 2>&1
-        info "Ouverture des port 80 et 443 sur le parefeu"
+        info "Ouverture des ports 80 et 443 sur le parefeu"
     # Ouverture des ports 80 et 443 dans le firewall des distro RedHat
         firewall-cmd --permanent --zone=public --add-service=http > /dev/null 2>&1
         firewall-cmd --permanent --zone=public --add-service=https > /dev/null 2>&1
