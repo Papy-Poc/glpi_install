@@ -135,7 +135,7 @@ function install_packages(){
         info "Redémarage d'Apache"
         systemctl restart apache2 > /dev/null 2>&1
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
-        info "Ajout et activation du repositorie php:remi-8.4"
+        info "Ajout et activation du repositorie php:remi-8.3"
         dnf install -y https://rpms.remirepo.net/enterprise/remi-release-9.rpm
         dnf module enable php:remi-8.3 -y
         sleep 1
