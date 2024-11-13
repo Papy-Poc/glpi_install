@@ -234,6 +234,7 @@ function setup_db(){
 
     #php "$rep_glpi"bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
     trace "php /var/www/html/glpi/bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet"
+    exit 1
     rm -rf /var/www/html/glpi/install
     sleep 5
     mkdir /etc/glpi
@@ -368,7 +369,7 @@ function display_credentials(){
         info "http://$IPADRESS" 
         echo ""
         info "==> Database:"
-        info "Mot de passe root: $SLQROOTPWD"
+        info "Mot de passe root: $SQLROOTPWD"
         info "Mot de passe glpi_user: $SQLGLPIPWD"
         info "Nom de la base de données GLPI: glpi"
         info "<===============================================================================================>"
