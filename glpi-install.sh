@@ -161,7 +161,7 @@ function install_packages(){
 function network_info(){
     INTERFACE=$(ip route | awk 'NR==1 {print $5}')
     IPADRESS=$(ip addr show "$INTERFACE" | grep inet | awk '{ print $2; }' | sed 's/\/.*$//' | head -n 1)
-    # HOST=$(hostname)
+    HOST=$(hostname)
 }
 function mariadb_configure(){
     info "Configuration de MariaDB"
@@ -173,7 +173,7 @@ function mariadb_configure(){
     export TECHGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
     export NORMGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
     systemctl start mariadb > /dev/null 2>&1
-    mysql -u root <<-EOF
+    trace "mysql -u root" <<-EOF
             ALTER USER 'root'@'localhost' IDENTIFIED BY '$SQLROOTPWD';
             DELETE FROM mysql.user WHERE User='';
             DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost');
@@ -185,10 +185,9 @@ function mariadb_configure(){
             CREATE USER 'glpi_user'@'localhost' IDENTIFIED BY '$SQLGLPIPWD';
             GRANT ALL PRIVILEGES ON glpi.* TO 'glpi_user'@'localhost';
             FLUSH PRIVILEGES;
+            GRANT SELECT ON `mysql`.`time_zone_name` TO 'glpi_user'@'localhost';
+            FLUSH PRIVILEGES;
 EOF
-
-            #GRANT SELECT ON `mysql`.`time_zone_name` TO 'glpi_user'@'localhost';
-            #FLUSH PRIVILEGES;
     sleep 1
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
         # Initialize time zones datas
@@ -369,7 +368,8 @@ function display_credentials(){
         info "normal       -  $NORMGLPIPWD       -  compte normal"
         echo ""
         info "Vous pouvez accéder à la page web de GLPI à partir d'une adresse IP ou d'un nom d'hôte :"
-        info "http://$IPADRESS" 
+        info "http://$IPADRESS"
+        info "http://$HOST"
         echo ""
         info "==> Database:"
         info "Mot de passe root: $SQLROOTPWD"
@@ -393,6 +393,7 @@ info "normal      -  $NORMGLPIPWD       -  compte normal"
         
 Vous pouvez accéder à la page web de GLPI à partir d'une adresse IP ou d'un nom d'hôte :
 http://$IPADRESS
+http://$HOST
 
 ==> Database:
 Mot de passe root: $SQLROOTPWD
