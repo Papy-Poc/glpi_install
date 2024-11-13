@@ -189,8 +189,9 @@ EOF
     sleep 5
     # Initialize time zones datas
     info "Configuration de TimeZone"
-    mysql -u root -p$SQLROOTPWD <<-EOF
-        GRANT SELECT ON `mysql`.`time_zone_name` TO 'glpi_user'@'localhost';
+    mysql -u root -p"$SQLROOTPWD" <<-EOF
+        USE mysql;
+        GRANT SELECT ON time_zone_name TO 'glpi_user'@'localhost';
         FLUSH PRIVILEGES;
 EOF
     sleep 5
