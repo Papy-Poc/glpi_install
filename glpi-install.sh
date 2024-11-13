@@ -136,8 +136,8 @@ function install_packages(){
         systemctl restart apache2 > /dev/null 2>&1
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
         info "Ajout et activation du repositorie php:remi-8.3"
-        dnf install -y https://rpms.remirepo.net/enterprise/remi-release-9.rpm
-        dnf module enable php:remi-8.3 -y
+        dnf install -y https://rpms.remirepo.net/enterprise/remi-release-9.rpm > /dev/null 2>&1
+        trace "dnf module enable php:remi-8.3 -y"
         sleep 1
         info "Installation des services LEMP..."
     # Modification du package "php" en "php-fpm"
@@ -314,26 +314,21 @@ EOF
         chown -R nginx:nginx "$rep_glpi"
         chmod -R 775 "$rep_glpi"
         sleep 1
-        mv -f /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak
-        cat > /etc/nginx/nginx.conf <<-EOF
-events {
-    worker_connections  1024;
-}
-http {
-    server {
-        listen 80;
-        server_name glpi.localhost;
-        root /var/www/html/glpi/public;
-        location / {
-            try_files \$uri /index.php\$is_args\$args;
-        }
-        location ~ ^/index\.php$ {
-            # the following line needs to be adapted, as it changes depending on OS distributions and PHP versions
-            fastcgi_pass unix:/run/php/php-fpm.sock;
-            fastcgi_split_path_info ^(.+\.php)(/.*)$;
-            include fastcgi_params;
-            fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
-        }
+        #mv -f /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak
+        cat > /etc/nginx/default.d/glpi.conf <<-EOF
+server {
+    listen 80;
+    server_name glpi.lan;
+    root /var/www/html/glpi/public;
+    location / {
+        try_files \$uri /index.php\$is_args\$args;
+    }
+    location ~ ^/index\.php$ {
+        # the following line needs to be adapted, as it changes depending on OS distributions and PHP versions
+        fastcgi_pass unix:/run/php/php-fpm.sock;
+        fastcgi_split_path_info ^(.+\.php)(/.*)$;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
     }
 }
 EOF
