@@ -137,7 +137,7 @@ function install_packages(){
         sleep 1
         info "Installation des service lemp..."
     # Modification du package "php" en "php-fpm"
-        dnf install -y nginx mariadb-server perl curl jq php-fpm epel-release > /dev/null 2>&1
+        dnf install -y nginx mariadb-server perl curl jq php-fpm php epel-release > /dev/null 2>&1
         info "Installation des extensions de php"
     # Modification du package "php-mysql" en "php-mysqlnd"
         dnf install -y php-mysqlnd php-mbstring php-curl php-gd php-xml php-intl php-ldap php-apcu php-zip php-bz2 php-intl > /dev/null 2>&1
