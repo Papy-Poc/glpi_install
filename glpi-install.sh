@@ -97,12 +97,12 @@ function check_install(){
     fi
 }
 function install(){
-        #update_distro
-        #install_packages
-        #network_info
-        #mariadb_configure
+        update_distro
+        install_packages
+        network_info
+        mariadb_configure
         sleep 5
-        #install_glpi
+        install_glpi
         sleep 5
         setup_db
         sleep 5
