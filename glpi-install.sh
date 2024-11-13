@@ -252,7 +252,7 @@ EOF
     mv "$rep_glpi"config/*.* /etc/glpi/
     mv "$rep_glpi"files /var/lib/glpi/
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
-        chown -R www-data:www-data  /etc/glpi
+        chown -R www-data:www-data /etc/glpi
         chmod -R 775 /etc/glpi
         sleep 1
         mkdir /var/log/glpi
@@ -294,11 +294,11 @@ EOF
         # Restart d'apache
         systemctl restart apache2 > /dev/null 2>&1
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
-        chown -R nginx:nginx  /etc/glpi
+        chown -R nginx:nginx /etc/glpi
         chmod -R 775 /etc/glpi
         sleep 1
         mkdir /var/log/glpi
-        chown -R nginx:nginx  /var/log/glpi
+        chown -R nginx:nginx /var/log/glpi
         chmod -R 775 /var/log/glpi
         sleep 1
         # Add permissions
@@ -314,7 +314,7 @@ http {
     server {
         listen 80;
         server_name glpi.localhost;
-        root /var/www/glpi/public;
+        root /var/www//html/glpi/public;
         location / {
             try_files $uri /index.php$is_args$args;
         }
