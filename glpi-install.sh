@@ -26,7 +26,7 @@ function check_distro(){
     # Constante pour les versions d'Ubuntu acceptables
     UBUNTU_VERSIONS=("23.10" "24.10")
     # Constante pour les versions d'Almalinux acceptables
-    ALMA_VERSIONS=("9")
+    ALMA_VERSIONS=("9.4")
     # Constante pour les versions de Centos acceptables
     CENTOS_VERSIONS=("9")
     # Constante pour les versions de Rocky Linux acceptables
@@ -184,6 +184,7 @@ function mariadb_configure(){
             CREATE DATABASE glpi;
             CREATE USER 'glpi_user'@'localhost' IDENTIFIED BY '$SQLGLPIPWD';
             GRANT ALL PRIVILEGES ON glpi.* TO 'glpi_user'@'localhost';
+            FLUSH PRIVILEGES;
             GRANT SELECT ON `mysql`.`time_zone_name` TO 'glpi_user'@'localhost';
             FLUSH PRIVILEGES;
             
