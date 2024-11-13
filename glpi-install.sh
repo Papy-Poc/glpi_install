@@ -186,25 +186,20 @@ function mariadb_configure(){
         GRANT ALL PRIVILEGES ON glpi.* TO 'glpi_user'@'localhost';
         FLUSH PRIVILEGES;
 EOF
-        trace "mysql -u root -p$SQLROOTPWD "GRANT SELECT ON `mysql`.`time_zone_name` TO 'glpi_user'@'localhost'; FLUSH PRIVILEGES;""
-    sleep 1
+    sleep 5
+    # Initialize time zones datas
+    info "Configuration de TimeZone"
+    trace "mysql -u root -p$SQLROOTPWD "GRANT SELECT ON `mysql`.`time_zone_name` TO 'glpi_user'@'localhost'; FLUSH PRIVILEGES;""
+    sleep 5
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
-        # Initialize time zones datas
-        info "Configuration de TimeZone"
         #trace "mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root -p"$SQLROOTPWD" mysql" > /dev/null 2>&1
-        # Ask tz
         echo "Europe/Paris" | trace "dpkg-reconfigure -f noninteractive tzdata" > /dev/null 2>&1
-        systemctl restart mariadb
-        sleep 1
-        #mysql -e "GRANT SELECT ON mysql.time_zone_name TO 'glpi_user'@'localhost'" > /dev/null 2>&1
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
-        # Initialize time zones datas
-        info "Configuration de TimeZone"
         #trace "mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root -p"$SQLROOTPWD" mysql" > /dev/null 2>&1
         trace "timedatectl set-timezone "Europe/Paris"" > /dev/null 2>&1
-        systemctl restart mariadb
-        sleep 1
     fi
+    systemctl restart mariadb
+    sleep 1
 }
 function install_glpi(){
     info "Téléchargement et installation de la dernière version de GLPI..."
