@@ -185,9 +185,8 @@ function mariadb_configure(){
             CREATE USER 'glpi_user'@'localhost' IDENTIFIED BY '$SQLGLPIPWD';
             GRANT ALL PRIVILEGES ON glpi.* TO 'glpi_user'@'localhost';
             FLUSH PRIVILEGES;
-            GRANT SELECT ON `mysql`.`time_zone_name` TO 'glpi_user'@'localhost';
+            GRANT ALL PRIVILEGES ON `mysql`.`time_zone_name` TO 'glpi_user'@'localhost';
             FLUSH PRIVILEGES;
-            
 EOF
     sleep 1
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
