@@ -173,21 +173,20 @@ function mariadb_configure(){
     export TECHGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
     export NORMGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
     systemctl start mariadb > /dev/null 2>&1
-    trace "mysql -u root" <<-EOF
-            ALTER USER 'root'@'localhost' IDENTIFIED BY '$SQLROOTPWD';
-            DELETE FROM mysql.user WHERE User='';
-            DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost');
-            DROP DATABASE IF EXISTS test;
-            DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';
-            FLUSH PRIVILEGES;
-            GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost';
-            CREATE DATABASE glpi;
-            CREATE USER 'glpi_user'@'localhost' IDENTIFIED BY '$SQLGLPIPWD';
-            GRANT ALL PRIVILEGES ON glpi.* TO 'glpi_user'@'localhost';
-            FLUSH PRIVILEGES;
-            GRANT SELECT ON `mysql`.`time_zone_name` TO 'glpi_user'@'localhost';
-            FLUSH PRIVILEGES;
+    mysql -u root <<-EOF
+        ALTER USER 'root'@'localhost' IDENTIFIED BY '$SQLROOTPWD';
+        DELETE FROM mysql.user WHERE User='';
+        DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost');
+        DROP DATABASE IF EXISTS test;
+        DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';
+        FLUSH PRIVILEGES;
+        GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost';
+        CREATE DATABASE glpi;
+        CREATE USER 'glpi_user'@'localhost' IDENTIFIED BY '$SQLGLPIPWD';
+        GRANT ALL PRIVILEGES ON glpi.* TO 'glpi_user'@'localhost';
+        FLUSH PRIVILEGES;
 EOF
+        trace "mysql -u root -p$SQLROOTPWD "GRANT SELECT ON `mysql`.`time_zone_name` TO 'glpi_user'@'localhost'; FLUSH PRIVILEGES;""
     sleep 1
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
         # Initialize time zones datas
