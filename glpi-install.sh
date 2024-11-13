@@ -494,7 +494,7 @@ function trace() {
 LOG_FILE="/root/glpi-install.log"
 rep_script="/root/glpi-install.sh"
 rep_backup="/home/glpi_sauve/"
-rep_glpi="/var/www/html/glpi/"
+export rep_glpi="/var/www/html/glpi/"
 current_date_time=$(date +"%d-%m-%Y_%H-%M-%S")
 bdd_backup="bdd_glpi-""$current_date_time"".sql"
 clear
