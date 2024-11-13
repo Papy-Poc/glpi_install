@@ -232,8 +232,8 @@ function setup_db(){
     ######################################################################################################
 
     #php "$rep_glpi"bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
-    php "$rep_glpi"bin/console database:enable_timezones
-    php "$rep_glpi"bin/console database:update
+    #php "$rep_glpi"bin/console database:enable_timezones
+    #php "$rep_glpi"bin/console database:update
     php "$rep_glpi"bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
     rm -Rf /var/www/html/glpi/install
     sleep 5
