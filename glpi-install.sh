@@ -262,14 +262,15 @@ function install_glpi(){
     # Get download link for the latest release
     DOWNLOADLINK=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.assets[0].browser_download_url')
     wget -O /tmp/glpi-latest.tgz "$DOWNLOADLINK" > /dev/null 2>&1
-    trace "tar xzf /tmp/glpi-latest.tgz -C /var/www/html/" > /dev/null 2>&1
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
+        tar xzf /tmp/glpi-latest.tgz -C /var/www/html/ > /dev/null 2>&1
         chown -R www-data:www-data "$rep_glpi"
         chmod -R 755 "$rep_glpi"
         systemctl restart apache2
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
+        tar xzf /tmp/glpi-latest.tgz -C /usr/share/nginx/html/ > /dev/null 2>&1
         chown -R nginx:nginx "$rep_glpi_nginx"
-        chmod -R 755 "$rep_glpi"
+        chmod -R 755 "$rep_glpi_nginx"
         systemctl restart nginx
     fi
 }
@@ -286,27 +287,46 @@ function setup_db(){
     #php "$rep_glpi"bin/console database:update  
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
         php "$rep_glpi"bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
-    elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
-        php "$rep_glpi_nginx"bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
-    fi
         rm -f /var/www/html/glpi/install/install.php
         sleep 5
         mkdir /etc/glpi
         cat > /etc/glpi/local_define.php << EOF
-        <?php
-        define('GLPI_VAR_DIR', '/var/lib/glpi');
-        define('GLPI_LOG_DIR', '/var/log/glpi');
-    EOF
+<?php
+    define('GLPI_VAR_DIR', '/var/lib/glpi');
+    define('GLPI_LOG_DIR', '/var/log/glpi');
+EOF
     sleep 1
     cat > /var/www/html/glpi/inc/downstream.php << EOF
-    <?php
+<?php
     define('GLPI_CONFIG_DIR', '/etc/glpi');
     if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
-    require_once GLPI_CONFIG_DIR . '/local_define.php';
+        require_once GLPI_CONFIG_DIR . '/local_define.php';
     }
 EOF
     mv "$rep_glpi"config/*.* /etc/glpi/
     mv "$rep_glpi"files /var/lib/glpi/
+    elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
+        php "$rep_glpi_nginx"bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
+        rm -f /usr/share/nginx/html/glpi/install/install.php
+        sleep 5
+        mkdir /etc/glpi
+        cat > /etc/glpi/local_define.php << EOF
+<?php
+    define('GLPI_VAR_DIR', '/var/lib/glpi');
+    define('GLPI_LOG_DIR', '/var/log/glpi');
+EOF
+    sleep 1
+    cat > /usr/share/nginx/html/glpi/inc/downstream.php << EOF
+<?php
+    define('GLPI_CONFIG_DIR', '/etc/glpi');
+    if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
+        require_once GLPI_CONFIG_DIR . '/local_define.php';
+    }
+EOF
+    mv "$rep_glpi_nginx"config/*.* /etc/glpi/
+    mv "$rep_glpi_nginx"files /var/lib/glpi/
+    fi
+        
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
         chown -R www-data:www-data /etc/glpi
         chmod -R 775 /etc/glpi
