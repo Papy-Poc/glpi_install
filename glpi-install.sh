@@ -64,11 +64,15 @@ function check_distro(){
 }
 function check_install(){
     # Vérifie si le répertoire existe
-    if [ -d "$1" ]; then
-            output=$(php "$rep_glpi"bin/console -V 2>&1)
+    if [ -d "$1" ];[[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
+                    output=$(php "$rep_glpi"bin/console -V 2>&1)
+            elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
+                    info "Existence d'un GLPI"
+                    output=$(php "$rep_glpi_nginx"bin/console -V 2>&1) then
             sleep 2
             glpi_cli_version=$(sed -n 's/.*GLPI CLI \([^ ]*\).*/\1/p' <<< "$output")
             warn "Le site est déjà installé. Version ""$glpi_cli_version"
+            fi
             new_version=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.name')
             info "Nouvelle version trouver : GLPI version $new_version"
             if [ "$glpi_cli_version" == "$new_version" ]; then
@@ -90,7 +94,7 @@ function check_install(){
                                     warn "Action non reconnue. Sortie du programme."
                                     efface_script
                                     exit 0;;
-                    esac
+                        esac
             fi
     else
             info "Nouvelle installation de GLPI"
@@ -150,8 +154,12 @@ function install_packages(){
         firewall-cmd --permanent --zone=public --add-service=http > /dev/null 2>&1
         firewall-cmd --permanent --zone=public --add-service=https > /dev/null 2>&1
         firewall-cmd --reload > /dev/null 2>&1
+    # Modifcation du fichier PHP-FPM pour Nginx,remplacement de Apache par Nginx
+        sed -i 's/user = apache/user = nginx/g' /etc/php-fpm.d/www.conf > /dev/null 2>&1
+        sed -i 's/group = apache/group = nginx/g' /etc/php-fpm.d/www.conf > /dev/null 2>&1
+        
         info "Activation et démarrage des service LEMP"
-    # Démarrage des services MariaDB et Nginx        
+    # Démarrage des services MariaDB, Nginx et Php-Fpm        
         info "Activation et démarrage de MariaDB"
         systemctl enable --now mariadb > /dev/null 2>&1
         #info "Démarage de MariaDB"
@@ -160,6 +168,8 @@ function install_packages(){
         systemctl enable --now nginx > /dev/null 2>&1
         #info "Démarage d'(e)Nginx"
         #systemctl start nginx > /dev/null 2>&1
+        info "Activation et démarrage de Php-Fpm"
+        systemctl enable --now php-fpm > /dev/null 2>&1
        fi
 }
 function network_info(){
@@ -221,7 +231,7 @@ function install_glpi(){
         chmod -R 755 "$rep_glpi"
         systemctl restart apache2
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
-        chown -R nginx:nginx "$rep_glpi"
+        chown -R nginx:nginx "$rep_glpi_nginx"
         chmod -R 755 "$rep_glpi"
         systemctl restart nginx
     fi
@@ -236,16 +246,19 @@ function setup_db(){
 
     #php "$rep_glpi"bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
     #php "$rep_glpi"bin/console database:enable_timezones
-    #php "$rep_glpi"bin/console database:update   
-    php "$rep_glpi"bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
-    rm -f /var/www/html/glpi/install/install.php
-    sleep 5
-    mkdir /etc/glpi
-    cat > /etc/glpi/local_define.php << EOF
-    <?php
-    define('GLPI_VAR_DIR', '/var/lib/glpi');
-    define('GLPI_LOG_DIR', '/var/log/glpi');
-EOF
+    #php "$rep_glpi"bin/console database:update  
+     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
+        php "$rep_glpi"bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
+     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
+          php "$rep_glpi_nginx"bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
+        rm -f /var/www/html/glpi/install/install.php
+        sleep 5
+        mkdir /etc/glpi
+        cat > /etc/glpi/local_define.php << EOF
+        <?php
+        define('GLPI_VAR_DIR', '/var/lib/glpi');
+        define('GLPI_LOG_DIR', '/var/log/glpi');
+    EOF
     sleep 1
     cat > /var/www/html/glpi/inc/downstream.php << EOF
     <?php
@@ -313,36 +326,47 @@ EOF
         chmod -R 775 /var/log/nginx
         sleep 1
         # Add permissions
-        chown -R nginx:nginx "$rep_glpi"
-        chmod -R 775 "$rep_glpi"
+        chown -R nginx:nginx "$rep_glpi_nginx"
+        chmod -R 755 "$rep_glpi_nginx"
         sleep 1
-        #mv -f /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak
-        cat > /etc/nginx/default.d/glpi.conf <<-EOF
-server {
-    listen 80;
-    server_name glpi.lan;
-    root /var/www/html/glpi/public;
-    location / {
-        try_files \$uri $uri/ /index.php\$is_args\$args;
+        # Setup server
+        cat > /etc/nginx/conf.d/glpi.conf <<-EOF
+ server {
+       listen 80;
+       server_name glpi.lan;
+
+       root /usr/share/nginx/html/glpi;
+       index index.php index.html index.htm;
+
+       location / {
+            try_files $uri $uri/ /index.php?$query_string;
     }
-    location ~ ^/index\.php$ {
-        # the following line needs to be adapted, as it changes depending on OS distributions and PHP versions
-        fastcgi_pass unix:/var/run/php-fpm.sock;
-        fastcgi_split_path_info ^(.+\.php)(/.*)$;
-        include fastcgi_params;
-        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+
+        location ~ \.php$ {
+            include fastcgi_params;
+            fastcgi_pass unix:/run/php-fpm/www.sock;
+            fastcgi_index index.php;
+            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    }
+
+        location ~* \.(js|css|png|jpg|jpeg|gif|ico|woff|ttf)$ {
+            expires max;
+            log_not_found off;
     }
 }
+
 EOF
         sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 = on/' /etc/php.ini
         #sed -i 's/^\(;\?\)\(session.cookie_secure\).*/\2 = on/' /etc/php.ini
         sed -i 's/^\(;\?\)\(session.cookie_secure\).*/\2 = off/' /etc/php.ini
         sed -i 's/^\(;\?\)\(session.cookie_samesite\).*/\2 = Lax/' /etc/php.ini
         sleep 1
+        # Supression du dossier d'installation de glpi
+        rm -rf /usr/share/nginx/html/glpi/install
         # Restart de Nginx
         systemctl restart nginx > /dev/null 2>&1
         # Setup Cron task
-        echo "*/2 * * * * nginx /usr/bin/php '${rep_glpi}front/cron.php' &>/dev/null" | tee /etc/cron.d/glpi > /dev/null
+        echo "*/2 * * * * nginx /usr/bin/php '${rep_glpi_nginx}front/cron.php' &>/dev/null" | tee /etc/cron.d/glpi > /dev/null
     fi
 }
 function maj_user_glpi(){
@@ -374,13 +398,13 @@ function display_credentials(){
         info "Mot de passe root: $SQLROOTPWD"
         info "Mot de passe glpi_user: $SQLGLPIPWD"
         info "Nom de la base de données GLPI: glpi"
-        info "<===============================================================================================>"
+        info "<============================================================================================================================>"
         echo ""
         info "Si vous rencontrez un problème avec ce script, veuillez le signaler sur GitHub : https://github.com/PapyPoc/glpi_install/issues"
 }
 function write_credentials(){
         cat > /root/sauve_mdp.txt <<EOF
-==============================> GLPI installation details  <=====================================
+===========================================> GLPI installation details  <===============================================
 Il est important d'enregistrer ces informations. Si vous les perdez, elles seront irrécupérables.
 
 Les comptes utilisateurs par défaut sont :
@@ -398,7 +422,18 @@ http://$HOST
 Mot de passe root: $SQLROOTPWD
 Mot de passe glpi_user: $SQLGLPIPWD
 Nom de la base de données GLPI: glpi
-<===============================================================================================>
+==========================================> Tips pour Nginx sur distro RedHat <=============================================
+Si la page dans le navigateur ne s'ouvre pas, pas de panique penser a vérifier 
+    -si l'ouverture du firewall est OK
+     firewall-cmd --list-all (normalement c'est prévu dans le script)
+        firewall-cmd --permanent --add-service=http
+        firewall-cmd --permanent --add-service=https
+    -si SELinux n'est pas en mode restrictif
+        getenforce (Permissive, Disabled, Enforcing), 
+        Autre que disabled, le desactiver provisoirement >>> setenforce 0
+        Désactivation complète DECONSEILLE >> vim /etc/selinux/config
+        Trouver la ligne avec SELINUX=enforcing ou permissive remplacer par disabled
+<=============================================================================================================================>
 
 Si vous rencontrez un probléme avec ce script, veuillez le signaler sur GitHub : https://github.com/PapyPoc/glpi_install/issues
 EOF
@@ -496,6 +531,7 @@ LOG_FILE="/root/glpi-install.log"
 rep_script="/root/glpi-install.sh"
 rep_backup="/home/glpi_sauve/"
 export rep_glpi="/var/www/html/glpi/"
+export rep_glpi_nginx="/usr/share/nginx/html/glpi/"
 current_date_time=$(date +"%d-%m-%Y_%H-%M-%S")
 bdd_backup="bdd_glpi-""$current_date_time"".sql"
 clear
