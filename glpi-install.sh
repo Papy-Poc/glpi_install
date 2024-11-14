@@ -335,7 +335,8 @@ server {
 }
 EOF
         sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 = on/' /etc/php.ini
-        sed -i 's/^\(;\?\)\(session.cookie_secure\).*/\2 = on/' /etc/php.ini
+        #sed -i 's/^\(;\?\)\(session.cookie_secure\).*/\2 = on/' /etc/php.ini
+        sed -i 's/^\(;\?\)\(session.cookie_secure\).*/\2 = off/' /etc/php.ini
         sed -i 's/^\(;\?\)\(session.cookie_samesite\).*/\2 = Lax/' /etc/php.ini
         sleep 1
         # Restart de Nginx
