@@ -67,11 +67,11 @@ function check_install(){
         if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
             output=$(php $rep_glpi/bin/console -V 2>&1)
             glpi_cli_version=$(sed -n 's/.*GLPI CLI \([^ ]*\).*/\1/p' <<< "$output")
-            warn "Le site est déjà installé. Version $glpi_cli_version"
             # Obtenir la dernière version de GLPI depuis l'API GitHub
             new_version=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.name')
             info "Nouvelle version trouvée : GLPI version $new_version"
             if [ -d $rep_glpi ]; then
+                warn "Le site est déjà installé. Version $glpi_cli_version"
                 if [ "$glpi_cli_version" == "$new_version" ]; then
                     info "Vous avez déjà la dernière version de GLPI. Mise à jour annulée"
                     sleep 5
@@ -103,11 +103,11 @@ function check_install(){
         elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
             output=$(php $rep_glpi_nginx/bin/console -V 2>&1)
             glpi_cli_version=$(sed -n 's/.*GLPI CLI \([^ ]*\).*/\1/p' <<< "$output")
-            warn "Le site est déjà installé. Version $glpi_cli_version"
             # Obtenir la dernière version de GLPI depuis l'API GitHub
             new_version=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.name')
             info "Nouvelle version trouvée : GLPI version $new_version"
             if [ -d $rep_glpi_nginx ]; then
+                warn "Le site est déjà installé. Version $glpi_cli_version"
                 if [ "$glpi_cli_version" == "$new_version" ]; then
                     info "Vous avez déjà la dernière version de GLPI. Mise à jour annulée"
                     sleep 5
