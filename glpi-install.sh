@@ -363,6 +363,8 @@ EOF
         sleep 1
         # Supression du dossier d'installation de glpi
         rm -rf /usr/share/nginx/html/glpi/install
+        #Autorisation accès par SELinux à la lecture des fichiers GLPI dans le dossier
+        chcon -t httpd_sys_content_t /usr/share/nginx/html/glpi -R
         # Restart de Nginx
         systemctl restart nginx > /dev/null 2>&1
         # Setup Cron task
