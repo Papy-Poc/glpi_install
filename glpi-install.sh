@@ -94,7 +94,7 @@ function check_install(){
                                     warn "Action non reconnue. Sortie du programme."
                                     efface_script
                                     exit 0;;
-                        esac
+                      esac
             fi
     else
             info "Nouvelle installation de GLPI"
