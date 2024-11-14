@@ -289,42 +289,42 @@ function setup_db(){
         php "$rep_glpi"bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
         rm -f /var/www/html/glpi/install/install.php
         sleep 5
-        mkdir /etc/glpi
-        cat > /etc/glpi/local_define.php << EOF
-<?php
-    define('GLPI_VAR_DIR', '/var/lib/glpi');
-    define('GLPI_LOG_DIR', '/var/log/glpi');
-EOF
-    sleep 1
-    cat > /var/www/html/glpi/inc/downstream.php << EOF
-<?php
-    define('GLPI_CONFIG_DIR', '/etc/glpi');
-    if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
-        require_once GLPI_CONFIG_DIR . '/local_define.php';
-    }
-EOF
-    mv "$rep_glpi"config/*.* /etc/glpi/
-    mv "$rep_glpi"files /var/lib/glpi/
+        #mkdir /etc/glpi
+        #cat > /etc/glpi/local_define.php << EOF
+#<?php
+#    define('GLPI_VAR_DIR', '/var/lib/glpi');
+#    define('GLPI_LOG_DIR', '/var/log/glpi');
+#EOF
+#    sleep 1
+#    cat > /var/www/html/glpi/inc/downstream.php << EOF
+#<?php
+#    define('GLPI_CONFIG_DIR', '/etc/glpi');
+#    if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
+#        require_once GLPI_CONFIG_DIR . '/local_define.php';
+#    }
+#EOF
+#    mv "$rep_glpi"config/*.* /etc/glpi/
+#    mv "$rep_glpi"files /var/lib/glpi/
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
         php "$rep_glpi_nginx"bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
         rm -f /usr/share/nginx/html/glpi/install/install.php
         sleep 5
-        mkdir /etc/glpi
-        cat > /etc/glpi/local_define.php << EOF
-<?php
-    define('GLPI_VAR_DIR', '/var/lib/glpi');
-    define('GLPI_LOG_DIR', '/var/log/glpi');
-EOF
-    sleep 1
-    cat > /usr/share/nginx/html/glpi/inc/downstream.php << EOF
-<?php
-    define('GLPI_CONFIG_DIR', '/etc/glpi');
-    if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
-        require_once GLPI_CONFIG_DIR . '/local_define.php';
-    }
-EOF
-    mv "$rep_glpi_nginx"config/*.* /etc/glpi/
-    mv "$rep_glpi_nginx"files /var/lib/glpi/
+#        mkdir /etc/glpi
+#        cat > /etc/glpi/local_define.php << EOF
+#<?php
+#    define('GLPI_VAR_DIR', '/var/lib/glpi');
+#    define('GLPI_LOG_DIR', '/var/log/glpi');
+#EOF
+#    sleep 1
+#    cat > /usr/share/nginx/html/glpi/inc/downstream.php << EOF
+#<?php
+#    define('GLPI_CONFIG_DIR', '/etc/glpi');
+#    if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
+#        require_once GLPI_CONFIG_DIR . '/local_define.php';
+#    }
+#EOF
+#    mv "$rep_glpi_nginx"config/*.* /etc/glpi/
+#    mv "$rep_glpi_nginx"files /var/lib/glpi/
     fi
         
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
@@ -374,12 +374,12 @@ EOF
         # Setup Cron task
         echo "*/2 * * * * www-data /usr/bin/php '$rep_glpi'front/cron.php &>/dev/null" >> /etc/cron.d/glpi
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
-        chown -R nginx:nginx /etc/glpi
-        chmod -R 775 /etc/glpi
-        sleep 1
-        mkdir /var/log/glpi
-        chown -R nginx:nginx /var/log/glpi
-        chmod -R 775 /var/log/glpi
+#        chown -R nginx:nginx /etc/glpi
+#        chmod -R 775 /etc/glpi
+#        sleep 1
+#        mkdir /var/log/glpi
+#        chown -R nginx:nginx /var/log/glpi
+#        chmod -R 775 /var/log/glpi
         chown -R nginx:nginx /var/log/nginx
         chmod -R 775 /var/log/nginx
         sleep 1
@@ -409,10 +409,10 @@ server {
     }
 }
 EOF
-        sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 = on/' /etc/php.ini
+        sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 = 1/' /etc/php.ini
         #sed -i 's/^\(;\?\)\(session.cookie_secure\).*/\2 = on/' /etc/php.ini
-        sed -i 's/^\(;\?\)\(session.cookie_secure\).*/\2 = off/' /etc/php.ini
-        sed -i 's/^\(;\?\)\(session.cookie_samesite\).*/\2 = Lax/' /etc/php.ini
+        sed -i 's/^\(;\?\)\(session.cookie_secure\).*/\2 = 0/' /etc/php.ini
+        sed -i 's/^\(;\?\)\(session.cookie_samesite\).*/\2 = "Lax"/' /etc/php.ini
         sleep 1
         # Supression du dossier d'installation de glpi
         rm -rf /usr/share/nginx/html/glpi/install
