@@ -66,10 +66,10 @@ function check_install(){
     # Vérifie si le répertoire existe
      if [ -d "$1" ]; then
         if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
-            output=$(php "$rep_glpi/bin/console" -V 2>&1)
+            output=$(php $rep_glpi/bin/console -V 2>&1)
         elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
             info "Existence d'un GLPI"
-            output=$(php "$rep_glpi_nginx/bin/console" -V 2>&1)
+            output=$(php $rep_glpi_nginx/bin/console -V 2>&1)
             sleep 2
         fi
         
