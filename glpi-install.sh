@@ -389,30 +389,25 @@ EOF
         sleep 1
         # Setup server
         cat > /etc/nginx/conf.d/glpi.conf <<-EOF
- server {
-       listen 80;
-       server_name glpi.lan;
-
-       root /usr/share/nginx/html/glpi;
-       index index.php index.html index.htm;
-
-       location / {
-            try_files \$uri \$uri/ /index.php?\$query_string;
+server {
+    listen 80;
+    server_name glpi.lan;
+    root /usr/share/nginx/html/glpi;
+    index index.php index.html index.htm;
+    location / {
+        try_files \$uri \$uri/ /index.php?\$query_string;
     }
-
-        location ~ \.php$ {
-            include fastcgi_params;
-            fastcgi_pass unix:/run/php-fpm/www.sock;
-            fastcgi_index index.php;
-            fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+    location ~ \.php$ {
+        include fastcgi_params;
+        fastcgi_pass unix:/run/php-fpm/www.sock;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
     }
-
-        location ~* \.(js|css|png|jpg|jpeg|gif|ico|woff|ttf)$ {
-            expires max;
-            log_not_found off;
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|woff|ttf)$ {
+        expires max;
+        log_not_found off;
     }
 }
-
 EOF
         sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 = on/' /etc/php.ini
         #sed -i 's/^\(;\?\)\(session.cookie_secure\).*/\2 = on/' /etc/php.ini
