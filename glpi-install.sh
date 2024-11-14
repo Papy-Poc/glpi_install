@@ -309,6 +309,8 @@ EOF
         mkdir /var/log/glpi
         chown -R nginx:nginx /var/log/glpi
         chmod -R 775 /var/log/glpi
+        chown -R nginx:nginx /var/log/nginx
+        chmod -R 775 /var/log/nginx
         sleep 1
         # Add permissions
         chown -R nginx:nginx "$rep_glpi"
