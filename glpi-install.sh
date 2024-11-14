@@ -178,11 +178,11 @@ function install_packages(){
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
         info "Ajout et activation du repositorie php:remi-8.3"
         dnf install -y https://rpms.remirepo.net/enterprise/remi-release-9.rpm > /dev/null 2>&1
-        trace "dnf module enable php:remi-8.3 -y" > /dev/null 2>&1
+        dnf module enable php:remi-8.3 -y > /dev/null 2>&1
         sleep 1
         info "Installation des services LEMP..."
     # Modification du package "php" en "php-fpm"
-        dnf install -y nginx mariadb-server perl curl jq php-fpm epel-release php > /dev/null 2>&1
+        dnf install -y nginx mariadb-server perl curl jq php-fpm epel-release php:remi-8.3 > /dev/null 2>&1
         info "Installation des extensions de PHP"
     # Modification du package "php-mysql" en "php-mysqlnd"
         dnf install -y php-mysqlnd php-mbstring php-curl php-gd php-xml php-intl php-ldap php-apcu php-zip php-bz2 php-intl > /dev/null 2>&1
@@ -248,7 +248,7 @@ EOF
 EOF
     sleep 5
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
-        echo "Europe/Paris" | trace "dpkg-reconfigure -f noninteractive tzdata" > /dev/null 2>&1
+        echo "Europe/Paris" | dpkg-reconfigure -f noninteractive tzdata > /dev/null 2>&1
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
         timedatectl set-timezone "Europe/Paris" > /dev/null 2>&1
     fi
@@ -309,22 +309,23 @@ function setup_db(){
         php "$rep_glpi_nginx"bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
         rm -f /usr/share/nginx/html/glpi/install/install.php
         sleep 5
-#        mkdir /etc/glpi
-#        cat > /etc/glpi/local_define.php << EOF
-#<?php
-#    define('GLPI_VAR_DIR', '/var/lib/glpi');
-#    define('GLPI_LOG_DIR', '/var/log/glpi');
-#EOF
-#    sleep 1
-#    cat > /usr/share/nginx/html/glpi/inc/downstream.php << EOF
-#<?php
-#    define('GLPI_CONFIG_DIR', '/etc/glpi');
-#    if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
-#        require_once GLPI_CONFIG_DIR . '/local_define.php';
-#    }
-#EOF
-#    mv "$rep_glpi_nginx"config/*.* /etc/glpi/
-#    mv "$rep_glpi_nginx"files /var/lib/glpi/
+        mkdir /etc/glpi
+        mkdir /var/log/glpi
+        cat > /etc/glpi/local_define.php << EOF
+<?php
+    define('GLPI_VAR_DIR', '/var/lib/glpi');
+    define('GLPI_LOG_DIR', '/var/log/glpi');
+EOF
+        sleep 1
+        cat > /usr/share/nginx/html/glpi/inc/downstream.php << EOF
+<?php
+    define('GLPI_CONFIG_DIR', '/etc/glpi');
+    if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
+        require_once GLPI_CONFIG_DIR . '/local_define.php';
+    }
+EOF
+        mv "$rep_glpi_nginx"config/*.* /etc/glpi/
+        mv "$rep_glpi_nginx"files /var/lib/glpi/
     fi
         
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
@@ -374,12 +375,12 @@ EOF
         # Setup Cron task
         echo "*/2 * * * * www-data /usr/bin/php '$rep_glpi'front/cron.php &>/dev/null" >> /etc/cron.d/glpi
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
-#        chown -R nginx:nginx /etc/glpi
-#        chmod -R 775 /etc/glpi
-#        sleep 1
-#        mkdir /var/log/glpi
-#        chown -R nginx:nginx /var/log/glpi
-#        chmod -R 775 /var/log/glpi
+        chown -R nginx:nginx /etc/glpi
+        chmod -R 775 /etc/glpi
+        sleep 1
+        mkdir /var/log/glpi
+        chown -R nginx:nginx /var/log/glpi
+        chmod -R 775 /var/log/glpi
         chown -R nginx:nginx /var/log/nginx
         chmod -R 775 /var/log/nginx
         sleep 1
@@ -417,7 +418,8 @@ EOF
         # Supression du dossier d'installation de glpi
         rm -rf /usr/share/nginx/html/glpi/install
         #Autorisation accès par SELinux à la lecture des fichiers GLPI dans le dossier
-        chcon -t httpd_sys_content_t /usr/share/nginx/html/glpi -R
+        sed -i 's/^\(;\?\)\(SELINUX\).*/\2 = disabled/' /etc/selinux/config
+        setenforce 0
         # Restart de Nginx
         systemctl restart nginx > /dev/null 2>&1
         # Setup Cron task
