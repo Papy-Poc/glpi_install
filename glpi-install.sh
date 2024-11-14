@@ -327,7 +327,7 @@ server {
     }
     location ~ ^/index\.php$ {
         # the following line needs to be adapted, as it changes depending on OS distributions and PHP versions
-        fastcgi_pass unix:/var/run/php8.3-fpm.sock;
+        fastcgi_pass unix:/var/run/php-fpm.sock;
         fastcgi_split_path_info ^(.+\.php)(/.*)$;
         include fastcgi_params;
         fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
