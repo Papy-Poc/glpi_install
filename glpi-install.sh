@@ -278,33 +278,28 @@ function setup_db(){
     info "Configuration de GLPI..."
     # Problème ici sous Alma
     ######################################################################################################
-    ######################################################################################################
-    ######################################################################################################
-    ######################################################################################################
 
-    #php "$rep_glpi"bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
-    #php "$rep_glpi"bin/console database:enable_timezones
-    #php "$rep_glpi"bin/console database:update  
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
         php "$rep_glpi"bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
         rm -f /var/www/html/glpi/install/install.php
         sleep 5
-        #mkdir /etc/glpi
-        #cat > /etc/glpi/local_define.php << EOF
-#<?php
-#    define('GLPI_VAR_DIR', '/var/lib/glpi');
-#    define('GLPI_LOG_DIR', '/var/log/glpi');
-#EOF
-#    sleep 1
-#    cat > /var/www/html/glpi/inc/downstream.php << EOF
-#<?php
-#    define('GLPI_CONFIG_DIR', '/etc/glpi');
-#    if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
-#        require_once GLPI_CONFIG_DIR . '/local_define.php';
-#    }
-#EOF
-#    mv "$rep_glpi"config/*.* /etc/glpi/
-#    mv "$rep_glpi"files /var/lib/glpi/
+        mkdir /etc/glpi
+        cat > /etc/glpi/local_define.php << EOF
+<?php
+    define('GLPI_VAR_DIR', '/var/lib/glpi');
+    define('GLPI_LOG_DIR', '/var/log/glpi');
+EOF
+    sleep 1
+        cat > /var/www/html/glpi/inc/downstream.php << EOF
+<?php
+    define('GLPI_CONFIG_DIR', '/etc/glpi');
+    if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
+        require_once GLPI_CONFIG_DIR . '/local_define.php';
+    }
+EOF
+        mv "$rep_glpi"config/*.* /etc/glpi/
+        mv "$rep_glpi"files /var/lib/glpi/
+        mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -p$SQLROOTPWD -u root mysql
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
         php "$rep_glpi_nginx"bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
         rm -f /usr/share/nginx/html/glpi/install/install.php
@@ -326,6 +321,7 @@ EOF
 EOF
         mv "$rep_glpi_nginx"config/*.* /etc/glpi/
         mv "$rep_glpi_nginx"files /var/lib/glpi/
+        mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -p$SQLROOTPWD -u root mysql
     fi
         
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
@@ -393,7 +389,7 @@ EOF
 server {
     listen 80;
     server_name glpi.lan;
-    root /usr/share/nginx/html/glpi;
+    root /usr/share/nginx/html/glpi/public;
     index index.php index.html index.htm;
     location / {
         try_files \$uri \$uri/ /index.php?\$query_string;
