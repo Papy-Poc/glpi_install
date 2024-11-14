@@ -64,42 +64,49 @@ function check_distro(){
 }
 function check_install(){
     # Vérifie si le répertoire existe
-    if [ -d "$1" ];[[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
-                    output=$(php "$rep_glpi"bin/console -V 2>&1)
-            elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
-                    info "Existence d'un GLPI"
-                    output=$(php "$rep_glpi_nginx"bin/console -V 2>&1) then
+     if [ -d "$1" ]; then
+        if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
+            output=$(php "$rep_glpi/bin/console" -V 2>&1)
+        elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
+            info "Existence d'un GLPI"
+            output=$(php "$rep_glpi_nginx/bin/console" -V 2>&1)
             sleep 2
-            glpi_cli_version=$(sed -n 's/.*GLPI CLI \([^ ]*\).*/\1/p' <<< "$output")
-            warn "Le site est déjà installé. Version ""$glpi_cli_version"
-            fi
-            new_version=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.name')
-            info "Nouvelle version trouver : GLPI version $new_version"
-            if [ "$glpi_cli_version" == "$new_version" ]; then
-                    info "Vous avez déjà la dernière version de GLPI. Mise à jour annuler"
-                    sleep 5
-                    exit 0;
-            else
-                    info "Voulez-vous mettre à jour GLPI (O/N): "
-                    read -r MaJ
-                    case "$MaJ" in
-                            "O" | "o")
-                                    update
-                                    exit 0;;
-                            "N" | "n")
-                                    info "Sortie du programme."
-                                    efface_script
-                                    exit 0;;
-                            *)
-                                    warn "Action non reconnue. Sortie du programme."
-                                    efface_script
-                                    exit 0;;
-                      esac
-                fi
-            fi
-        else 
-            info "Nouvelle installation de GLPI"
-            install
+        fi
+        
+        glpi_cli_version=$(sed -n 's/.*GLPI CLI \([^ ]*\).*/\1/p' <<< "$output")
+        warn "Le site est déjà installé. Version $glpi_cli_version"
+        
+        # Obtenir la dernière version de GLPI depuis l'API GitHub
+        new_version=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.name')
+        info "Nouvelle version trouvée : GLPI version $new_version"
+        
+        if [ "$glpi_cli_version" == "$new_version" ]; then
+            info "Vous avez déjà la dernière version de GLPI. Mise à jour annulée"
+            sleep 5
+            exit 0
+        else
+            info "Voulez-vous mettre à jour GLPI (O/N) : "
+            read -r MaJ
+            case "$MaJ" in
+                "O" | "o")
+                    update
+                    exit 0
+                    ;;
+                "N" | "n")
+                    info "Sortie du programme."
+                    efface_script
+                    exit 0
+                    ;;
+                *)
+                    warn "Action non reconnue. Sortie du programme."
+                    efface_script
+                    exit 0
+                    ;;
+            esac
+        fi
+    else 
+        info "Nouvelle installation de GLPI"
+        install
     fi
 }
 function install(){
