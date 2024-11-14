@@ -122,12 +122,10 @@ function check_install(){
                             ;;
                         "N" | "n")
                             info "Sortie du programme."
-                            efface_script
                             exit 0
                             ;;
                         *)
                             warn "Action non reconnue. Sortie du programme."
-                            efface_script
                             exit 0
                             ;;
                     esac
@@ -151,7 +149,6 @@ function install(){
         maj_user_glpi
         display_credentials
         write_credentials
-        efface_script
 }
 function update_distro(){
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
@@ -182,7 +179,7 @@ function install_packages(){
         sleep 1
         info "Installation des services LEMP..."
     # Modification du package "php" en "php-fpm"
-        dnf install -y nginx mariadb-server perl curl jq php-fpm epel-release php:remi-8.3 > /dev/null 2>&1
+        dnf install -y nginx mariadb-server perl curl jq php-fpm epel-release php > /dev/null 2>&1
         info "Installation des extensions de PHP"
     # Modification du package "php-mysql" en "php-mysqlnd"
         dnf install -y php-mysqlnd php-mbstring php-curl php-gd php-xml php-intl php-ldap php-apcu php-zip php-bz2 php-intl > /dev/null 2>&1
@@ -494,14 +491,6 @@ EOF
         echo ""
         warn "Fichier de sauve_mdp.txt enregistrer dans /home"
         echo ""
-}
-function efface_script(){
-        # Vérifie si le répertoire existe
-        if [ -e "$rep_script" ]; then
-                warn "Le script est déjà présent."
-                warn "Effacement en cours"
-                rm -f "$rep_script"
-        fi
 }
 function maintenance(){
         if [ "$1" == "1" ]; then
