@@ -323,7 +323,7 @@ server {
     server_name glpi.lan;
     root /var/www/html/glpi/public;
     location / {
-        try_files \$uri /index.php\$is_args\$args;
+        try_files \$uri $uri/ /index.php\$is_args\$args;
     }
     location ~ ^/index\.php$ {
         # the following line needs to be adapted, as it changes depending on OS distributions and PHP versions
