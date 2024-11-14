@@ -95,8 +95,9 @@ function check_install(){
                                     efface_script
                                     exit 0;;
                       esac
+                fi
             fi
-    else
+        else 
             info "Nouvelle installation de GLPI"
             install
     fi
