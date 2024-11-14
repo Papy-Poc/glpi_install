@@ -135,9 +135,9 @@ function install_packages(){
         info "Redémarage d'Apache"
         systemctl restart apache2 > /dev/null 2>&1
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
-        info "Ajout et activation du repositorie php:remi-8.3"
+        info "Ajout et activation du repositorie php:remi-8.2"
         dnf install -y https://rpms.remirepo.net/enterprise/remi-release-9.rpm > /dev/null 2>&1
-        trace "dnf module enable php:remi-8.3 -y" > /dev/null 2>&1
+        trace "dnf module enable php:remi-8.2 -y" > /dev/null 2>&1
         sleep 1
         info "Installation des services LEMP..."
     # Modification du package "php" en "php-fpm"
