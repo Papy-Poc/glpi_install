@@ -215,7 +215,7 @@ function install_glpi(){
     # Get download link for the latest release
     DOWNLOADLINK=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.assets[0].browser_download_url')
     wget -O /tmp/glpi-latest.tgz "$DOWNLOADLINK" > /dev/null 2>&1
-    trace "tar xzf /tmp/glpi-latest.tgz -C /var/www/html/"
+    trace "tar xzf /tmp/glpi-latest.tgz -C /var/www/html/" > /dev/null 2>&1
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
         chown -R www-data:www-data "$rep_glpi"
         chmod -R 755 "$rep_glpi"
