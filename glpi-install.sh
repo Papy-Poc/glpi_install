@@ -193,7 +193,7 @@ function install_packages(){
         sed -i 's/group = apache/group = nginx/g' /etc/php-fpm.d/www.conf > /dev/null 2>&1
         
         info "Activation et démarrage des service LEMP"
-        # Démarrage des services MariaDB, Nginx et Php-Fpm        
+        # Démarrage des services MariaDB, Nginx et Php-Fpm
         info "Activation et démarrage de MariaDB"
         systemctl enable --now mariadb > /dev/null 2>&1
         info "Activation et démarrage d'(e)Nginx"
@@ -254,15 +254,13 @@ function install_glpi(){
     # Get download link for the latest release
     DOWNLOADLINK=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.assets[0].browser_download_url')
     wget -O /tmp/glpi-latest.tgz "$DOWNLOADLINK" > /dev/null 2>&1
+    tar xzf /tmp/glpi-latest.tgz -C /var/www/html/ > /dev/null 2>&1
+    rm -Rf /tmp/glpi-latest.tgz
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
-        tar xzf /tmp/glpi-latest.tgz -C /var/www/html/ > /dev/null 2>&1
-        rm -Rf /tmp/glpi-latest.tgz
         chown -R www-data:www-data "$rep_glpi"
         chmod -R 755 "$rep_glpi"
         systemctl restart apache2
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
-        tar xzf /tmp/glpi-latest.tgz -C /var/www/html/ > /dev/null 2>&1
-        rm -Rf /tmp/glpi-latest.tgz
         chown -R nginx:nginx "$rep_glpi"
         chmod -R 755 "$rep_glpi"
         systemctl restart nginx
@@ -270,23 +268,13 @@ function install_glpi(){
 }
 function setup_db(){
     info "Configuration de GLPI..."
-    if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
-        php ${rep_glpi}bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
-        rm -f ${rep_glpi}install/install.php
-        # Add permissions
-        #chown -R www-data:www-data ${rep_glpi}
-        #chmod -R 775 ${rep_glpi}
-        #sleep 1
-        mkdir -p /etc/glpi
-        chown -R www-data:www-data /etc/glpi
-        chmod -R 775 /etc/glpi
-        sleep 1
-        mkdir -p /var/log/glpi
-        chown -R www-data:www-data /var/log/glpi
-        chmod -R 775 /var/log/glpi
-        sleep 5
-        cat > /etc/glpi/local_define.php << EOF
-<?php
+    php ${rep_glpi}bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
+    rm -f ${rep_glpi}install/install.php
+    sleep 5
+    mkdir -p /etc/glpi
+    mkdir -p /var/log/glpi
+    cat > /etc/glpi/local_define.php << EOF
+    <?php
     define('GLPI_VAR_DIR', '/var/lib/glpi');
     define('GLPI_LOG_DIR', '/var/log/glpi');
 EOF
@@ -298,8 +286,16 @@ EOF
         require_once GLPI_CONFIG_DIR . '/local_define.php';
     }
 EOF
-        mv ${rep_glpi}config/*.* /etc/glpi/
-        mv ${rep_glpi}files /var/lib/glpi/
+    mv ${rep_glpi}config/*.* /etc/glpi/
+    mv ${rep_glpi}files/*.* /var/lib/glpi/
+    if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
+        # Add permissions
+        chown -R www-data:www-data /etc/glpi
+        chmod -R 775 /etc/glpi
+        sleep 1
+        chown -R www-data:www-data /var/log/glpi
+        chmod -R 775 /var/log/glpi
+        sleep 5
         mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -p$SQLROOTPWD -u root mysql
         # Setup vhost
          cat > /etc/apache2/sites-available/glpi.conf << EOF
@@ -336,14 +332,7 @@ EOF
         # Setup Cron task
         echo "*/2 * * * * www-data /usr/bin/php '$rep_glpi'front/cron.php &>/dev/null" >> /etc/cron.d/glpi
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
-        php ${rep_glpi}bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
-        rm -f ${rep_glpi}install/install.php
-        sleep 5
         # Add permissions
-        #chown -R nginx:nginx ${rep_data_glpi}
-        #chmod -R 755 ${rep_data_glpi}
-        #sleep 1
-        mkdir -p /etc/glpi
         chown -R nginx:nginx /etc/glpi
         chmod -R 775 /etc/glpi
         sleep 1
@@ -351,34 +340,19 @@ EOF
         chown -R nginx:nginx /var/log/glpi
         chmod -R 775 /var/log/glpi
         sleep 5
-        cat > /etc/glpi/local_define.php <<EOF
-<?php
-    define('GLPI_VAR_DIR', '/var/lib/glpi');
-    define('GLPI_LOG_DIR', '/var/log/glpi');
-EOF
-        sleep 1
-        cat > ${rep_glpi}inc/downstream.php << EOF
-<?php
-    define('GLPI_CONFIG_DIR', '/etc/glpi');
-    if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
-        require_once GLPI_CONFIG_DIR . '/local_define.php';
-    }
-EOF
         mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -p$SQLROOTPWD -u root mysql
         sleep 1
-        mv ${rep_glpi}config/*.* /etc/glpi/
-        mv ${rep_glpi}files /var/lib/glpi/
-        ln -s ${rep_glpi}files /etc/glpi/files
-        ln -s ${rep_glpi}config /etc/glpi/config
         # Setup server
         # Configuration SELinux
         info "Configuration de SELinux pour GLPI"
-        semanage fcontext -a -t httpd_sys_content_t "${rep_glpi}(/.*)?" > /dev/null 2>&1
         semanage fcontext -a -t httpd_sys_script_rw_t "/etc/glpi/config(/.*)?" > /dev/null 2>&1
-        semanage fcontext -a -t httpd_sys_script_rw_t "/etc/glpi/files(/.*)?" > /dev/null 2>&1
+        semanage fcontext -a -t httpd_sys_script_rw_t "/var/lib/files(/.*)?" > /dev/null 2>&1
+        semanage fcontext -a -t httpd_sys_content_t "${rep_glpi}(/.*)?" > /dev/null 2>&1
         semanage fcontext -a -t httpd_sys_script_rw_t "/var/log/glpi(/.*)?" > /dev/null 2>&1
-        restorecon -Rv /etc/glpi 
-        restorecon -Rv ${rep_glpi}
+        restorecon -Rv /etc/glpi/config > /dev/null 2>&1
+        restorecon -Rv /var/lib/files > /dev/null 2>&1
+        restorecon -Rv ${rep_glpi} > /dev/null 2>&1
+        restorecon -Rv /var/log/glpi > /dev/null 2>&1
         sleep 1
         info "Configuration de Nginx avec les recommandations de sécurité"
         cat > /etc/nginx/conf.d/glpi.conf << EOF
