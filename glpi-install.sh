@@ -65,11 +65,10 @@ function check_distro(){
 function check_install(){
     # Vérifie si le répertoire existe
         if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
-            output=$(php $rep_glpi/bin/console -V 2>&1)
+            output=$(php ${rep_glpi}bin/console -V 2>&1)
             glpi_cli_version=$(sed -n 's/.*GLPI CLI \([^ ]*\).*/\1/p' <<< "$output")
             # Obtenir la dernière version de GLPI depuis l'API GitHub
             new_version=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.name')
-            info "Nouvelle version trouvée : GLPI version $new_version"
             if [ -d $rep_glpi ]; then
                 warn "Le site est déjà installé. Version $glpi_cli_version"
                 if [ "$glpi_cli_version" == "$new_version" ]; then
@@ -77,6 +76,7 @@ function check_install(){
                     sleep 5
                     exit 0
                 else
+                    info "Nouvelle version trouvée : GLPI version $new_version"
                     info "Voulez-vous mettre à jour GLPI (O/N) : "
                     read -r MaJ
                     case "$MaJ" in
@@ -101,11 +101,10 @@ function check_install(){
                 install
             fi
         elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
-            output=$(php $rep_glpi/bin/console -V 2>&1)
+            output=$(php  ${rep_glpi}bin/console -V 2>&1)
             glpi_cli_version=$(sed -n 's/.*GLPI CLI \([^ ]*\).*/\1/p' <<< "$output")
             # Obtenir la dernière version de GLPI depuis l'API GitHub
             new_version=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.name')
-            info "Nouvelle version trouvée : GLPI version $new_version"
             if [ -d $rep_glpi ]; then
                 warn "Le site est déjà installé. Version $glpi_cli_version"
                 if [ "$glpi_cli_version" == "$new_version" ]; then
@@ -113,6 +112,7 @@ function check_install(){
                     sleep 5
                     exit 0
                 else
+                    info "Nouvelle version trouvée : GLPI version $new_version"
                     info "Voulez-vous mettre à jour GLPI (O/N) : "
                     read -r MaJ
                     case "$MaJ" in
