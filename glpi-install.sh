@@ -403,17 +403,7 @@ function display_credentials(){
         info "<============================================================================================================================>"
         echo ""
         info "Si vous rencontrez un problème avec ce script, veuillez le signaler sur GitHub : https://github.com/PapyPoc/glpi_install/issues"
-        info "==========================================> Tips pour Nginx sur distro RedHat <============================================="
-        info "Si la page dans le navigateur ne s'ouvre pas, pas de panique penser a vérifier"
-        info "-si l'ouverture du firewall est OK"
-        info "firewall-cmd --list-all (normalement c'est prévu dans le script)"
-        info "firewall-cmd --permanent --add-service=http"
-        info "firewall-cmd --permanent --add-service=https"
-        info "-si SELinux n'est pas en mode restrictif"
-        info "getenforce (Permissive, Disabled, Enforcing)"
-        info "Autre que disabled, le desactiver provisoirement >>> setenforce 0"
-        info "Désactivation complète DECONSEILLE >> vim /etc/selinux/config"
-        info "Trouver la ligne avec SELINUX=enforcing ou permissive remplacer par disabled"
+        echo ""
         info "<=============================================================================================================================>"
 }
 function write_credentials(){
