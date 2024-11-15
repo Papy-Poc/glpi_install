@@ -268,8 +268,8 @@ function install_glpi(){
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
         tar xzf /tmp/glpi-latest.tgz -C"$rep_glpi" > /dev/null 2>&1
         rm -f /tmp/glpi-latest.tgz
-        chown -R nginx:nginx "$rep_glpi_nginx"
-        chmod -R 755 "$rep_glpi_nginx"
+        chown -R nginx:nginx "$rep_glpi"
+        chmod -R 755 "$rep_glpi"
         systemctl restart nginx
     fi
 }
@@ -395,7 +395,7 @@ EOF
         sleep 1
         # Setup server
         echo "Configuration de Nginx avec les recommandations de sécurité"
-        tee /etc/nginx/conf.d/glpi.conf <<EOF
+        cat > /etc/nginx/conf.d/glpi.conf << EOF
 server {
     listen 80;
     server_name glpi.lan;
