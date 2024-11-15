@@ -176,12 +176,12 @@ function network_info(){
 function mariadb_configure(){
     info "Configuration de MariaDB"
     sleep 1
-    export SQLROOTPWD=$(openssl rand -base64 48 | cut -c1-12 )
-    export SQLGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
-    export ADMINGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
-    export POSTGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
-    export TECHGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
-    export NORMGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
+    SQLROOTPWD=$(openssl rand -base64 48 | cut -c1-12 )
+    SQLGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
+    ADMINGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
+    POSTGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
+    TECHGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
+    NORMGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
     systemctl start mariadb > /dev/null 2>&1
     mysql -u root <<-EOF
         ALTER USER 'root'@'localhost' IDENTIFIED BY '$SQLROOTPWD';
