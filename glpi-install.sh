@@ -171,7 +171,7 @@ function install_packages(){
 function network_info(){
     INTERFACE=$(ip route | awk 'NR==1 {print $5}')
     IPADRESS=$(ip addr show "$INTERFACE" | grep inet | awk '{ print $2; }' | sed 's/\/.*$//' | head -n 1)
-    HOST=$(hostname)
+    HOST=${hostname}
 }
 function mariadb_configure(){
     info "Configuration de MariaDB"
