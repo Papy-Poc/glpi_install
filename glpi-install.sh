@@ -64,77 +64,43 @@ function check_distro(){
 }
 function check_install(){
     # Vérifie si le répertoire existe
-        if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
-            output=$(php ${rep_glpi}bin/console -V 2>&1)
-            glpi_cli_version=$(sed -n 's/.*GLPI CLI \([^ ]*\).*/\1/p' <<< "$output")
-            # Obtenir la dernière version de GLPI depuis l'API GitHub
-            new_version=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.name')
-            if [ -d $rep_glpi ]; then
-                warn "Le site est déjà installé. Version $glpi_cli_version"
-                if [ "$glpi_cli_version" == "$new_version" ]; then
-                    info "Vous avez déjà la dernière version de GLPI. Mise à jour annulée"
-                    sleep 5
-                    exit 0
-                else
-                    info "Nouvelle version trouvée : GLPI version $new_version"
-                    info "Voulez-vous mettre à jour GLPI (O/N) : "
-                    read -r MaJ
-                    case "$MaJ" in
-                        "O" | "o")
-                            update
-                            exit 0
-                            ;;
-                        "N" | "n")
-                            info "Sortie du programme."
-                            efface_script
-                            exit 0
-                            ;;
-                        *)
-                            warn "Action non reconnue. Sortie du programme."
-                            efface_script
-                            exit 0
-                            ;;
-                    esac
-                fi
-            else 
-                info "Nouvelle installation de GLPI version $new_version"
-                install
+    if [[ "$ID" == "debian" || "$ID" == "ubuntu" || "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
+        output=$(php ${rep_glpi}bin/console -V 2>&1)
+        glpi_cli_version=$(sed -n 's/.*GLPI CLI \([^ ]*\).*/\1/p' <<< "$output")
+        # Obtenir la dernière version de GLPI depuis l'API GitHub
+        new_version=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.name')
+        if [ -d $rep_glpi ]; then
+            warn "Le site est déjà installé. Version $glpi_cli_version"
+            if [ "$glpi_cli_version" == "$new_version" ]; then
+                info "Vous avez déjà la dernière version de GLPI. Mise à jour annulée"
+                sleep 5
+                exit 0
+            else
+                info "Nouvelle version trouvée : GLPI version $new_version"
+                info "Voulez-vous mettre à jour GLPI (O/N) : "
+                read -r MaJ
+                case "$MaJ" in
+                    "O" | "o")
+                        update
+                        exit 0
+                        ;;
+                    "N" | "n")
+                        info "Sortie du programme."
+                        efface_script
+                        exit 0
+                        ;;
+                    *)
+                        warn "Action non reconnue. Sortie du programme."
+                        efface_script
+                        exit 0
+                        ;;
+                esac
             fi
-        elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
-            output=$(php  ${rep_glpi}bin/console -V 2>&1)
-            glpi_cli_version=$(sed -n 's/.*GLPI CLI \([^ ]*\).*/\1/p' <<< "$output")
-            # Obtenir la dernière version de GLPI depuis l'API GitHub
-            new_version=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.name')
-            if [ -d $rep_glpi ]; then
-                warn "Le site est déjà installé. Version $glpi_cli_version"
-                if [ "$glpi_cli_version" == "$new_version" ]; then
-                    info "Vous avez déjà la dernière version de GLPI. Mise à jour annulée"
-                    sleep 5
-                    exit 0
-                else
-                    info "Nouvelle version trouvée : GLPI version $new_version"
-                    info "Voulez-vous mettre à jour GLPI (O/N) : "
-                    read -r MaJ
-                    case "$MaJ" in
-                        "O" | "o")
-                            update
-                            exit 0
-                            ;;
-                        "N" | "n")
-                            info "Sortie du programme."
-                            exit 0
-                            ;;
-                        *)
-                            warn "Action non reconnue. Sortie du programme."
-                            exit 0
-                            ;;
-                    esac
-                fi
-            else 
-                info "Nouvelle installation de GLPI version $new_version"
-                install
-            fi
+        else 
+            info "Nouvelle installation de GLPI version $new_version"
+            install
         fi
+    fi
 }
 function install(){
         update_distro
@@ -273,6 +239,7 @@ function setup_db(){
     sleep 5
     mkdir -p /etc/glpi
     mkdir -p /var/log/glpi
+    mkdir -p /var/lib/glpi/
     cat > /etc/glpi/local_define.php << EOF
     <?php
     define('GLPI_VAR_DIR', '/var/lib/glpi');
@@ -287,7 +254,7 @@ EOF
     }
 EOF
     mv ${rep_glpi}config/*.* /etc/glpi/
-    mv ${rep_glpi}files/*.* /var/lib/glpi/
+    mv ${rep_glpi}files /var/lib/glpi/
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
         # Add permissions
         chown -R www-data:www-data /etc/glpi
@@ -315,9 +282,9 @@ EOF
 </VirtualHost>
 EOF
         phpversion=$(php -v | grep -i '(cli)' | awk '{print $2}' | cut -c 1,2,3)
-        sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 =on/' /etc/php/"$phpversion"/apache2/php.ini
-        sed -i 's/^\(;\?\)\(session.cookie_secure\).*/\2 =on/' /etc/php/"$phpversion"/apache2/php.ini
-        sed -i 's/^\(;\?\)\(session.cookie_samesite\).*/\2 =Lax/' /etc/php/"$phpversion"/apache2/php.ini
+        sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 = 1/' /etc/php/"$phpversion"/apache2/php.ini
+        sed -i 's/^\(;\?\)\(session.cookie_secure\).*/\2 = 0/' /etc/php/"$phpversion"/apache2/php.ini
+        sed -i 's/^\(;\?\)\(session.cookie_samesite\).*/\2 = "Lax"/' /etc/php/"$phpversion"/apache2/php.ini
         sleep 1
         # Disable Apache Web Server Signature
         echo "ServerSignature Off" >> /etc/apache2/apache2.conf
@@ -336,7 +303,6 @@ EOF
         chown -R nginx:nginx /etc/glpi
         chmod -R 775 /etc/glpi
         sleep 1
-        mkdir -p /var/log/glpi
         chown -R nginx:nginx /var/log/glpi
         chmod -R 775 /var/log/glpi
         sleep 5
