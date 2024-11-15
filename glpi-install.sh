@@ -440,7 +440,8 @@ function maj_user_glpi(){
         mysql -u glpi_user -p"$SQLGLPIPWD" -e "USE glpi; UPDATE glpi_users SET password = MD5('$NORMGLPIPWD') WHERE name = 'normal';" > /dev/null 2>&1
 }
 function display_credentials(){
-        info "===========================> Détail de l'installation de GLPI <=================================="
+        echo "===========================> Détail de l'installation de GLPI <=================================="
+        echo "=================================> GLPI version ${new_version} <========================================"
         warn "Il est important d'enregistrer ces informations. Si vous les perdez, elles seront irrécupérables."
         echo ""
         info "Les comptes utilisateurs par défaut sont :"
@@ -452,7 +453,6 @@ function display_credentials(){
         echo ""
         info "Vous pouvez accéder à la page web de GLPI à partir d'une adresse IP ou d'un nom d'hôte :"
         info "http://$IPADRESS"
-        info "http://$HOST"
         echo ""
         info "==> Database:"
         info "Mot de passe root: $SQLROOTPWD"
@@ -461,10 +461,23 @@ function display_credentials(){
         info "<============================================================================================================================>"
         echo ""
         info "Si vous rencontrez un problème avec ce script, veuillez le signaler sur GitHub : https://github.com/PapyPoc/glpi_install/issues"
+        info "==========================================> Tips pour Nginx sur distro RedHat <============================================="
+        info "Si la page dans le navigateur ne s'ouvre pas, pas de panique penser a vérifier"
+        info "-si l'ouverture du firewall est OK"
+        info "firewall-cmd --list-all (normalement c'est prévu dans le script)"
+        info "firewall-cmd --permanent --add-service=http"
+        info "firewall-cmd --permanent --add-service=https"
+        info "-si SELinux n'est pas en mode restrictif"
+        info "getenforce (Permissive, Disabled, Enforcing)"
+        info "Autre que disabled, le desactiver provisoirement >>> setenforce 0"
+        info "Désactivation complète DECONSEILLE >> vim /etc/selinux/config"
+        info "Trouver la ligne avec SELINUX=enforcing ou permissive remplacer par disabled"
+        info "<=============================================================================================================================>"
 }
 function write_credentials(){
         cat > /root/sauve_mdp.txt <<EOF
-===========================================> GLPI installation details  <===============================================
+===========================> Détail de l'installation de GLPI <==================================
+=================================> GLPI version ${new_version} <========================================
 Il est important d'enregistrer ces informations. Si vous les perdez, elles seront irrécupérables.
 
 Les comptes utilisateurs par défaut sont :
@@ -476,7 +489,6 @@ info "normal      -  $NORMGLPIPWD       -  compte normal"
         
 Vous pouvez accéder à la page web de GLPI à partir d'une adresse IP ou d'un nom d'hôte :
 http://$IPADRESS
-http://$HOST
 
 ==> Database:
 Mot de passe root: $SQLROOTPWD
