@@ -318,19 +318,8 @@ EOF
         require_once GLPI_CONFIG_DIR . '/local_define.php';
     }
 EOF
-        mv "$rep_glpi"config/*.* "$rep_data_glpi"
-        mv "$rep_glpi"files "$rep_data_glpi"
-        ln -s "$rep_data_glpi"files "$rep_glpi"files
-        ln -s "$rep_data_glpi"config "$rep_glpi"config
         mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -p$SQLROOTPWD -u root mysql
         sleep 1
-        # Configuration SELinux
-        info "Configuration de SELinux pour GLPI"
-        semanage fcontext -a -t httpd_sys_content_t "$rep_glpi(/.*)?" /dev/null 2>&1
-        semanage fcontext -a -t httpd_sys_script_rw_t "$rep_data_glpi/config(/.*)?" /dev/null 2>&1
-        semanage fcontext -a -t httpd_sys_script_rw_t "$rep_data_glpi/files(/.*)?" /dev/null 2>&1
-        restorecon -Rv "$rep_glpi" 
-        restorecon -Rv "$rep_data_glpi"
     fi
     
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
@@ -393,7 +382,19 @@ EOF
         chown -R nginx:nginx "$rep_glpi"
         chmod -R 755 "$rep_glpi"
         sleep 1
+        mv "$rep_glpi"config/*.* "$rep_data_glpi"
+        mv "$rep_glpi"files "$rep_data_glpi"
+        ln -s "$rep_data_glpi"files "$rep_glpi"files
+        ln -s "$rep_data_glpi"config "$rep_glpi"config
         # Setup server
+        # Configuration SELinux
+        info "Configuration de SELinux pour GLPI"
+        semanage fcontext -a -t httpd_sys_content_t "$rep_glpi(/.*)?" > /dev/null 2>&1
+        semanage fcontext -a -t httpd_sys_script_rw_t "$rep_data_glpi/config(/.*)?" > /dev/null 2>&1
+        semanage fcontext -a -t httpd_sys_script_rw_t "$rep_data_glpi/files(/.*)?" > /dev/null 2>&1
+        restorecon -Rv "$rep_glpi" 
+        restorecon -Rv "$rep_data_glpi"
+        sleep 1
         info "Configuration de Nginx avec les recommandations de sécurité"
         cat > /etc/nginx/conf.d/glpi.conf << EOF
 server {
