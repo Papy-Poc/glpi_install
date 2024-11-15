@@ -316,11 +316,19 @@ EOF
         require_once GLPI_CONFIG_DIR . '/local_define.php';
     }
 EOF
-        mv "$rep_glpi"config/*.* /etc/glpi/
-        mv "$rep_glpi"files /var/lib/glpi/
-        ln -s "$rep_data_glpi/files" "$rep_glpi/files"
-        ln -s /etc/glpi/config" "$rep_glpi/config"
+        mv "$rep_glpi"config/*.* "$rep_data_glpi"
+        mv "$rep_glpi"files "$rep_data_glpi"
+        ln -s "$rep_data_glpi"/files "$rep_glpi"/files
+        ln -s "$rep_data_glpi"/config "$rep_glpi"/config
         mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -p$SQLROOTPWD -u root mysql
+        sleep 1
+        # Configuration SELinux
+        echo "Configuration de SELinux pour GLPI"
+        semanage fcontext -a -t httpd_sys_content_t "$rep_glpi"(/.*)?
+        semanage fcontext -a -t httpd_sys_script_rw_t "$rep_data_glpi"/config(/.*)?
+        semanage fcontext -a -t httpd_sys_script_rw_t "$rep_data_glpi"/files(/.*)?
+        restorecon -Rv "$rep_glpi"
+        restorecon -Rv "$rep_data_glpi"
     fi
     
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
@@ -428,12 +436,6 @@ EOF
         #Autorisation accès par SELinux à la lecture des fichiers GLPI dans le dossier
         #sed -i 's/^\(;\?\)\(SELINUX\).*/\2 = disabled/' /etc/selinux/config
         #setenforce 0
-        # Configuration SELinux
-        echo "Configuration de SELinux pour GLPI..."
-        semanage fcontext -a -t httpd_sys_script_rw_t "$rep_glpi(/.*)?"
-        semanage fcontext -a -t httpd_sys_script_rw_t "$rep_data_glpi(/.*)?"
-        restorecon -Rv "$rep_glpi"
-        restorecon -Rv "$rep_data_glpi"
         # Restart de Nginx
         systemctl restart nginx > /dev/null 2>&1
         # Setup Cron task
