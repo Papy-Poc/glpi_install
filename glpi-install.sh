@@ -366,8 +366,8 @@ EOF
 EOF
         mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -p$SQLROOTPWD -u root mysql
         sleep 1
-        mv ${rep_glpi}config/*.* /etc/glpi
-        mv ${rep_glpi}files /etc/glpi
+        mv ${rep_glpi}config/*.* /etc/glpi/
+        mv ${rep_glpi}files /var/lib/glpi/
         ln -s ${rep_glpi}files /etc/glpi/files
         ln -s ${rep_glpi}config /etc/glpi/config
         # Setup server
@@ -376,6 +376,7 @@ EOF
         semanage fcontext -a -t httpd_sys_content_t "${rep_glpi}(/.*)?" > /dev/null 2>&1
         semanage fcontext -a -t httpd_sys_script_rw_t "/etc/glpi/config(/.*)?" > /dev/null 2>&1
         semanage fcontext -a -t httpd_sys_script_rw_t "/etc/glpi/files(/.*)?" > /dev/null 2>&1
+        semanage fcontext -a -t httpd_sys_script_rw_t "/var/log/glpi(/.*)?" > /dev/null 2>&1
         restorecon -Rv /etc/glpi 
         restorecon -Rv ${rep_glpi}
         sleep 1
