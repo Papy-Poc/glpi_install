@@ -282,7 +282,7 @@ function setup_db(){
         php "$rep_glpi"bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
         rm -f /var/www/html/glpi/install/install.php
         sleep 5
-        mkdir /etc/glpi
+        mkdir -p /etc/glpi
         cat > /etc/glpi/local_define.php << EOF
 <?php
     define('GLPI_VAR_DIR', '/var/lib/glpi');
@@ -301,10 +301,10 @@ EOF
         mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -p$SQLROOTPWD -u root mysql
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
         php "$rep_glpi"bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
-        rm -f "$rep_glpi"/install/install.php
+        rm -f "$rep_glpi"install/install.php
         sleep 5
-        mkdir /etc/glpi
-        mkdir /var/log/glpi
+        mkdir -p /etc/glpi
+        mkdir -p /var/log/glpi
         cat > /etc/glpi/local_define.php <<EOF
 <?php
     define('GLPI_VAR_DIR', '/var/lib/glpi');
@@ -320,16 +320,16 @@ EOF
 EOF
         mv "$rep_glpi"config/*.* "$rep_data_glpi"
         mv "$rep_glpi"files "$rep_data_glpi"
-        ln -s "$rep_data_glpi"/files "$rep_glpi"/files
-        ln -s "$rep_data_glpi"/config "$rep_glpi"/config
+        ln -s "$rep_data_glpi"files "$rep_glpi"files
+        ln -s "$rep_data_glpi"config "$rep_glpi"config
         mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -p$SQLROOTPWD -u root mysql
         sleep 1
         # Configuration SELinux
         info "Configuration de SELinux pour GLPI"
-        semanage fcontext -a -t httpd_sys_content_t "$rep_glpi(/.*)?"
-        semanage fcontext -a -t httpd_sys_script_rw_t "$rep_data_glpi/config(/.*)?"
-        semanage fcontext -a -t httpd_sys_script_rw_t "$rep_data_glpi/files(/.*)?"
-        restorecon -Rv "$rep_glpi"
+        semanage fcontext -a -t httpd_sys_content_t "$rep_glpi(/.*)?" /dev/null 2>&1
+        semanage fcontext -a -t httpd_sys_script_rw_t "$rep_data_glpi/config(/.*)?" /dev/null 2>&1
+        semanage fcontext -a -t httpd_sys_script_rw_t "$rep_data_glpi/files(/.*)?" /dev/null 2>&1
+        restorecon -Rv "$rep_glpi" 
         restorecon -Rv "$rep_data_glpi"
     fi
     
@@ -394,7 +394,7 @@ EOF
         chmod -R 755 "$rep_glpi"
         sleep 1
         # Setup server
-        echo "Configuration de Nginx avec les recommandations de sécurité"
+        info "Configuration de Nginx avec les recommandations de sécurité"
         cat > /etc/nginx/conf.d/glpi.conf << EOF
 server {
     listen 80;
