@@ -336,8 +336,8 @@ EOF
         # Setup Cron task
         echo "*/2 * * * * www-data /usr/bin/php '$rep_glpi'front/cron.php &>/dev/null" >> /etc/cron.d/glpi
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
-        php ${rep_data_glpi}bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
-        rm -f ${rep_data_glpi}install/install.php
+        php ${rep_glpi}bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
+        rm -f ${rep_glpi}install/install.php
         sleep 5
         # Add permissions
         #chown -R nginx:nginx ${rep_data_glpi}
