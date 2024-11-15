@@ -101,12 +101,12 @@ function check_install(){
                 install
             fi
         elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
-            output=$(php $rep_glpi_nginx/bin/console -V 2>&1)
+            output=$(php $rep_glpi/bin/console -V 2>&1)
             glpi_cli_version=$(sed -n 's/.*GLPI CLI \([^ ]*\).*/\1/p' <<< "$output")
             # Obtenir la dernière version de GLPI depuis l'API GitHub
             new_version=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.name')
             info "Nouvelle version trouvée : GLPI version $new_version"
-            if [ -d $rep_glpi_nginx ]; then
+            if [ -d $rep_glpi ]; then
                 warn "Le site est déjà installé. Version $glpi_cli_version"
                 if [ "$glpi_cli_version" == "$new_version" ]; then
                     info "Vous avez déjà la dernière version de GLPI. Mise à jour annulée"
@@ -260,12 +260,14 @@ function install_glpi(){
     DOWNLOADLINK=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.assets[0].browser_download_url')
     wget -O /tmp/glpi-latest.tgz "$DOWNLOADLINK" > /dev/null 2>&1
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
-        tar xzf /tmp/glpi-latest.tgz -C /var/www/html/ > /dev/null 2>&1
+        tar xzf /tmp/glpi-latest.tgz -C "$rep_glpi" > /dev/null 2>&1
+        rm -f /tmp/glpi-latest.tgz
         chown -R www-data:www-data "$rep_glpi"
         chmod -R 755 "$rep_glpi"
         systemctl restart apache2
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
-        tar xzf /tmp/glpi-latest.tgz -C /usr/share/nginx/html/ > /dev/null 2>&1
+        tar xzf /tmp/glpi-latest.tgz -C"$rep_glpi" > /dev/null 2>&1
+        rm -f /tmp/glpi-latest.tgz
         chown -R nginx:nginx "$rep_glpi_nginx"
         chmod -R 755 "$rep_glpi_nginx"
         systemctl restart nginx
