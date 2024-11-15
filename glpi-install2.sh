@@ -382,41 +382,51 @@ EOF
         chmod -R 755 "$rep_glpi_nginx"
         sleep 1
         # Setup server
-        cat > /etc/nginx/conf.d/glpi.conf <<-EOF
-server {
-    listen 80;
-    server_name glpi.lan;
-    root /usr/share/nginx/html/glpi/;
-    index index.php index.html index.htm;
-    location / {
-        try_files \$uri \$uri/ /index.php?\$query_string;
+        echo "Configuration de Nginx..."
+        cat > /etc/nginx/conf.d/glpi.conf > /dev/null <<EOF
+   server {
+      listen 80;
+      server_name glpi.lan;
+            
+      root $rep_glpi/public;
+            
+      location / {
+         try_files \$uri /index.php\$is_args\$args;
+      }
+            
+       location ~ ^/index\.php$ {
+          include fastcgi_params;
+          fastcgi_pass unix:/run/php-fpm/www.sock;
+          fastcgi_split_path_info ^(.+\.php)(/.*)$;
+          fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+       }
+            
+        location ~* \.(js|css|png|jpg|jpeg|gif|ico|woff|ttf)$ {
+           expires max;
+           log_not_found off;
+        }
     }
-    location ~ \.php$ {
-        include fastcgi_params;
-        fastcgi_pass unix:/run/php-fpm/www.sock;
-        fastcgi_index index.php;
-        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
-    }
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|woff|ttf)$ {
-        expires max;
-        log_not_found off;
-    }
-}
-EOF
+    EOF
         sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 = 1/' /etc/php.ini
         #sed -i 's/^\(;\?\)\(session.cookie_secure\).*/\2 = on/' /etc/php.ini
         sed -i 's/^\(;\?\)\(session.cookie_secure\).*/\2 = 0/' /etc/php.ini
         sed -i 's/^\(;\?\)\(session.cookie_samesite\).*/\2 = "Lax"/' /etc/php.ini
         sleep 1
         # Supression du dossier d'installation de glpi
-        #rm -rf /usr/share/nginx/html/glpi/install
+        rm -rf /var/www/html/glpi/install
         #Autorisation accès par SELinux à la lecture des fichiers GLPI dans le dossier
-        sed -i 's/^\(;\?\)\(SELINUX\).*/\2 = disabled/' /etc/selinux/config
+        #sed -i 's/^\(;\?\)\(SELINUX\).*/\2 = disabled/' /etc/selinux/config
         #setenforce 0
+        # Configuration SELinux
+        echo "Configuration de SELinux pour GLPI..."
+        semanage fcontext -a -t httpd_sys_script_rw_t "$rep_glpi(/.*)?"
+        semanage fcontext -a -t httpd_sys_script_rw_t "$rep_data_glpi(/.*)?"
+        restorecon -Rv "$rep_glpi"
+        restorecon -Rv "$rep_data_glpi"
         # Restart de Nginx
         systemctl restart nginx > /dev/null 2>&1
         # Setup Cron task
-        echo "*/2 * * * * nginx /usr/bin/php '${rep_glpi_nginx}front/cron.php' &>/dev/null" | tee /etc/cron.d/glpi > /dev/null
+        echo "*/2 * * * * nginx /usr/bin/php '${rep_glpi}front/cron.php' &>/dev/null" | tee /etc/cron.d/glpi > /dev/null
     fi
 }
 function maj_user_glpi(){
@@ -549,7 +559,8 @@ LOG_FILE="/root/glpi-install.log"
 rep_script="/root/glpi-install.sh"
 rep_backup="/home/glpi_sauve/"
 export rep_glpi="/var/www/html/glpi/"
-export rep_glpi_nginx="/usr/share/nginx/html/glpi/"
+export rep_data_glpi="/var/lib/glpi/"
+#export rep_glpi_nginx="/usr/share/nginx/html/glpi/"
 current_date_time=$(date +"%d-%m-%Y_%H-%M-%S")
 bdd_backup="bdd_glpi-""$current_date_time"".sql"
 clear
