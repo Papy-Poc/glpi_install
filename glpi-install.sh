@@ -313,10 +313,12 @@ EOF
         info "Configuration de SELinux pour GLPI"
         semanage fcontext -a -t httpd_sys_script_rw_t "/etc/glpi/config(/.*)?" > /dev/null 2>&1
         semanage fcontext -a -t httpd_sys_content_rw_t "/var/lib/glpi/files(/.*)?" > /dev/null 2>&1
+        semanage fcontext -a -t httpd_sys_content_rw_t "/var/lib/glpi(/.*)?" > /dev/null 2>&1
         semanage fcontext -a -t httpd_sys_content_t "${rep_glpi}(/.*)?" > /dev/null 2>&1
         semanage fcontext -a -t httpd_sys_script_rw_t "/var/log/glpi(/.*)?" > /dev/null 2>&1
         restorecon -Rv /etc/glpi/config > /dev/null 2>&1
         restorecon -Rv /var/lib/glpi/files > /dev/null 2>&1
+        restorecon -Rv /var/lib/glpi > /dev/null 2>&1
         restorecon -Rv ${rep_glpi} > /dev/null 2>&1
         restorecon -Rv /var/log/glpi > /dev/null 2>&1
         sleep 1
