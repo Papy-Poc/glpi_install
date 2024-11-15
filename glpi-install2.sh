@@ -276,8 +276,18 @@ function setup_db(){
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
         php ${rep_glpi}bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
         rm -f ${rep_glpi}install/install.php
-        sleep 5
+        # Add permissions
+        chown -R www-data:www-data "$rep_glpi"
+        chmod -R 775 "$rep_glpi"
+        sleep 1
         mkdir -p /etc/glpi
+        chown -R www-data:www-data /etc/glpi
+        chmod -R 775 /etc/glpi
+        sleep 1
+        mkdir -p /var/log/glpi
+        chown -R www-data:www-data /var/log/glpi
+        chmod -R 775 /var/log/glpi
+        sleep 5
         cat > /etc/glpi/local_define.php << EOF
 <?php
     define('GLPI_VAR_DIR', '/var/lib/glpi');
@@ -294,17 +304,6 @@ EOF
         mv ${rep_glpi}config/*.* /etc/glpi/
         mv ${rep_glpi}files /var/lib/glpi/
         mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -p$SQLROOTPWD -u root mysql
-        chown -R www-data:www-data /etc/glpi
-        chmod -R 775 /etc/glpi
-        sleep 1
-        mkdir -p /var/log/glpi
-        chown -R www-data:www-data /var/log/glpi
-        chmod -R 775 /var/log/glpi
-        sleep 1
-        # Add permissions
-        chown -R www-data:www-data "$rep_glpi"
-        chmod -R 775 "$rep_glpi"
-        sleep 1
         # Setup vhost
          cat > /etc/apache2/sites-available/glpi.conf << EOF
 <VirtualHost *:80>
@@ -340,11 +339,21 @@ EOF
         # Setup Cron task
         echo "*/2 * * * * www-data /usr/bin/php '$rep_glpi'front/cron.php &>/dev/null" >> /etc/cron.d/glpi
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
-        php ${rep_glpi}bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
+        php ${rep_data_glpi}bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
         #rm -f "$rep_glpi"install/install.php
         sleep 5
+        # Add permissions
+        chown -R nginx:nginx ${rep_data_glpi}
+        chmod -R 755 ${rep_data_glpi}
+        sleep 1
         mkdir -p /etc/glpi
+        chown -R www-data:www-data /etc/glpi
+        chmod -R 775 /etc/glpi
+        sleep 1
         mkdir -p /var/log/glpi
+        chown -R www-data:www-data /var/log/glpi
+        chmod -R 775 /var/log/glpi
+        sleep 5
         cat > /etc/glpi/local_define.php <<EOF
 <?php
     define('GLPI_VAR_DIR', '/var/lib/glpi');
@@ -359,16 +368,6 @@ EOF
     }
 EOF
         mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -p$SQLROOTPWD -u root mysql
-        sleep 1
-        # Add permissions
-        chown -R nginx:nginx /etc/glpi
-        chmod -R 775 /etc/glpi
-        chown -R nginx:nginx /var/log/glpi
-        chmod -R 775 /var/log/glpi
-        chown -R nginx:nginx /var/log/nginx
-        chmod -R 775 /var/log/nginx
-        chown -R nginx:nginx ${rep_data_glpi}
-        chmod -R 755 ${rep_data_glpi}
         sleep 1
         mv ${rep_data_glpi}config/*.* /etc/glpi
         mv ${rep_data_glpi}files /etc/glpi
