@@ -234,7 +234,7 @@ function install_glpi(){
 }
 function setup_db(){
     info "Configuration de GLPI..."
-    php ${rep_glpi}bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
+    php ${rep_glpi}bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="${SQLGLPIPWD}" --default-language="fr_FR" --no-interaction --force --quiet
     rm -f ${rep_glpi}install/install.php
     sleep 5
     mkdir -p /etc/glpi
@@ -254,7 +254,7 @@ EOF
     }
 EOF
     mv ${rep_glpi}config/*.* /etc/glpi/
-    mv ${rep_glpi}files /var/lib/glpi/
+    mv ${rep_glpi}files/*.* /var/lib/glpi/
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
         # Add permissions
         chown -R www-data:www-data /etc/glpi
@@ -312,11 +312,11 @@ EOF
         # Configuration SELinux
         info "Configuration de SELinux pour GLPI"
         semanage fcontext -a -t httpd_sys_script_rw_t "/etc/glpi/config(/.*)?" > /dev/null 2>&1
-        semanage fcontext -a -t httpd_sys_script_rw_t "/var/lib/files(/.*)?" > /dev/null 2>&1
+        semanage fcontext -a -t httpd_sys_content_rw_t "/var/lib/glpi/files(/.*)?" > /dev/null 2>&1
         semanage fcontext -a -t httpd_sys_content_t "${rep_glpi}(/.*)?" > /dev/null 2>&1
         semanage fcontext -a -t httpd_sys_script_rw_t "/var/log/glpi(/.*)?" > /dev/null 2>&1
         restorecon -Rv /etc/glpi/config > /dev/null 2>&1
-        restorecon -Rv /var/lib/files > /dev/null 2>&1
+        restorecon -Rv /var/lib/glpi/files > /dev/null 2>&1
         restorecon -Rv ${rep_glpi} > /dev/null 2>&1
         restorecon -Rv /var/log/glpi > /dev/null 2>&1
         sleep 1
