@@ -386,7 +386,7 @@ EOF
 server {
     listen 80;
     server_name glpi.lan;
-    root /usr/share/nginx/html/glpi/public;
+    root /usr/share/nginx/html/glpi/;
     index index.php index.html index.htm;
     location / {
         try_files \$uri \$uri/ /index.php?\$query_string;
@@ -409,7 +409,7 @@ EOF
         sed -i 's/^\(;\?\)\(session.cookie_samesite\).*/\2 = "Lax"/' /etc/php.ini
         sleep 1
         # Supression du dossier d'installation de glpi
-        rm -rf /usr/share/nginx/html/glpi/install
+        #rm -rf /usr/share/nginx/html/glpi/install
         #Autorisation accès par SELinux à la lecture des fichiers GLPI dans le dossier
         sed -i 's/^\(;\?\)\(SELINUX\).*/\2 = disabled/' /etc/selinux/config
         #setenforce 0
@@ -511,7 +511,7 @@ function backup_glpi(){
         info "Dump de la base de donnée"
         PASSWORD=$(sed -n 's/.*Mot de passe root: \([^ ]*\).*/\1/p' /root/sauve_mdp.txt)
         mysqldump -u root -p"$PASSWORD" --databases glpi > "${rep_backup}${bdd_backup}" > /dev/null 2>&1
-        info "La base de donnée a été sauvergardé avec succè."
+        info "La base de donnée a été sauvergardé avec succès."
         # Sauvegarde des fichiers
         info "Sauvegarde des fichiers du sites"
         cp -Rf "$rep_glpi" "$rep_backup"backup_glpi
