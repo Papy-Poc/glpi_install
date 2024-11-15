@@ -308,22 +308,6 @@ EOF
         sleep 5
         mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -p$SQLROOTPWD -u root mysql
         sleep 1
-        # Setup server
-        # Configuration SELinux
-        info "Configuration de SELinux pour GLPI"
-        semanage fcontext -a -t httpd_sys_script_rw_t "/etc/glpi/config(/.*)?" > /dev/null 2>&1
-        semanage fcontext -a -t httpd_sys_script_rw_t "/var/lib/glpi(/.*)?" > /dev/null 2>&1
-        semanage fcontext -a -t httpd_sys_script_rw_t "/var/lib/glpi/files(/.*)?" > /dev/null 2>&1
-        semanage fcontext -a -t httpd_sys_script_rw_t "${rep_glpi}(/.*)?" > /dev/null 2>&1
-        semanage fcontext -a -t httpd_sys_script_rw_t "/var/log/glpi(/.*)?" > /dev/null 2>&1
-        restorecon -Rv /etc/glpi/config > /dev/null 2>&1
-        restorecon -Rv /var/lib/glpi > /dev/null 2>&1
-        restorecon -Rv /var/lib/glpi/files > /dev/null 2>&1
-        restorecon -Rv ${rep_glpi} > /dev/null 2>&1
-        setsebool -P httpd_can_network_connect on 
-        setsebool -P httpd_can_network_connect_db on
-        setsebool -P httpd_can_sendmail on
-        sleep 1
         info "Configuration de Nginx avec les recommandations de sécurité"
         cat > /etc/nginx/conf.d/glpi.conf << EOF
 server {
@@ -366,6 +350,23 @@ EOF
         #Autorisation accès par SELinux à la lecture des fichiers GLPI dans le dossier
         #sed -i 's/^\(;\?\)\(SELINUX\).*/\2 = disabled/' /etc/selinux/config
         #setenforce 0
+        # Ouverture page
+        php ${rep_glpi}public/index.php > /dev/null 2>&1
+        # Configuration SELinux
+        info "Configuration de SELinux pour GLPI"
+        semanage fcontext -a -t httpd_sys_script_rw_t "/etc/glpi/config(/.*)?" 
+        semanage fcontext -a -t httpd_sys_script_rw_t "/var/lib/glpi(/.*)?" > /dev/null 2>&1
+        semanage fcontext -a -t httpd_sys_script_rw_t "/var/lib/glpi/files(/.*)?" > /dev/null 2>&1
+        semanage fcontext -a -t httpd_sys_script_rw_t "${rep_glpi}(/.*)?" > /dev/null 2>&1
+        semanage fcontext -a -t httpd_sys_script_rw_t "/var/log/glpi(/.*)?" > /dev/null 2>&1
+        restorecon -Rv /etc/glpi/config > /dev/null 2>&1
+        restorecon -Rv /var/lib/glpi > /dev/null 2>&1
+        restorecon -Rv /var/lib/glpi/files > /dev/null 2>&1
+        restorecon -Rv ${rep_glpi} > /dev/null 2>&1
+        setsebool -P httpd_can_network_connect on 
+        setsebool -P httpd_can_network_connect_db on
+        setsebool -P httpd_can_sendmail on
+        sleep 1
         # Restart de Nginx
         systemctl restart nginx > /dev/null 2>&1
         systemctl restart php-fpm > /dev/null 2>&1
