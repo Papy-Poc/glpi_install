@@ -412,7 +412,7 @@ EOF
         rm -rf /usr/share/nginx/html/glpi/install
         #Autorisation accès par SELinux à la lecture des fichiers GLPI dans le dossier
         sed -i 's/^\(;\?\)\(SELINUX\).*/\2 = disabled/' /etc/selinux/config
-        setenforce 0
+        #setenforce 0
         # Restart de Nginx
         systemctl restart nginx > /dev/null 2>&1
         # Setup Cron task
