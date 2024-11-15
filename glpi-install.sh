@@ -242,7 +242,7 @@ function setup_db(){
     mkdir -p /var/lib/glpi/
     cat > /etc/glpi/local_define.php << EOF
     <?php
-    define('GLPI_VAR_DIR', '/var/lib/glpi');
+    define('GLPI_VAR_DIR', '/var/lib/glpi/files');
     define('GLPI_LOG_DIR', '/var/log/glpi');
 EOF
     sleep 1
@@ -253,8 +253,8 @@ EOF
         require_once GLPI_CONFIG_DIR . '/local_define.php';
     }
 EOF
-    mv ${rep_glpi}config/* /etc/glpi/
-    mv ${rep_glpi}files/* /var/lib/glpi/
+    mv ${rep_glpi}config/* /etc/glpi/ 
+    mv ${rep_glpi}files /var/lib/glpi/
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
         # Add permissions
         chown -R www-data:www-data /etc/glpi
@@ -313,10 +313,12 @@ EOF
         info "Configuration de SELinux pour GLPI"
         semanage fcontext -a -t httpd_sys_script_rw_t "/etc/glpi/config(/.*)?" > /dev/null 2>&1
         semanage fcontext -a -t httpd_sys_script_rw_t "/var/lib/glpi(/.*)?" > /dev/null 2>&1
+        semanage fcontext -a -t httpd_sys_script_rw_t "/var/lib/glpi/files(/.*)?" > /dev/null 2>&1
         semanage fcontext -a -t httpd_sys_script_rw_t "${rep_glpi}(/.*)?" > /dev/null 2>&1
         semanage fcontext -a -t httpd_sys_script_rw_t "/var/log/glpi(/.*)?" > /dev/null 2>&1
         restorecon -Rv /etc/glpi/config > /dev/null 2>&1
         restorecon -Rv /var/lib/glpi > /dev/null 2>&1
+        restorecon -Rv /var/lib/glpi/files > /dev/null 2>&1
         restorecon -Rv ${rep_glpi} > /dev/null 2>&1
         setsebool -P httpd_can_network_connect on 
         setsebool -P httpd_can_network_connect_db on
