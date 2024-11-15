@@ -381,6 +381,9 @@ EOF
         # Add permissions
         chown -R nginx:nginx "$rep_glpi"
         chmod -R 755 "$rep_glpi"
+        chown -R nginx:nginx "$rep_data_glpi"
+        chmod -R 755 "$rep_data_glpi"
+
         sleep 1
         mv "$rep_glpi"config/*.* "$rep_data_glpi"
         mv "$rep_glpi"files "$rep_data_glpi"
