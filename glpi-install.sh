@@ -328,7 +328,7 @@ server {
     listen 80;
     server_name glpi.lan;
 
-    root $rep_glpi/public;
+    root ${rep_glpi}public;
 
      # Bloquer l'accès direct aux dossiers sensibles
     location ~ ^/(config|files)/ {
