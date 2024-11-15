@@ -312,15 +312,12 @@ EOF
         # Configuration SELinux
         info "Configuration de SELinux pour GLPI"
         semanage fcontext -a -t httpd_sys_script_rw_t "/etc/glpi/config(/.*)?" > /dev/null 2>&1
-        semanage fcontext -a -t httpd_sys_script_rw_t "/var/lib/glpi/files(/.*)?" > /dev/null 2>&1
         semanage fcontext -a -t httpd_sys_script_rw_t "/var/lib/glpi(/.*)?" > /dev/null 2>&1
         semanage fcontext -a -t httpd_sys_script_rw_t "${rep_glpi}(/.*)?" > /dev/null 2>&1
         semanage fcontext -a -t httpd_sys_script_rw_t "/var/log/glpi(/.*)?" > /dev/null 2>&1
         restorecon -Rv /etc/glpi/config > /dev/null 2>&1
-        restorecon -Rv /var/lib/glpi/files > /dev/null 2>&1
         restorecon -Rv /var/lib/glpi > /dev/null 2>&1
         restorecon -Rv ${rep_glpi} > /dev/null 2>&1
-        restorecon -Rv /var/log/glpi > /dev/null 2>&1
         setsebool -P httpd_can_network_connect on 
         setsebool -P httpd_can_network_connect_db on
         setsebool -P httpd_can_sendmail on
@@ -330,32 +327,18 @@ EOF
 server {
     listen 80;
     server_name glpi.lan;
-
-    root ${rep_glpi}public;
-
-     # Bloquer l'accès direct aux dossiers sensibles
-    location ~ ^/(config|files)/ {
-        deny all;
-        return 404;
-    }
-
-    # Configuration principale
+    root /var/www/html/glpi/public;
     location / {
         try_files \$uri /index.php\$is_args\$args;
     }
-
-    # Exécution de PHP
     location ~ ^/index\.php$ {
-        fastcgi_pass unix:/run/php-fpm/www.sock;
+        # the following line needs to be adapted, as it changes depending on OS distributions and PHP versions
+        fastcgi_pass unix:/run/php/php-fpm/www.sock;
+
         fastcgi_split_path_info ^(.+\.php)(/.*)$;
         include fastcgi_params;
-        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
-    }
 
-    # Cache pour les fichiers statiques
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|woff|ttf|svg)$ {
-        expires max;
-        log_not_found off;
+        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
     }
 }
 EOF
