@@ -260,13 +260,13 @@ function install_glpi(){
     DOWNLOADLINK=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.assets[0].browser_download_url')
     wget -O /tmp/glpi-latest.tgz "$DOWNLOADLINK" > /dev/null 2>&1
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
-        tar xzf /tmp/glpi-latest.tgz -C "$rep_glpi" > /dev/null 2>&1
+        tar xzf /tmp/glpi-latest.tgz -C /var/www/html/ > /dev/null 2>&1
         rm -f /tmp/glpi-latest.tgz
         chown -R www-data:www-data "$rep_glpi"
         chmod -R 755 "$rep_glpi"
         systemctl restart apache2
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
-        tar xzf /tmp/glpi-latest.tgz -C"$rep_glpi" > /dev/null 2>&1
+        tar xzf /tmp/glpi-latest.tgz -C /var/www/html/ > /dev/null 2>&1
         rm -f /tmp/glpi-latest.tgz
         chown -R nginx:nginx "$rep_glpi"
         chmod -R 755 "$rep_glpi"
@@ -325,7 +325,7 @@ EOF
         mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -p$SQLROOTPWD -u root mysql
         sleep 1
         # Configuration SELinux
-        echo "Configuration de SELinux pour GLPI"
+        info "Configuration de SELinux pour GLPI"
         semanage fcontext -a -t httpd_sys_content_t "$rep_glpi(/.*)?"
         semanage fcontext -a -t httpd_sys_script_rw_t "$rep_data_glpi/config(/.*)?"
         semanage fcontext -a -t httpd_sys_script_rw_t "$rep_data_glpi/files(/.*)?"
