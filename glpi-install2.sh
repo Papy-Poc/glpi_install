@@ -403,30 +403,18 @@ EOF
 server {
     listen 80;
     server_name glpi.lan;
-
-    root $rep_glpi/public;
-
-     # Bloquer l'accès direct aux dossiers sensibles
-    location ~ ^/(config|files)/ {
-        deny all;
-        return 404;
-    }
-
-    # Configuration principale
+    root /var/www/html/glpi/public;
+    index index.php index.html index.htm;
     location / {
-        try_files \$uri /index.php\$is_args\$args;
+        try_files \$uri \$uri/ /index.php?\$query_string;
     }
-
-    # Exécution de PHP
-    location ~ ^/index\.php$ {
-        fastcgi_pass unix:/run/php-fpm/www.sock;
-        fastcgi_split_path_info ^(.+\.php)(/.*)$;
+    location ~ \.php$ {
         include fastcgi_params;
+        fastcgi_pass unix:/run/php-fpm/www.sock;
+        fastcgi_index index.php;
         fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
     }
-
-    # Cache pour les fichiers statiques
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|woff|ttf|svg)$ {
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|woff|ttf)$ {
         expires max;
         log_not_found off;
     }
