@@ -178,33 +178,29 @@ function install_packages(){
         dnf module enable php:remi-8.3 -y > /dev/null 2>&1
         sleep 1
         info "Installation des services LEMP..."
-    # Modification du package "php" en "php-fpm"
+        # Modification du package "php" en "php-fpm"
         dnf install -y nginx mariadb-server perl curl jq php-fpm epel-release php > /dev/null 2>&1
         info "Installation des extensions de PHP"
-    # Modification du package "php-mysql" en "php-mysqlnd"
+        # Modification du package "php-mysql" en "php-mysqlnd"
         dnf install -y php-mysqlnd php-mbstring php-curl php-gd php-xml php-intl php-ldap php-apcu php-zip php-bz2 php-intl > /dev/null 2>&1
         info "Ouverture des ports 80 et 443 sur le parefeu"
-    # Ouverture des ports 80 et 443 dans le firewall des distro RedHat
+        # Ouverture des ports 80 et 443 dans le firewall des distro RedHat
         firewall-cmd --permanent --zone=public --add-service=http > /dev/null 2>&1
         firewall-cmd --permanent --zone=public --add-service=https > /dev/null 2>&1
         firewall-cmd --reload > /dev/null 2>&1
-    # Modifcation du fichier PHP-FPM pour Nginx,remplacement de Apache par Nginx
+        # Modifcation du fichier PHP-FPM pour Nginx,remplacement de Apache par Nginx
         sed -i 's/user = apache/user = nginx/g' /etc/php-fpm.d/www.conf > /dev/null 2>&1
         sed -i 's/group = apache/group = nginx/g' /etc/php-fpm.d/www.conf > /dev/null 2>&1
         
         info "Activation et démarrage des service LEMP"
-    # Démarrage des services MariaDB, Nginx et Php-Fpm        
+        # Démarrage des services MariaDB, Nginx et Php-Fpm        
         info "Activation et démarrage de MariaDB"
         systemctl enable --now mariadb > /dev/null 2>&1
-        #info "Démarage de MariaDB"
-        #systemctl start mariadb > /dev/null 2>&1
         info "Activation et démarrage d'(e)Nginx"
         systemctl enable --now nginx > /dev/null 2>&1
-        #info "Démarage d'(e)Nginx"
-        #systemctl start nginx > /dev/null 2>&1
         info "Activation et démarrage de Php-Fpm"
         systemctl enable --now php-fpm > /dev/null 2>&1
-       fi
+    fi
 }
 function network_info(){
     INTERFACE=$(ip route | awk 'NR==1 {print $5}')
@@ -279,8 +275,8 @@ function setup_db(){
     ######################################################################################################
 
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
-        php "$rep_glpi"bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
-        rm -f /var/www/html/glpi/install/install.php
+        php ${rep_glpi}bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
+        rm -f ${rep_glpi}install/install.php
         sleep 5
         mkdir -p /etc/glpi
         cat > /etc/glpi/local_define.php << EOF
@@ -296,33 +292,9 @@ EOF
         require_once GLPI_CONFIG_DIR . '/local_define.php';
     }
 EOF
-        mv "$rep_glpi"config/*.* /etc/glpi/
-        mv "$rep_glpi"files /var/lib/glpi/
+        mv ${rep_glpi}config/*.* /etc/glpi/
+        mv ${rep_glpi}files /var/lib/glpi/
         mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -p$SQLROOTPWD -u root mysql
-    elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
-        php "$rep_glpi"bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
-        #rm -f "$rep_glpi"install/install.php
-        sleep 5
-        mkdir -p /etc/glpi
-        mkdir -p /var/log/glpi
-        cat > /etc/glpi/local_define.php <<EOF
-<?php
-    define('GLPI_VAR_DIR', '/var/lib/glpi');
-    define('GLPI_LOG_DIR', '/var/log/glpi');
-EOF
-        sleep 1
-        cat > /var/www/html/glpi/inc/downstream.php << EOF
-<?php
-    define('GLPI_CONFIG_DIR', '/etc/glpi');
-    if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
-        require_once GLPI_CONFIG_DIR . '/local_define.php';
-    }
-EOF
-        mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -p$SQLROOTPWD -u root mysql
-        sleep 1
-    fi
-    
-    if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
         chown -R www-data:www-data /etc/glpi
         chmod -R 775 /etc/glpi
         sleep 1
@@ -369,34 +341,48 @@ EOF
         # Setup Cron task
         echo "*/2 * * * * www-data /usr/bin/php '$rep_glpi'front/cron.php &>/dev/null" >> /etc/cron.d/glpi
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
-        #chown -R nginx:nginx /etc/glpi
-        #chmod -R 775 /etc/glpi
-        #sleep 1
-        mkdir -p "$rep_data_glpi"
+        php ${rep_glpi}bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
+        #rm -f "$rep_glpi"install/install.php
+        sleep 5
+        mkdir -p /etc/glpi
+        mkdir -p /var/log/glpi
+        cat > /etc/glpi/local_define.php <<EOF
+<?php
+    define('GLPI_VAR_DIR', '/var/lib/glpi');
+    define('GLPI_LOG_DIR', '/var/log/glpi');
+EOF
+        sleep 1
+        cat > /var/www/html/glpi/inc/downstream.php << EOF
+<?php
+    define('GLPI_CONFIG_DIR', '/etc/glpi');
+    if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
+        require_once GLPI_CONFIG_DIR . '/local_define.php';
+    }
+EOF
+        mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -p$SQLROOTPWD -u root mysql
+        sleep 1
+        # Add permissions
+        chown -R nginx:nginx /etc/glpi
+        chmod -R 775 /etc/glpi
         chown -R nginx:nginx /var/log/glpi
         chmod -R 775 /var/log/glpi
         chown -R nginx:nginx /var/log/nginx
         chmod -R 775 /var/log/nginx
+        chown -R nginx:nginx ${rep_data_glpi}
+        chmod -R 755 ${rep_data_glpi}
         sleep 1
-        # Add permissions
-        chown -R nginx:nginx "$rep_glpi"
-        chmod -R 755 "$rep_glpi"
-        chown -R nginx:nginx "$rep_data_glpi"
-        chmod -R 755 "$rep_data_glpi"
-
-        sleep 1
-        mv "$rep_glpi"config/*.* "$rep_data_glpi"
-        mv "$rep_glpi"files "$rep_data_glpi"
-        ln -s "$rep_data_glpi"files "$rep_glpi"files
-        ln -s "$rep_data_glpi"config "$rep_glpi"config
+        mv ${rep_data_glpi}config/*.* /etc/glpi
+        mv ${rep_data_glpi}files /etc/glpi
+        ln -s ${rep_data_glpi}files /etc/glpi/files
+        ln -s ${rep_data_glpi}config /etc/glpi/config
         # Setup server
         # Configuration SELinux
         info "Configuration de SELinux pour GLPI"
-        semanage fcontext -a -t httpd_sys_content_t "$rep_glpi(/.*)?" > /dev/null 2>&1
-        semanage fcontext -a -t httpd_sys_script_rw_t "$rep_data_glpi/config(/.*)?" > /dev/null 2>&1
-        semanage fcontext -a -t httpd_sys_script_rw_t "$rep_data_glpi/files(/.*)?" > /dev/null 2>&1
-        restorecon -Rv "$rep_glpi" 
-        restorecon -Rv "$rep_data_glpi"
+        semanage fcontext -a -t httpd_sys_content_t ${rep_data_glpi}(/.*)? > /dev/null 2>&1
+        semanage fcontext -a -t httpd_sys_script_rw_t /etc/glpi/config(/.*)? > /dev/null 2>&1
+        semanage fcontext -a -t httpd_sys_script_rw_t /etc/glpi/files(/.*)? > /dev/null 2>&1
+        restorecon -Rv /etc/glpi 
+        restorecon -Rv ${rep_data_glpi}
         sleep 1
         info "Configuration de Nginx avec les recommandations de sécurité"
         cat > /etc/nginx/conf.d/glpi.conf << EOF
@@ -445,7 +431,7 @@ EOF
         # Restart de Nginx
         systemctl restart nginx > /dev/null 2>&1
         # Setup Cron task
-        echo "*/2 * * * * nginx /usr/bin/php '${rep_glpi}front/cron.php' &>/dev/null" | tee /etc/cron.d/glpi > /dev/null
+        echo "*/2 * * * * nginx /usr/bin/php '${rep_data_glpi}front/cron.php' &>/dev/null" | tee /etc/cron.d/glpi > /dev/null
     fi
 }
 function maj_user_glpi(){
