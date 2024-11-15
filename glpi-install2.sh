@@ -326,9 +326,9 @@ EOF
         sleep 1
         # Configuration SELinux
         echo "Configuration de SELinux pour GLPI"
-        semanage fcontext -a -t httpd_sys_content_t "$rep_glpi"(/.*)?
-        semanage fcontext -a -t httpd_sys_script_rw_t "$rep_data_glpi"/config(/.*)?
-        semanage fcontext -a -t httpd_sys_script_rw_t "$rep_data_glpi"/files(/.*)?
+        semanage fcontext -a -t httpd_sys_content_t "$rep_glpi(/.*)?"
+        semanage fcontext -a -t httpd_sys_script_rw_t "$rep_data_glpi/config(/.*)?"
+        semanage fcontext -a -t httpd_sys_script_rw_t "$rep_data_glpi/files(/.*)?"
         restorecon -Rv "$rep_glpi"
         restorecon -Rv "$rep_data_glpi"
     fi
