@@ -298,29 +298,31 @@ EOF
         mv "$rep_glpi"files /var/lib/glpi/
         mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -p$SQLROOTPWD -u root mysql
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
-        php "$rep_glpi_nginx"bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
-        rm -f /usr/share/nginx/html/glpi/install/install.php
+        php "$rep_glpi"bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
+        rm -f "$rep_glpi"/install/install.php
         sleep 5
         mkdir /etc/glpi
         mkdir /var/log/glpi
-        cat > /etc/glpi/local_define.php << EOF
+        cat > /etc/glpi/local_define.php <<EOF
 <?php
     define('GLPI_VAR_DIR', '/var/lib/glpi');
     define('GLPI_LOG_DIR', '/var/log/glpi');
 EOF
         sleep 1
-        cat > /usr/share/nginx/html/glpi/inc/downstream.php << EOF
+        cat > /var/www/html/glpi/inc/downstream.php << EOF
 <?php
     define('GLPI_CONFIG_DIR', '/etc/glpi');
     if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
         require_once GLPI_CONFIG_DIR . '/local_define.php';
     }
 EOF
-        mv "$rep_glpi_nginx"config/*.* /etc/glpi/
-        mv "$rep_glpi_nginx"files /var/lib/glpi/
+        mv "$rep_glpi"config/*.* /etc/glpi/
+        mv "$rep_glpi"files /var/lib/glpi/
+        ln -s "$rep_data_glpi/files" "$rep_glpi/files"
+        ln -s /etc/glpi/config" "$rep_glpi/config"
         mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -p$SQLROOTPWD -u root mysql
     fi
-        
+    
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
         chown -R www-data:www-data /etc/glpi
         chmod -R 775 /etc/glpi
@@ -368,45 +370,54 @@ EOF
         # Setup Cron task
         echo "*/2 * * * * www-data /usr/bin/php '$rep_glpi'front/cron.php &>/dev/null" >> /etc/cron.d/glpi
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
-        chown -R nginx:nginx /etc/glpi
-        chmod -R 775 /etc/glpi
-        sleep 1
-        mkdir /var/log/glpi
+        #chown -R nginx:nginx /etc/glpi
+        #chmod -R 775 /etc/glpi
+        #sleep 1
+        mkdir -p "$rep_data_glpi"
         chown -R nginx:nginx /var/log/glpi
         chmod -R 775 /var/log/glpi
         chown -R nginx:nginx /var/log/nginx
         chmod -R 775 /var/log/nginx
         sleep 1
         # Add permissions
-        chown -R nginx:nginx "$rep_glpi_nginx"
-        chmod -R 755 "$rep_glpi_nginx"
+        chown -R nginx:nginx "$rep_glpi"
+        chmod -R 755 "$rep_glpi"
         sleep 1
         # Setup server
-        echo "Configuration de Nginx..."
-        cat > /etc/nginx/conf.d/glpi.conf > /dev/null <<EOF
-   server {
-      listen 80;
-      server_name glpi.lan;
-            
-      root $rep_glpi/public;
-            
-      location / {
-         try_files \$uri /index.php\$is_args\$args;
-      }
-            
-       location ~ ^/index\.php$ {
-          include fastcgi_params;
-          fastcgi_pass unix:/run/php-fpm/www.sock;
-          fastcgi_split_path_info ^(.+\.php)(/.*)$;
-          fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
-       }
-            
-        location ~* \.(js|css|png|jpg|jpeg|gif|ico|woff|ttf)$ {
-           expires max;
-           log_not_found off;
-        }
+        echo "Configuration de Nginx avec les recommandations de sécurité"
+        tee /etc/nginx/conf.d/glpi.conf <<EOF
+server {
+    listen 80;
+    server_name glpi.lan;
+
+    root $rep_glpi/public;
+
+     # Bloquer l'accès direct aux dossiers sensibles
+    location ~ ^/(config|files)/ {
+        deny all;
+        return 404;
     }
-    EOF
+
+    # Configuration principale
+    location / {
+        try_files \$uri /index.php\$is_args\$args;
+    }
+
+    # Exécution de PHP
+    location ~ ^/index\.php$ {
+        fastcgi_pass unix:/run/php-fpm/www.sock;
+        fastcgi_split_path_info ^(.+\.php)(/.*)$;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+    }
+
+    # Cache pour les fichiers statiques
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|woff|ttf|svg)$ {
+        expires max;
+        log_not_found off;
+    }
+}
+EOF
         sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 = 1/' /etc/php.ini
         #sed -i 's/^\(;\?\)\(session.cookie_secure\).*/\2 = on/' /etc/php.ini
         sed -i 's/^\(;\?\)\(session.cookie_secure\).*/\2 = 0/' /etc/php.ini
