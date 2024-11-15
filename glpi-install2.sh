@@ -301,7 +301,7 @@ EOF
         mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -p$SQLROOTPWD -u root mysql
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
         php "$rep_glpi"bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
-        rm -f "$rep_glpi"install/install.php
+        #rm -f "$rep_glpi"install/install.php
         sleep 5
         mkdir -p /etc/glpi
         mkdir -p /var/log/glpi
@@ -438,7 +438,7 @@ EOF
         sed -i 's/^\(;\?\)\(session.cookie_samesite\).*/\2 = "Lax"/' /etc/php.ini
         sleep 1
         # Supression du dossier d'installation de glpi
-        rm -rf /var/www/html/glpi/install
+        #rm -rf /var/www/html/glpi/install
         #Autorisation accès par SELinux à la lecture des fichiers GLPI dans le dossier
         #sed -i 's/^\(;\?\)\(SELINUX\).*/\2 = disabled/' /etc/selinux/config
         #setenforce 0
