@@ -262,6 +262,9 @@ EOF
         sleep 1
         chown -R www-data:www-data /var/log/glpi
         chmod -R 775 /var/log/glpi
+        sleep 1
+        chown -R www-data:www-data /var/lib/glpi
+        chmod -R 775 /var/lib/glpi
         sleep 5
         mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -p$SQLROOTPWD -u root mysql
         # Setup vhost
@@ -305,6 +308,9 @@ EOF
         sleep 1
         chown -R nginx:nginx /var/log/glpi
         chmod -R 775 /var/log/glpi
+        sleep 1
+        chown -R nginx:nginx /var/lib/glpi
+        chmod -R 775 /var/lib/glpi
         sleep 5
         mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -p$SQLROOTPWD -u root mysql
         sleep 1
@@ -353,10 +359,14 @@ EOF
         # Ouverture page
         php ${rep_glpi}public/index.php > /dev/null 2>&1
         # Configuration SELinux
+        # semanage boolean -l | grep 'httpd'
         info "Configuration de SELinux pour GLPI"
         setsebool -P httpd_can_network_connect on 
         setsebool -P httpd_can_network_connect_db on
         setsebool -P httpd_can_sendmail on
+        setsebool -P httpd_can_connect_ldap on
+        setsebool -P httpd_read_user_content on
+        setsebool -P httpd_read_user_content on
         semanage fcontext -a -t httpd_sys_script_rw_t "/etc/glpi/config(/.*)?" 
         semanage fcontext -a -t httpd_sys_script_rw_t "/var/lib/glpi(/.*)?" > /dev/null 2>&1
         semanage fcontext -a -t httpd_sys_script_rw_t "/var/lib/glpi/files(/.*)?" > /dev/null 2>&1
