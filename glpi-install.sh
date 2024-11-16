@@ -364,36 +364,21 @@ EOF
         chown -R nginx:nginx /var/lib/glpi/
         chmod -R 775 /var/lib/glpi/
         info "Configuration de SELinux pour GLPI"
-        semanage import <<EOF
-            boolean -D > /dev/null 2>&1
-            login -D > /dev/null 2>&1
-            interface -D > /dev/null 2>&1
-            user -D > /dev/null 2>&1
-            port -D > /dev/null 2>&1
-            node -D > /dev/null 2>&1
-            fcontext -D > /dev/null 2>&1
-            module -D > /dev/null 2>&1
-            ibendport -D > /dev/null 2>&1
-            ibpkey -D > /dev/null 2>&1
-            permissive -D > /dev/null 2>&1
-            boolean -m -1 httpd_can_connect_ldap > /dev/null 2>&1
-            boolean -m -1 httpd_can_network_connect > /dev/null 2>&1
-            boolean -m -1 httpd_can_network_connect_db > /dev/null 2>&1
-            boolean -m -1 httpd_can_sendmail > /dev/null 2>&1
-            boolean -m -1 httpd_read_user_content > /dev/null 2>&1
-            boolean -m -1 virt_sandbox_use_all_caps > /dev/null 2>&1
-            boolean -m -1 virt_use_nfs > /dev/null 2>&1
-            fcontext -a -f a -t httpd_sys_content_t -r 's0' '/etc/glpi/config(/.*)?' > /dev/null 2>&1
-            fcontext -a -f a -t httpd_sys_rw_content_t -r 's0' '/var/lib/glpi(/.*)?' > /dev/null 2>&1
-            fcontext -a -f a -t httpd_sys_rw_content_t -r 's0' '/var/lib/glpi/files(/.*)?' > /dev/null 2>&1
-            fcontext -a -f a -t httpd_sys_content_t -r 's0' '/var/www/html/glpi/(/.*)?' > /dev/null 2>&1
-            fcontext -a -f a -t httpd_sys_rw_content_t -r 's0' '/var/log/glpi(/.*)?' > /dev/null 2>&1
-EOF
-        #restorecon -Rv /etc/glpi/config > /dev/null 2>&1
-        #restorecon -Rv /var/lib/glpi > /dev/null 2>&1
-        #restorecon -Rv /var/lib/glpi/files > /dev/null 2>&1
-        #restorecon -Rv ${rep_glpi} > /dev/null 2>&1
-        #restorecon -Rv /var/log/glpi > /dev/null 2>&1
+        setsebool -P httpd_can_network_connect on 
+        setsebool -P httpd_can_network_connect_db on
+        setsebool -P httpd_can_sendmail on
+        setsebool -P httpd_can_connect_ldap on
+        setsebool -P httpd_read_user_content on
+        semanage fcontext -a -t httpd_sys_content_t "/etc/glpi/config(/.*)?" 
+        semanage fcontext -a -t httpd_sys_rw_content_t "/var/lib/glpi(/.*)?" > /dev/null 2>&1
+        semanage fcontext -a -t httpd_sys_rw_content_t "/var/lib/glpi/files(/.*)?" > /dev/null 2>&1
+        semanage fcontext -a -t httpd_sys_content_t "${rep_glpi}(/.*)?" > /dev/null 2>&1
+        semanage fcontext -a -t httpd_sys_rw_content_t "/var/log/glpi(/.*)?" > /dev/null 2>&1
+        restorecon -Rv /etc/glpi/config > /dev/null 2>&1
+        restorecon -Rv /var/lib/glpi > /dev/null 2>&1
+        restorecon -Rv /var/lib/glpi/files > /dev/null 2>&1
+        restorecon -Rv ${rep_glpi} > /dev/null 2>&1
+        restorecon -Rv /var/log/glpi > /dev/null 2>&1
         sleep 1
         # Restart de Nginx
         systemctl restart nginx > /dev/null 2>&1
