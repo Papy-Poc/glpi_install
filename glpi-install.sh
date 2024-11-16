@@ -360,6 +360,10 @@ EOF
         php ${rep_glpi}public/index.php > /dev/null 2>&1
         # Configuration SELinux
         # semanage boolean -l | grep 'httpd'
+        mkdir /var/lib/glpi/files/_cache/templates
+        sleep 1
+        chown -R nginx:nginx /var/lib/glpi/
+        chmod -R 775 /var/lib/glpi/
         info "Configuration de SELinux pour GLPI"
         setsebool -P httpd_can_network_connect on 
         setsebool -P httpd_can_network_connect_db on
