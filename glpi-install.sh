@@ -284,9 +284,9 @@ EOF
         # Restart de Nginx et php-fpm
         systemctl restart nginx php-fpm
     fi
-    php ${REP_GLPI}bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
+    #php /var/www/html/glpi/bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
     sleep 5
-    rm -rf /var/www/html/glpi/install/install.php
+    #rm -rf /var/www/html/glpi/install/install.php
     sleep 5
     if [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
         setsebool -P httpd_can_network_connect on
@@ -300,12 +300,12 @@ EOF
         restorecon -Rv /etc/glpi > /dev/null 2>&1
     fi
     # Change permissions
-    chown -R nginx:nginx /etc/glpi
-    chmod -R 755 /etc/glpi
-    chown -R nginx:nginx /var/log/glpi
-    chmod -R 777 /var/log/glpi
-    chown -R nginx:nginx ${REP_GLPI}
-    chmod -R 755 ${REP_GLPI}
+    #chown -R nginx:nginx /etc/glpi
+    #chmod -R 755 /etc/glpi
+    #chown -R nginx:nginx /var/log/glpi
+    #chmod -R 777 /var/log/glpi
+    #chown -R nginx:nginx ${REP_GLPI}
+    #chmod -R 755 ${REP_GLPI}
     # Setup Cron task
     echo "*/2 * * * * www-data /usr/bin/php ${REP_GLPI}front/cron.php &>/dev/null" >> /etc/cron.d/glpi
 }
@@ -334,11 +334,11 @@ function display_credentials(){
         info "normal       -  ${NORMGLPIPWD}       -  compte normal"
         echo ""
         info "Vous pouvez accéder à la page web de GLPI à partir d'une adresse IP ou d'un nom d'hôte :"
-        info "http://$IPADRESS" 
+        info "http://${IPADRESS}" 
         echo ""
         info "==> Database:"
-        info "Mot de passe root: $SLQROOTPWD"
-        info "Mot de passe glpi_user: $SQLGLPIPWD"
+        info "Mot de passe root: ${SLQROOTPWD}"
+        info "Mot de passe glpi_user: ${SQLGLPIPWD}"
         info "Nom de la base de données GLPI: glpi"
         info "<===============================================================================================>"
         echo ""
@@ -362,8 +362,8 @@ function write_credentials(){
         http://$IPADRESS
 
         ==> Database:
-        Mot de passe root: $SLQROOTPWD
-        Mot de passe glpi_user: $SQLGLPIPWD
+        Mot de passe root: ${SLQROOTPWD}
+        Mot de passe glpi_user: ${SQLGLPIPWD}
         Nom de la base de données GLPI: glpi
         <===============================================================================================>
 
@@ -392,7 +392,7 @@ function install(){
         sleep 5
         setup_db
         sleep 5
-        maj_user_glpi
+        #maj_user_glpi
         display_credentials
         write_credentials
         efface_script
