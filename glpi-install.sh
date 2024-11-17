@@ -129,11 +129,13 @@ function install_packages(){
         systemctl restart apache2 > /dev/null 2>&1
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
         sleep 1
+        dnf module reset -y  php
+        dnf module install -y  php:8.2
         info "Installation des extensions de php"
-        dnf install -y php-{mysqlnd,gd,intl,ldap,apcu,opcache,zip,xml} > /dev/null 2>&1
+        dnf install -y php-{api,zend-abi,mysqlnd,gd,intl,ldap,apcu,opcache,sodium,zip,xml} > /dev/null 2>&1
         info "Installation des service lamp..."
         dnf install -y nginx mariadb-server perl curl jq php epel-release > /dev/null 2>&1
-        info "Activation et démarrage de MariaDB et d'Nginx"
+        info "Activation et démarrage de MariaDB, d'ENGINE X et de PHP-FPM"
         systemctl enable mariadb --now mariadb nginx php-fpm > /dev/null 2>&1
         firewall-cmd --permanent --zone=public --add-service=http > /dev/null 2>&1
         firewall-cmd --reload > /dev/null 2>&1
@@ -246,15 +248,15 @@ EOF
         systemctl restart apache2 > /dev/null 2>&1
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
         chown -R nginx:nginx  /etc/glpi
-        chmod -R 755 /etc/glpi
+        chmod -R 777 /etc/glpi
         sleep 1
         mkdir /var/log/glpi
-        chown -R nginx:nginx  /var/log/glpi
-        chmod -R 755 /var/log/glpi
+        chown -R nginx:nginx /var/log/glpi
+        chmod -R 777 /var/log/glpi
         sleep 1
         # Add permissions
         chown -R nginx:nginx ${rep_glpi}
-        chmod -R 755 ${rep_glpi}
+        chmod -R 777 ${rep_glpi}
         sleep 1
         cat > /etc/nginx/conf.d/glpi.conf << EOF
 server {
@@ -263,7 +265,7 @@ server {
 
     server_name glpi.localhost;
 
-    root /var/www/glpi/public;
+    root /var/www/html/glpi/public;
 
     location / {
         try_files \$uri /index.php\$is_args\$args;
@@ -289,6 +291,7 @@ EOF
         restorecon -Rv ${rep_glpi}
         restorecon -Rv /usr/lib/glpi
         restorecon -Rv /etc/glpi
+        sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 = on/' /etc/php.ini
         # Restart de Nginx et php-fpm
         systemctl restart nginx php-fpm > /dev/null 2>&1
     fi
