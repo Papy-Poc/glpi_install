@@ -291,7 +291,7 @@ EOF
         # Restart de Nginx et php-fpm
         systemctl restart nginx php-fpm > /dev/null 2>&1
     fi
-    php ${rep_glpi}bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
+    php ${rep_glpi}bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password=${SQLGLPIPWD} --default-language="fr_FR" --no-interaction --force --quiet
     sleep 5
     rm -rf /var/www/html/glpi/install.php
     sleep 5
@@ -300,7 +300,7 @@ EOF
     chmod -R 755 /var/log/glpi
     chmod -R 755 ${rep_glpi}
     # Setup Cron task
-    echo "*/2 * * * * www-data /usr/bin/php '$rep_glpi'front/cron.php &>/dev/null" >> /etc/cron.d/glpi
+    echo "*/2 * * * * www-data /usr/bin/php ${rep_glpi}front/cron.php &>/dev/null" >> /etc/cron.d/glpi
 }
 function maj_user_glpi(){
     info "Changement des mots de passe de GLPI..."
@@ -314,15 +314,17 @@ function maj_user_glpi(){
     mysql -u glpi_user -p"$SQLGLPIPWD" -e "USE glpi; UPDATE glpi_users SET password = MD5('$NORMGLPIPWD') WHERE name = 'normal';"
 }
 function display_credentials(){
-        info "===========================> Détail de l'installation de GLPI <=================================="
+        info "<==========================> Détail de l'installation de GLPI <=================================>"
+        info "GLPI Version: ${new_version}"
+        info "Répertoire d'installation de GLPI: ${rep_glpi}"
         warn "Il est important d'enregistrer ces informations. Si vous les perdez, elles seront irrécupérables."
         echo ""
         info "Les comptes utilisateurs par défaut sont :"
         info "UTILISATEUR  -  MOT DE PASSE       -  ACCES"
-        info "glpi         -  $ADMINGLPIPWD       -  compte admin"
-        info "post-only    -  $POSTGLPIPWD       -  compte post-only"
-        info "tech         -  $TECHGLPIPWD       -  compte tech"
-        info "normal       -  $NORMGLPIPWD       -  compte normal"
+        info "glpi         -  ${ADMINGLPIPWD}       -  compte admin"
+        info "post-only    -  ${POSTGLPIPWD}       -  compte post-only"
+        info "tech         -  ${TECHGLPIPWD}       -  compte tech"
+        info "normal       -  ${NORMGLPIPWD}       -  compte normal"
         echo ""
         info "Vous pouvez accéder à la page web de GLPI à partir d'une adresse IP ou d'un nom d'hôte :"
         info "http://$IPADRESS" 
@@ -337,15 +339,17 @@ function display_credentials(){
 }
 function write_credentials(){
         cat <<EOF > /root/sauve_mdp.txt
-        ==============================> GLPI installation details  <=====================================
+        <==========================> Détail de l'installation de GLPI <=================================>
+        GLPI Version: ${new_version}
+        Répertoire d'installation de GLPI: ${rep_glpi}
         Il est important d'enregistrer ces informations. Si vous les perdez, elles seront irrécupérables.
 
         Les comptes utilisateurs par défaut sont :
         UTILISATEUR       -  MOT DE PASSE       -  ACCES
-        info "glpi        -  $ADMINGLPIPWD       -  compte admin"
-        info "post-only   -  $POSTGLPIPWD       -  compte post-only"
-        info "tech        -  $TECHGLPIPWD       -  compte tech"
-        info "normal      -  $NORMGLPIPWD       -  compte normal"
+        info "glpi        -  ${ADMINGLPIPWD}       -  compte admin"
+        info "post-only   -  ${POSTGLPIPWD}       -  compte post-only"
+        info "tech        -  ${TECHGLPIPWD}       -  compte tech"
+        info "normal      -  ${NORMGLPIPWD}       -  compte normal"
         
         Vous pouvez accéder à la page web de GLPI à partir d'une adresse IP ou d'un nom d'hôte :
         http://$IPADRESS
