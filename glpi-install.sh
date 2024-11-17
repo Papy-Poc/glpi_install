@@ -64,13 +64,13 @@ function check_distro(){
 function check_install(){
     # Vérifie si le répertoire existe
     if [ -d "$1" ]; then
-            output=$(php ${rep_glpi}bin/console -V 2>&1)
+            output=$(php ${REP_GLPI}bin/console -V 2>&1)
             sleep 2
             glpi_cli_version=$(sed -n 's/.*GLPI CLI \([^ ]*\).*/\1/p' <<< "$output")
             warn "Le site est déjà installé. Version ""$glpi_cli_version"
-            new_version=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.name')
-            info "Nouvelle version trouver : GLPI version $new_version"
-            if [ "$glpi_cli_version" == "$new_version" ]; then
+            NEW_VERSION=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.name')
+            info "Nouvelle version trouver : GLPI version $NEW_VERSION"
+            if [ "$glpi_cli_version" == "$NEW_VERSION" ]; then
                     info "Vous avez déjà la dernière version de GLPI. Mise à jour annuler"
                     sleep 5
                     exit 0;
@@ -136,7 +136,7 @@ function install_packages(){
         info "Installation des service lamp..."
         dnf install -y nginx mariadb-server perl curl jq php epel-release > /dev/null 2>&1
         info "Activation et démarrage de MariaDB, d'ENGINE X et de PHP-FPM"
-        systemctl enable mariadb --now mariadb nginx php-fpm > /dev/null 2>&1
+        systemctl enable --now mariadb nginx php-fpm > /dev/null 2>&1
         firewall-cmd --permanent --zone=public --add-service=http > /dev/null 2>&1
         firewall-cmd --reload > /dev/null 2>&1
     fi
@@ -174,8 +174,8 @@ function mariadb_configure(){
     sleep 1
 }
 function install_glpi(){
-    new_version=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.name')
-    info "Téléchargement et installation de la version ${new_version} de GLPI..."
+    NEW_VERSION=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.name')
+    info "Téléchargement et installation de la version ${NEW_VERSION} de GLPI..."
     # Get download link for the latest release
     DOWNLOADLINK=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.assets[0].browser_download_url')
     wget -O /tmp/glpi-latest.tgz "$DOWNLOADLINK" > /dev/null 2>&1
@@ -185,8 +185,8 @@ function setup_db(){
     info "Configuration de GLPI..."
     mkdir /var/log/glpi
     mkdir /etc/glpi
-    #mv ${rep_glpi}config/* /etc/glpi/
-    mv ${rep_glpi}files /var/lib/glpi/
+    #mv ${REP_GLPI}config/* /etc/glpi/
+    mv ${REP_GLPI}files /var/lib/glpi/
     cat > /etc/glpi/local_define.php << EOF
 <?php
     define('GLPI_VAR_DIR', '/var/lib/glpi');
@@ -208,8 +208,8 @@ EOF
         chmod -R 755 /var/log/glpi
         sleep 1
         # Add permissions
-        chown -R www-data:www-data ${rep_glpi}
-        chmod -R 777 ${rep_glpi}
+        chown -R www-data:www-data ${REP_GLPI}
+        chmod -R 777 ${REP_GLPI}
         sleep 1
         # Setup vhost
          cat > /etc/apache2/sites-available/glpi.conf << EOF
@@ -251,29 +251,22 @@ EOF
         chown -R nginx:nginx /var/lib/glpi
         chmod -R 777 /var/lib/glpi
         # Add permissions
-        chown -R nginx:nginx ${rep_glpi}
-        chmod -R 777 ${rep_glpi}
+        chown -R nginx:nginx ${REP_GLPI}
+        chmod -R 777 ${REP_GLPI}
         sleep 1
         cat > /etc/nginx/conf.d/glpi.conf << EOF
 server {
     listen 80;
-    listen [::]:80;
-
     server_name glpi.localhost;
-
     root /var/www/html/glpi/public;
-
     location / {
         try_files \$uri /index.php\$is_args\$args;
     }
-
     location ~ ^/index\.php$ {
         # the following line needs to be adapted, as it changes depending on OS distributions and PHP versions
         fastcgi_pass unix:/var/run/php-fpm/www.sock;
-
         fastcgi_split_path_info ^(.+\.php)(/.*)$;
         include fastcgi_params;
-
         fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
     }
 }
@@ -281,26 +274,26 @@ EOF
         setsebool -P httpd_can_network_connect on
         setsebool -P httpd_can_network_connect_db on
         setsebool -P httpd_can_sendmail on
-        semanage fcontext -a -t httpd_sys_rw_content_t "${rep_glpi}(/.*)?" > /dev/null 2>&1
+        semanage fcontext -a -t httpd_sys_rw_content_t "${REP_GLPI}(/.*)?" > /dev/null 2>&1
         semanage fcontext -a -t httpd_sys_rw_content_t "/var/lib/glpi(/.*)?" > /dev/null 2>&1
         semanage fcontext -a -t httpd_sys_rw_content_t "/etc/glpi(/.*)?" > /dev/null 2>&1
-        restorecon -Rv ${rep_glpi} > /dev/null 2>&1
+        restorecon -Rv ${REP_GLPI} > /dev/null 2>&1
         restorecon -Rv /var/lib/glpi > /dev/null 2>&1
         restorecon -Rv /etc/glpi > /dev/null 2>&1
         sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 = on/' /etc/php.ini > /dev/null 2>&1
         # Restart de Nginx et php-fpm
-        systemctl restart nginx php-fpm > /dev/null 2>&1
+        systemctl restart nginx php-fpm
     fi
-    php ${rep_glpi}bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password=${SQLGLPIPWD} --default-language="fr_FR" --no-interaction --force --quiet
+    #php ${REP_GLPI}bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password=${SQLGLPIPWD} --default-language="fr_FR" --no-interaction --force --quiet
     sleep 5
-    rm -rf /var/www/html/glpi/install.php
+    #rm -rf /var/www/html/glpi/install.php
     sleep 5
     # Change permissions
-    chmod -R 755 /etc/glpi
-    chmod -R 755 /var/log/glpi
-    chmod -R 755 ${rep_glpi}
+    #chmod -R 755 /etc/glpi
+    #chmod -R 755 /var/log/glpi
+    #chmod -R 755 ${REP_GLPI}
     # Setup Cron task
-    echo "*/2 * * * * www-data /usr/bin/php ${rep_glpi}front/cron.php &>/dev/null" >> /etc/cron.d/glpi
+    echo "*/2 * * * * www-data /usr/bin/php ${REP_GLPI}front/cron.php &>/dev/null" >> /etc/cron.d/glpi
 }
 function maj_user_glpi(){
     info "Changement des mots de passe de GLPI..."
@@ -315,8 +308,8 @@ function maj_user_glpi(){
 }
 function display_credentials(){
         info "<==========================> Détail de l'installation de GLPI <=================================>"
-        info "GLPI Version: ${new_version}"
-        info "Répertoire d'installation de GLPI: ${rep_glpi}"
+        info "GLPI Version: ${NEW_VERSION}"
+        info "Répertoire d'installation de GLPI: ${REP_GLPI}"
         warn "Il est important d'enregistrer ces informations. Si vous les perdez, elles seront irrécupérables."
         echo ""
         info "Les comptes utilisateurs par défaut sont :"
@@ -340,8 +333,8 @@ function display_credentials(){
 function write_credentials(){
         cat <<EOF > /root/sauve_mdp.txt
         <==========================> Détail de l'installation de GLPI <=================================>
-        GLPI Version: ${new_version}
-        Répertoire d'installation de GLPI: ${rep_glpi}
+        GLPI Version: ${NEW_VERSION}
+        Répertoire d'installation de GLPI: ${REP_GLPI}
         Il est important d'enregistrer ces informations. Si vous les perdez, elles seront irrécupérables.
 
         Les comptes utilisateurs par défaut sont :
@@ -369,10 +362,10 @@ EOF
 }
 function efface_script(){
         # Vérifie si le répertoire existe
-        if [ -e "$rep_script" ]; then
+        if [ -e "$REP_SCRIPT" ]; then
                 warn "Le script est déjà présent."
                 warn "Effacement en cours"
-                rm -f "$rep_script"
+                rm -f "$REP_SCRIPT"
         fi
 }
 function install(){
@@ -401,39 +394,39 @@ function maintenance(){
 }
 function backup_glpi(){
         # Vérifie si le répertoire existe
-        if [ ! -d "$rep_backup" ]; then
+        if [ ! -d "$REP_BACKUP" ]; then
                 info "Création du  répertoire de sauvegarde avant mise à jour"
-                mkdir "$rep_backup"
+                mkdir "$REP_BACKUP"
         fi
         # Sauvergarde de la bdd
         info "Dump de la base de donnée"
         PASSWORD=$(sed -n 's/.*Mot de passe root: \([^ ]*\).*/\1/p' /root/sauve_mdp.txt)
-        mysqldump -u root -p"$PASSWORD" --databases glpi > "${rep_backup}${bdd_backup}" > /dev/null 2>&1
+        mysqldump -u root -p"$PASSWORD" --databases glpi > "${REP_BACKUP}${BDD_BACKUP}" > /dev/null 2>&1
         info "La base de donnée a été sauvergardé avec succè."
         # Sauvegarde des fichiers
         info "Sauvegarde des fichiers du sites"
-        cp -Rf ${rep_glpi} "$rep_backup"backup_glpi
+        cp -Rf ${REP_GLPI} "$REP_BACKUP"backup_glpi
         info "Les fichiers du site GLPI ont été sauvegardés avec succès."
         info "Suppression des fichiers du site"
-        rm -Rf ${rep_glpi}
+        rm -Rf ${REP_GLPI}
 }
 function update_glpi(){
         info "Remise en place des dossiers marketplace"
-        cp -Rf "$rep_backup"backup_glpi/plugins ${rep_glpi} > /dev/null 2>&1
-        cp -Rf "$rep_backup"backup_glpi/marketplace ${rep_glpi} > /dev/null 2>&1
-        cat > ${rep_glpi}inc/downstream.php << EOF
+        cp -Rf "$REP_BACKUP"backup_glpi/plugins ${REP_GLPI} > /dev/null 2>&1
+        cp -Rf "$REP_BACKUP"backup_glpi/marketplace ${REP_GLPI} > /dev/null 2>&1
+        cat > ${REP_GLPI}inc/downstream.php << EOF
         <?php
         define('GLPI_CONFIG_DIR', '/etc/glpi');
         if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
         require_once GLPI_CONFIG_DIR . '/local_define.php';
         }
 EOF
-        chown -R www-data:www-data ${rep_glpi} > /dev/null 2>&1
+        chown -R www-data:www-data ${REP_GLPI} > /dev/null 2>&1
         info "Mise à jour de la base de donnée du site"
-        php ${rep_glpi}/bin/console db:update --quiet --no-interaction --force  > /dev/null 2>&1
+        php ${REP_GLPI}/bin/console db:update --quiet --no-interaction --force  > /dev/null 2>&1
         info "Nettoyage de la mise à jour"
-        rm -Rf ${rep_glpi}install > /dev/null 2>&1
-        rm -Rf "$rep_backup"backup_glpi > /dev/null 2>&1
+        rm -Rf ${REP_GLPI}install > /dev/null 2>&1
+        rm -Rf "$REP_BACKUP"backup_glpi > /dev/null 2>&1
 }
 function update(){
         maintenance "1"
@@ -443,12 +436,12 @@ function update(){
         maintenance "0"
         efface_script
 }
-rep_script="/root/glpi-install.sh"
-rep_backup="/home/glpi_sauve/"
-export rep_glpi="/var/www/html/glpi/"
-current_date_time=$(date +"%d-%m-%Y_%H-%M-%S")
-bdd_backup="bdd_glpi-""$current_date_time"".sql"
+REP_SCRIPT="/root/glpi-install.sh"
+REP_BACKUP="/home/glpi_sauve/"
+export REP_GLPI="/var/www/html/glpi/"
+CURRENT_DATE_TIME=$(date +"%d-%m-%Y_%H-%M-%S")
+BDD_BACKUP="bdd_glpi-""$CURRENT_DATE_TIME"".sql"
 clear
 check_root
 check_distro
-check_install ${rep_glpi}
+check_install ${REP_GLPI}
