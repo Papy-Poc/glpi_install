@@ -162,7 +162,7 @@ function mariadb_configure(){
     mysql -e "GRANT ALL PRIVILEGES ON glpi.* TO 'glpi_user'@'localhost';" > /dev/null 2>&1
     # Reload privileges
     mysql -e "FLUSH PRIVILEGES;" > /dev/null 2>&1
-
+    # 
     mysql -e "GRANT SELECT ON mysql.time_zone_name TO 'glpi_user'@'localhost'" > /dev/null 2>&1
 
     # Initialize time zones datas
@@ -188,10 +188,10 @@ function install_glpi(){
 }
 function setup_db(){
     info "Configuration de GLPI..."
-    mkdir -p /var/log/glpi
+    mkdir /var/log/glpi
     exit 0
-    mv ${rep_glpi}config /etc/glpi/
-    mv ${rep_glpi}files/* /var/lib/glpi/
+    mv ${rep_glpi}config/* /etc/glpi/
+    mv ${rep_glpi}files /var/lib/glpi/
     cat > /etc/glpi/local_define.php << EOF
 <?php
     define('GLPI_VAR_DIR', '/var/lib/glpi');
