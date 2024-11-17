@@ -205,7 +205,7 @@ EOF
     }
 EOF
     mv ${rep_glpi}config /etc/glpi/
-    mv ${rep_glpi}files /var/lib/glpi/
+    mv ${rep_glpi}files/* /var/lib/glpi/
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
         chown -R www-data:www-data  /etc/glpi
         chmod -R 777 /etc/glpi
@@ -248,7 +248,7 @@ EOF
         # Restart d'apache
         systemctl restart apache2 > /dev/null 2>&1
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
-        chown -R nginx:nginx  /etc/glpi
+        chown -R nginx:nginx /etc/glpi
         chmod -R 777 /etc/glpi
         sleep 1
         chown -R nginx:nginx /var/log/glpi
