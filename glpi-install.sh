@@ -189,9 +189,9 @@ function install_glpi(){
 function setup_db(){
     info "Configuration de GLPI..."
     mkdir -p /var/log/glpi
-    mkdir -p /etc/glpi/config
-    mkdir -p /var/lib/glpi
-    cat > /etc/glpi/config/local_define.php << EOF
+    mv ${rep_glpi}config /etc/glpi/
+    mv ${rep_glpi}files/* /var/lib/glpi/
+    cat > /etc/glpi/local_define.php << EOF
 <?php
     define('GLPI_VAR_DIR', '/var/lib/glpi');
     define('GLPI_LOG_DIR', '/var/log/glpi');
@@ -199,13 +199,11 @@ EOF
     sleep 1
     cat > /var/www/html/glpi/inc/downstream.php << EOF
 <?php
-    define('GLPI_CONFIG_DIR', '/etc/glpi/config');
+    define('GLPI_CONFIG_DIR', '/etc/glpi');
     if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
         require_once GLPI_CONFIG_DIR . '/local_define.php';
     }
 EOF
-    mv ${rep_glpi}config /etc/glpi/
-    mv ${rep_glpi}files/* /var/lib/glpi/
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
         chown -R www-data:www-data  /etc/glpi
         chmod -R 777 /etc/glpi
