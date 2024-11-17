@@ -188,7 +188,9 @@ function install_glpi(){
 }
 function setup_db(){
     info "Configuration de GLPI..."
-    mkdir /etc/glpi/config
+    mkdir -p /var/log/glpi
+    mkdir -p /etc/glpi/config
+    mkdir -p /var/lib/glpi
     cat > /etc/glpi/config/local_define.php << EOF
 <?php
     define('GLPI_VAR_DIR', '/var/lib/glpi');
@@ -208,13 +210,12 @@ EOF
         chown -R www-data:www-data  /etc/glpi
         chmod -R 777 /etc/glpi
         sleep 1
-        mkdir /var/log/glpi
         chown -R www-data:www-data  /var/log/glpi
         chmod -R 755 /var/log/glpi
         sleep 1
         # Add permissions
         chown -R www-data:www-data ${rep_glpi}
-        chmod -R 755 ${rep_glpi}
+        chmod -R 777 ${rep_glpi}
         sleep 1
         # Setup vhost
          cat > /etc/apache2/sites-available/glpi.conf << EOF
@@ -250,7 +251,6 @@ EOF
         chown -R nginx:nginx  /etc/glpi
         chmod -R 777 /etc/glpi
         sleep 1
-        mkdir /var/log/glpi
         chown -R nginx:nginx /var/log/glpi
         chmod -R 777 /var/log/glpi
         sleep 1
