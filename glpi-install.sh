@@ -64,7 +64,7 @@ function check_distro(){
 function check_install(){
     # Vérifie si le répertoire existe
     if [ -d "$1" ]; then
-            output=$(php "$rep_glpi"bin/console -V 2>&1)
+            output=$(php ${rep_glpi}bin/console -V 2>&1)
             sleep 2
             glpi_cli_version=$(sed -n 's/.*GLPI CLI \([^ ]*\).*/\1/p' <<< "$output")
             warn "Le site est déjà installé. Version ""$glpi_cli_version"
@@ -117,10 +117,10 @@ function network_info(){
 function install_packages(){
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
         sleep 1
+        info "Installation des extensions de php"
+        apt install -y --no-install-recommends php-{mysql,mbstring,curl,gd,xml,intl,ldap,apcu,xmlrpc,zip,bz2,intl} > /dev/null 2>&1
         info "Installation des service lamp..."
         apt-get install -y --no-install-recommends apache2 mariadb-server perl curl jq php > /dev/null 2>&1
-        info "Installation des extensions de php"
-        apt install -y --no-install-recommends php-mysql php-mbstring php-curl php-gd php-xml php-intl php-ldap php-apcu php-xmlrpc php-zip php-bz2 php-intl > /dev/null 2>&1
         info "Activation de MariaDB"
         systemctl enable mariadb > /dev/null 2>&1
         info "Activation d'Apache"
@@ -161,6 +161,8 @@ function mariadb_configure(){
     # Reload privileges
     mysql -e "FLUSH PRIVILEGES;" > /dev/null 2>&1
 
+    mysql -e "GRANT SELECT ON mysql.time_zone_name TO 'glpi_user'@'localhost'" > /dev/null 2>&1
+
     # Initialize time zones datas
     info "Configuration de TimeZone"
     mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root -p"$SLQROOTPWD" mysql > /dev/null 2>&1
@@ -168,18 +170,14 @@ function mariadb_configure(){
     echo "Europe/Paris" | dpkg-reconfigure -f noninteractive tzdata > /dev/null 2>&1
     systemctl restart mariadb
     sleep 1
-    mysql -e "GRANT SELECT ON mysql.time_zone_name TO 'glpi_user'@'localhost'" > /dev/null 2>&1
 }
 function install_glpi(){
-    info "Téléchargement et installation de la dernière version de GLPI..."
     new_version=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.name')
-    info "GLPI version $new_version"
+    info "Téléchargement et installation de la version ${new_version} de GLPI..."
     # Get download link for the latest release
     DOWNLOADLINK=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.assets[0].browser_download_url')
     wget -O /tmp/glpi-latest.tgz "$DOWNLOADLINK" > /dev/null 2>&1
     tar xzf /tmp/glpi-latest.tgz -C /var/www/html/
-    chown -R www-data:www-data "$rep_glpi"
-    chmod -R 755 "$rep_glpi"
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
         systemctl restart apache2
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
@@ -190,20 +188,20 @@ function setup_db(){
     info "Configuration de GLPI..."
     mkdir /etc/glpi
     cat > /etc/glpi/local_define.php << EOF
-    <?php
+<?php
     define('GLPI_VAR_DIR', '/var/lib/glpi');
     define('GLPI_LOG_DIR', '/var/log/glpi');
 EOF
     sleep 1
     cat > /var/www/html/glpi/inc/downstream.php << EOF
-    <?php
+<?php
     define('GLPI_CONFIG_DIR', '/etc/glpi');
     if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
-    require_once GLPI_CONFIG_DIR . '/local_define.php';
+        require_once GLPI_CONFIG_DIR . '/local_define.php';
     }
 EOF
-    mv "$rep_glpi"config/*.* /etc/glpi/
-    mv "$rep_glpi"files /var/lib/glpi/
+    mv ${rep_glpi}config/*.* /etc/glpi/
+    mv ${rep_glpi}files /var/lib/glpi/
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
         chown -R www-data:www-data  /etc/glpi
         chmod -R 775 /etc/glpi
@@ -213,8 +211,8 @@ EOF
         chmod -R 775 /var/log/glpi
         sleep 1
         # Add permissions
-        chown -R www-data:www-data "$rep_glpi"
-        chmod -R 775 "$rep_glpi"
+        chown -R www-data:www-data ${rep_glpi}
+        chmod -R 775 ${rep_glpi}
         sleep 1
         # Setup vhost
          cat > /etc/apache2/sites-available/glpi.conf << EOF
@@ -255,8 +253,8 @@ EOF
         chmod -R 775 /var/log/glpi
         sleep 1
         # Add permissions
-        chown -R nginx:nginx "$rep_glpi"
-        chmod -R 775 "$rep_glpi"
+        chown -R nginx:nginx ${rep_glpi}
+        chmod -R 775 ${rep_glpi}
         sleep 1
         mv /etc/nginx/nginx.conf /etc/nginx.conf.bak
         cat > /etc/nginx/conf.d/glpi.conf << EOF
@@ -291,7 +289,7 @@ EOF
         # Restart de Nginx
         systemctl restart nginx > /dev/null 2>&1
     fi
-    php "$rep_glpi"bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
+    php ${rep_glpi}bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
     rm -rf /var/www/html/glpi/install
     # Setup Cron task
     echo "*/2 * * * * www-data /usr/bin/php '$rep_glpi'front/cron.php &>/dev/null" >> /etc/cron.d/glpi
@@ -401,27 +399,27 @@ function backup_glpi(){
         info "La base de donnée a été sauvergardé avec succè."
         # Sauvegarde des fichiers
         info "Sauvegarde des fichiers du sites"
-        cp -Rf "$rep_glpi" "$rep_backup"backup_glpi
+        cp -Rf ${rep_glpi} "$rep_backup"backup_glpi
         info "Les fichiers du site GLPI ont été sauvegardés avec succès."
         info "Suppression des fichiers du site"
-        rm -Rf "$rep_glpi"
+        rm -Rf ${rep_glpi}
 }
 function update_glpi(){
         info "Remise en place des dossiers marketplace"
-        cp -Rf "$rep_backup"backup_glpi/plugins "$rep_glpi" > /dev/null 2>&1
-        cp -Rf "$rep_backup"backup_glpi/marketplace "$rep_glpi" > /dev/null 2>&1
-        cat > "$rep_glpi"inc/downstream.php << EOF
+        cp -Rf "$rep_backup"backup_glpi/plugins ${rep_glpi} > /dev/null 2>&1
+        cp -Rf "$rep_backup"backup_glpi/marketplace ${rep_glpi} > /dev/null 2>&1
+        cat > ${rep_glpi}inc/downstream.php << EOF
         <?php
         define('GLPI_CONFIG_DIR', '/etc/glpi');
         if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
         require_once GLPI_CONFIG_DIR . '/local_define.php';
         }
 EOF
-        chown -R www-data:www-data "$rep_glpi" > /dev/null 2>&1
+        chown -R www-data:www-data ${rep_glpi} > /dev/null 2>&1
         info "Mise à jour de la base de donnée du site"
-        php "$rep_glpi"/bin/console db:update --quiet --no-interaction --force  > /dev/null 2>&1
+        php ${rep_glpi}/bin/console db:update --quiet --no-interaction --force  > /dev/null 2>&1
         info "Nettoyage de la mise à jour"
-        rm -Rf "$rep_glpi"install > /dev/null 2>&1
+        rm -Rf ${rep_glpi}install > /dev/null 2>&1
         rm -Rf "$rep_backup"backup_glpi > /dev/null 2>&1
 }
 function update(){
@@ -440,4 +438,4 @@ bdd_backup="bdd_glpi-""$current_date_time"".sql"
 clear
 check_root
 check_distro
-check_install "$rep_glpi"
+check_install ${rep_glpi}
