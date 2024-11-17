@@ -140,31 +140,27 @@ function install_packages(){
         systemctl restart apache2 > /dev/null 2>&1
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
         info "Ajout et activation du repositorie php:remi-8.3"
-        dnf install -y https://rpms.remirepo.net/enterprise/remi-release-9.rpm > /dev/null 2>&1
-        dnf module enable php:remi-8.3 -y > /dev/null 2>&1
+        #dnf install -y https://rpms.remirepo.net/enterprise/remi-release-9.rpm > /dev/null 2>&1
+        #dnf module enable php:remi-8.3 -y > /dev/null 2>&1
+        dnf module reset -y  php
+        dnf module install -y  php:8.2
         sleep 1
+        info "Installation des extensions de PHP"
+        # Modification du package "php-mysql" en "php-mysqlnd"
+        dnf install -y php-{mysqlnd,gd,intl,ldap,apcu,opcache,zip,xml} > /dev/null 2>&1
         info "Installation des services LEMP..."
         # Modification du package "php" en "php-fpm"
         dnf install -y nginx mariadb-server perl curl jq php-fpm epel-release php > /dev/null 2>&1
-        info "Installation des extensions de PHP"
-        # Modification du package "php-mysql" en "php-mysqlnd"
-        dnf install -y php-mysqlnd php-mbstring php-curl php-gd php-xml php-intl php-ldap php-apcu php-zip php-bz2 php-intl > /dev/null 2>&1
         info "Ouverture des ports 80 et 443 sur le parefeu"
         # Ouverture des ports 80 et 443 dans le firewall des distro RedHat
         firewall-cmd --permanent --zone=public --add-service=http > /dev/null 2>&1
-        firewall-cmd --permanent --zone=public --add-service=https > /dev/null 2>&1
         firewall-cmd --reload > /dev/null 2>&1
         # Modifcation du fichier PHP-FPM pour Nginx,remplacement de Apache par Nginx
         sed -i 's/user = apache/user = nginx/g' /etc/php-fpm.d/www.conf > /dev/null 2>&1
         sed -i 's/group = apache/group = nginx/g' /etc/php-fpm.d/www.conf > /dev/null 2>&1
         info "Activation et démarrage des service LEMP"
         # Démarrage des services MariaDB, Nginx et Php-Fpm
-        info "Activation et démarrage de MariaDB"
-        systemctl enable --now mariadb > /dev/null 2>&1
-        info "Activation et démarrage d'(e)Nginx"
-        systemctl enable --now nginx > /dev/null 2>&1
-        info "Activation et démarrage de Php-Fpm"
-        systemctl enable --now php-fpm > /dev/null 2>&1
+        systemctl enable --now mariadb nginx php-fpm > /dev/null 2>&1
     fi
 }
 function network_info(){
@@ -224,19 +220,13 @@ function install_glpi(){
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
         chown -R www-data:www-data "$rep_glpi"
         chmod -R 755 "$rep_glpi"
-        systemctl restart apache2
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
         chown -R nginx:nginx "$rep_glpi"
         chmod -R 755 "$rep_glpi"
-        systemctl restart nginx
     fi
 }
 function setup_db(){
     info "Configuration de GLPI..."
-    php ${rep_glpi}bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="${SQLGLPIPWD}" --default-language="fr_FR" --no-interaction --force --quiet
-    rm -f ${rep_glpi}install/install.php
-    exit 1
-    sleep 5
     mkdir -p /etc/glpi
     mkdir -p /var/log/glpi
     mkdir -p /var/lib/glpi/
@@ -357,7 +347,7 @@ EOF
         #sed -i 's/^\(;\?\)\(SELINUX\).*/\2 = disabled/' /etc/selinux/config
         #setenforce 0
         # Ouverture page
-        php ${rep_glpi}public/index.php > /dev/null 2>&1
+        #php ${rep_glpi}public/index.php > /dev/null 2>&1
         # Configuration SELinux
         # semanage boolean -l | grep 'httpd'
         sleep 1
@@ -368,7 +358,6 @@ EOF
         setsebool -P httpd_can_network_connect_db on
         setsebool -P httpd_can_sendmail on
         setsebool -P httpd_can_connect_ldap on
-        setsebool -P httpd_read_user_content on
         semanage fcontext -a -t httpd_sys_content_t "/etc/glpi/config(/.*)?" 
         semanage fcontext -a -t httpd_sys_rw_content_t "/var/lib/glpi(/.*)?" > /dev/null 2>&1
         semanage fcontext -a -t httpd_sys_rw_content_t "/var/lib/glpi/files(/.*)?" > /dev/null 2>&1
@@ -386,6 +375,9 @@ EOF
         # Setup Cron task
         echo "*/2 * * * * nginx /usr/bin/php '${rep_glpi}front/cron.php' &>/dev/null" | tee /etc/cron.d/glpi > /dev/null
     fi
+    php ${rep_glpi}bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="${SQLGLPIPWD}" --default-language="fr_FR" --no-interaction --force --quiet
+    rm -f ${rep_glpi}install/install.php
+    php ${rep_glpi}bin/console
 }
 function maj_user_glpi(){
         # Changer le mot de passe de l'admin glpi 
