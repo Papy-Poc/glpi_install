@@ -189,6 +189,7 @@ function install_glpi(){
 function setup_db(){
     info "Configuration de GLPI..."
     mkdir -p /var/log/glpi
+    exit 0
     mv ${rep_glpi}config /etc/glpi/
     mv ${rep_glpi}files/* /var/lib/glpi/
     cat > /etc/glpi/local_define.php << EOF
