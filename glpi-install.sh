@@ -284,7 +284,7 @@ EOF
         # Restart de Nginx et php-fpm
         systemctl restart nginx php-fpm
     fi
-    php ${REP_GLPI}bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
+    php ${REP_GLPI}bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
     sleep 5
     rm -rf /var/www/html/glpi/install/install.php
     sleep 5
