@@ -180,16 +180,11 @@ function install_glpi(){
     DOWNLOADLINK=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.assets[0].browser_download_url')
     wget -O /tmp/glpi-latest.tgz "$DOWNLOADLINK" > /dev/null 2>&1
     tar xzf /tmp/glpi-latest.tgz -C /var/www/html/
-    if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
-        systemctl restart apache2
-    elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
-        systemctl restart nginx
-    fi
 }
 function setup_db(){
     info "Configuration de GLPI..."
     mkdir /var/log/glpi
-    exit 0
+    mkdir /etc/glpi
     mv ${rep_glpi}config/* /etc/glpi/
     mv ${rep_glpi}files /var/lib/glpi/
     cat > /etc/glpi/local_define.php << EOF
@@ -298,8 +293,13 @@ EOF
         # Restart de Nginx et php-fpm
         systemctl restart nginx php-fpm > /dev/null 2>&1
     fi
-    #php ${rep_glpi}bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
-    #rm -rf /var/www/html/glpi/install.php
+    php ${rep_glpi}bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
+    rm -rf /var/www/html/glpi/install.php
+    # Change permissions
+    chmod -R 755 /etc/glpi
+    chmod -R 755 /var/log/glpi
+    chmod -R 755 ${rep_glpi}
+    sleep 1
     # Setup Cron task
     echo "*/2 * * * * www-data /usr/bin/php '$rep_glpi'front/cron.php &>/dev/null" >> /etc/cron.d/glpi
 }
