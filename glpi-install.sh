@@ -134,7 +134,7 @@ function install_packages(){
         info "Installation des service lamp..."
         dnf install -y nginx mariadb-server perl curl jq php epel-release > /dev/null 2>&1
         info "Activation et démarrage de MariaDB et d'Nginx"
-        systemctl enable mariadb --now mariadb nginx  > /dev/null 2>&1
+        systemctl enable mariadb --now mariadb nginx php-fpm > /dev/null 2>&1
         firewall-cmd --permanent --zone=public --add-service=http > /dev/null 2>&1
         firewall-cmd --reload > /dev/null 2>&1
     fi
@@ -289,11 +289,11 @@ EOF
         restorecon -Rv ${rep_glpi}
         restorecon -Rv /usr/lib/glpi
         restorecon -Rv /etc/glpi
-        # Restart de Nginx
-        systemctl restart nginx > /dev/null 2>&1
+        # Restart de Nginx et php-fpm
+        systemctl restart nginx php-fpm > /dev/null 2>&1
     fi
-    php ${rep_glpi}bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
-    rm -rf /var/www/html/glpi/install
+    #php ${rep_glpi}bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
+    #rm -rf /var/www/html/glpi/install.php
     # Setup Cron task
     echo "*/2 * * * * www-data /usr/bin/php '$rep_glpi'front/cron.php &>/dev/null" >> /etc/cron.d/glpi
 }
