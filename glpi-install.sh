@@ -132,7 +132,7 @@ function install_packages(){
         dnf module reset -y  php
         dnf module install -y  php:8.2
         info "Installation des extensions de php"
-        dnf install -y php-{api,zend-abi,mysqlnd,gd,intl,ldap,apcu,opcache,sodium,zip,xml} > /dev/null 2>&1
+        dnf install -y php-{mysqli,mysqlnd,gd,intl,ldap,apcu,opcache,zip,xml} > /dev/null 2>&1
         info "Installation des service lamp..."
         dnf install -y nginx mariadb-server perl curl jq php epel-release > /dev/null 2>&1
         info "Activation et démarrage de MariaDB, d'ENGINE X et de PHP-FPM"
@@ -189,7 +189,7 @@ function install_glpi(){
 function setup_db(){
     info "Configuration de GLPI..."
     mkdir /etc/glpi
-    cat > /etc/glpi/local_define.php << EOF
+    cat > /etc/glpi/config/local_define.php << EOF
 <?php
     define('GLPI_VAR_DIR', '/var/lib/glpi');
     define('GLPI_LOG_DIR', '/var/log/glpi');
@@ -206,7 +206,7 @@ EOF
     mv ${rep_glpi}files /var/lib/glpi/
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
         chown -R www-data:www-data  /etc/glpi
-        chmod -R 755 /etc/glpi
+        chmod -R 777 /etc/glpi
         sleep 1
         mkdir /var/log/glpi
         chown -R www-data:www-data  /var/log/glpi
@@ -254,6 +254,8 @@ EOF
         chown -R nginx:nginx /var/log/glpi
         chmod -R 777 /var/log/glpi
         sleep 1
+        chown -R nginx:nginx /var/lib/glpi
+        chmod -R 777 /var/lib/glpi
         # Add permissions
         chown -R nginx:nginx ${rep_glpi}
         chmod -R 777 ${rep_glpi}
