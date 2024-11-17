@@ -102,7 +102,7 @@ function update_distro(){
         apt-get update > /dev/null 2>&1
         info "Application des mise à jour"
         apt-get upgrade -y > /dev/null 2>&1
-    elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]
+    elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
         info "Recherche des mise à jour"
         dnf update > /dev/null 2>&1
         info "Application des mise à jour"
@@ -127,7 +127,7 @@ function install_packages(){
         systemctl enable apache2 > /dev/null 2>&1
         info "Redémarage d'Apache"
         systemctl restart apache2 > /dev/null 2>&1
-    elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]
+    elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
         sleep 1
         info "Installation des extensions de php"
         dnf install -y php-{mysqlnd,gd,intl,ldap,apcu,opcache,zip,xml} > /dev/null 2>&1
@@ -182,7 +182,7 @@ function install_glpi(){
     chmod -R 755 "$rep_glpi"
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
         systemctl restart apache2
-    elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]
+    elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
         systemctl restart nginx
     fi
 }
@@ -246,7 +246,7 @@ EOF
         a2ensite glpi.conf > /dev/null 2>&1
         # Restart d'apache
         systemctl restart apache2 > /dev/null 2>&1
-    elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]
+    elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
         chown -R nginx:nginx  /etc/glpi
         chmod -R 775 /etc/glpi
         sleep 1
@@ -269,7 +269,7 @@ server {
     #    root   /usr/share/nginx/html;
     #    root   /var/www/glpi/public;
     #    index  index.html index.htm;
-         try_files $uri /index.php$is_args$args;
+         try_files \$uri /index.php\$is_args\$args;
     }
 
     location ~ ^/index.php$ {
@@ -277,7 +277,7 @@ server {
         fastcgi_pass unix:/var/run/php-fpm/www.sock;
         fastcgi_split_path_info ^(.+\.php)(/.*)$;
         include fastcgi_params;
-        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
     }
     #error_page  404              /404.html;
     # redirect server error pages to the static page /50x.html
