@@ -293,13 +293,12 @@ EOF
         # Restart de Nginx et php-fpm
         systemctl restart nginx php-fpm > /dev/null 2>&1
     fi
-    php ${rep_glpi}bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
-    rm -rf /var/www/html/glpi/install.php
+    #php ${rep_glpi}bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
+    #rm -rf /var/www/html/glpi/install.php
     # Change permissions
-    chmod -R 755 /etc/glpi
-    chmod -R 755 /var/log/glpi
-    chmod -R 755 ${rep_glpi}
-    sleep 1
+    #chmod -R 755 /etc/glpi
+    #chmod -R 755 /var/log/glpi
+    #chmod -R 755 ${rep_glpi}
     # Setup Cron task
     echo "*/2 * * * * www-data /usr/bin/php '$rep_glpi'front/cron.php &>/dev/null" >> /etc/cron.d/glpi
 }
