@@ -258,33 +258,37 @@ EOF
         sleep 1
         cat > /etc/nginx/conf.d/glpi.conf << EOF
 server {
-    listen       80;
-    server_name  glpi.localhost;
-    root   /var/www/glpi/public;
-    #access_log  /var/log/nginx/host.access.log  main;
+    listen 80;
+    listen [::]:80;
+
+    server_name glpi.localhost;
+
+    root /var/www/glpi/public;
+
     location / {
-    #    root   /usr/share/nginx/html;
-    #    root   /var/www/glpi/public;
-    #    index  index.html index.htm;
-         try_files \$uri /index.php\$is_args\$args;
+        try_files \$uri /index.php\$is_args\$args;
     }
 
-    location ~ ^/index.php$ {
+    location ~ ^/index\.php$ {
         # the following line needs to be adapted, as it changes depending on OS distributions and PHP versions
         fastcgi_pass unix:/var/run/php-fpm/www.sock;
+
         fastcgi_split_path_info ^(.+\.php)(/.*)$;
         include fastcgi_params;
+
         fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
-    }
-    #error_page  404              /404.html;
-    # redirect server error pages to the static page /50x.html
-    #
-    error_page   500 502 503 504  /50x.html;
-    location = /50x.html {
-        root   /usr/share/nginx/html;
     }
 }
 EOF
+        setsebool -P httpd_can_network_connect on
+        setsebool -P httpd_can_network_connect_db on
+        setsebool -P httpd_can_sendmail on
+        semanage fcontext -a -t httpd_sys_rw_content_t "${rep_glpi}(/.*)?"
+        semanage fcontext -a -t httpd_sys_rw_content_t "/usr/lib/glpi(/.*)?"
+        semanage fcontext -a -t httpd_sys_rw_content_t "/etc/glpi(/.*)?"
+        restorecon -Rv ${rep_glpi}
+        restorecon -Rv /usr/lib/glpi
+        restorecon -Rv /etc/glpi
         # Restart de Nginx
         systemctl restart nginx > /dev/null 2>&1
     fi
