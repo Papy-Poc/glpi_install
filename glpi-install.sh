@@ -288,9 +288,21 @@ EOF
     sleep 5
     rm -rf /var/www/html/glpi/install/install.php
     sleep 5
+    setsebool -P httpd_can_network_connect on
+    setsebool -P httpd_can_network_connect_db on
+    setsebool -P httpd_can_sendmail on
+    semanage fcontext -a -t httpd_sys_rw_content_t "${REP_GLPI}(/.*)?" > /dev/null 2>&1
+    semanage fcontext -a -t httpd_sys_rw_content_t "/var/lib/glpi(/.*)?" > /dev/null 2>&1
+    semanage fcontext -a -t httpd_sys_rw_content_t "/etc/glpi(/.*)?" > /dev/null 2>&1
+    restorecon -Rv ${REP_GLPI} > /dev/null 2>&1
+    restorecon -Rv /var/lib/glpi > /dev/null 2>&1
+    restorecon -Rv /etc/glpi > /dev/null 2>&1
     # Change permissions
+    chown -R nginx:nginx /etc/glpi
     chmod -R 755 /etc/glpi
-    chmod -R 755 /var/log/glpi
+    chown -R nginx:nginx /var/log/glpi
+    chmod -R 777 /var/log/glpi
+    chown -R nginx:nginx ${REP_GLPI}
     chmod -R 755 ${REP_GLPI}
     # Setup Cron task
     echo "*/2 * * * * www-data /usr/bin/php ${REP_GLPI}front/cron.php &>/dev/null" >> /etc/cron.d/glpi
