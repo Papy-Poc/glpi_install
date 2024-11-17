@@ -129,8 +129,8 @@ function install_packages(){
         systemctl restart apache2 > /dev/null 2>&1
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
         sleep 1
-        dnf module reset -y  php
-        dnf module install -y  php:8.2
+        dnf module reset -y php > /dev/null 2>&1
+        dnf module install -y php:8.2 > /dev/null 2>&1
         info "Installation des extensions de php"
         dnf install -y php-{mysqli,mysqlnd,gd,intl,ldap,apcu,opcache,zip,xml} > /dev/null 2>&1
         info "Installation des service lamp..."
@@ -188,7 +188,7 @@ function install_glpi(){
 }
 function setup_db(){
     info "Configuration de GLPI..."
-    mkdir /etc/glpi
+    mkdir /etc/glpi/config
     cat > /etc/glpi/config/local_define.php << EOF
 <?php
     define('GLPI_VAR_DIR', '/var/lib/glpi');
@@ -288,10 +288,12 @@ EOF
         setsebool -P httpd_can_network_connect_db on
         setsebool -P httpd_can_sendmail on
         semanage fcontext -a -t httpd_sys_rw_content_t "${rep_glpi}(/.*)?"
-        semanage fcontext -a -t httpd_sys_rw_content_t "/usr/lib/glpi(/.*)?"
+        semanage fcontext -a -t httpd_sys_rw_content_t "${rep_glpi}marketplace(/.*)?"
+        semanage fcontext -a -t httpd_sys_rw_content_t "/var/lib/glpi(/.*)?"
         semanage fcontext -a -t httpd_sys_rw_content_t "/etc/glpi(/.*)?"
         restorecon -Rv ${rep_glpi}
-        restorecon -Rv /usr/lib/glpi
+        restorecon -Rv ${rep_glpi}marketplace
+        restorecon -Rv /var/lib/glpi
         restorecon -Rv /etc/glpi
         sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 = on/' /etc/php.ini
         # Restart de Nginx et php-fpm
