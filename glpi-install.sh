@@ -144,12 +144,12 @@ function install_packages(){
 function mariadb_configure(){
     info "Configuration de MariaDB"
     sleep 1
-    SLQROOTPWD=$(openssl rand -base64 48 | cut -c1-12 )
-    SQLGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
-    ADMINGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
-    POSTGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
-    TECHGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
-    NORMGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
+    export SLQROOTPWD=$(openssl rand -base64 48 | cut -c1-12 )
+    export SQLGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
+    export ADMINGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
+    export POSTGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
+    export TECHGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
+    export NORMGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 )
     systemctl start mariadb > /dev/null 2>&1
     (echo ""; echo "y"; echo "y"; echo "$SLQROOTPWD"; echo "$SLQROOTPWD"; echo "y"; echo "y"; echo "y"; echo "y") | mysql_secure_installation > /dev/null 2>&1
     sleep 1
@@ -185,7 +185,7 @@ function setup_db(){
     info "Configuration de GLPI..."
     mkdir /var/log/glpi
     mkdir /etc/glpi
-    mv ${rep_glpi}config/* /etc/glpi/
+    #mv ${rep_glpi}config/* /etc/glpi/
     mv ${rep_glpi}files /var/lib/glpi/
     cat > /etc/glpi/local_define.php << EOF
 <?php
@@ -281,36 +281,37 @@ EOF
         setsebool -P httpd_can_network_connect on
         setsebool -P httpd_can_network_connect_db on
         setsebool -P httpd_can_sendmail on
-        semanage fcontext -a -t httpd_sys_rw_content_t "${rep_glpi}(/.*)?"
-        semanage fcontext -a -t httpd_sys_rw_content_t "${rep_glpi}marketplace(/.*)?"
-        semanage fcontext -a -t httpd_sys_rw_content_t "/var/lib/glpi(/.*)?"
-        semanage fcontext -a -t httpd_sys_rw_content_t "/etc/glpi(/.*)?"
-        restorecon -Rv ${rep_glpi}
-        restorecon -Rv ${rep_glpi}marketplace
-        restorecon -Rv /var/lib/glpi
-        restorecon -Rv /etc/glpi
-        sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 = on/' /etc/php.ini
+        semanage fcontext -a -t httpd_sys_rw_content_t "${rep_glpi}(/.*)?" > /dev/null 2>&1
+        semanage fcontext -a -t httpd_sys_rw_content_t "/var/lib/glpi(/.*)?" > /dev/null 2>&1
+        semanage fcontext -a -t httpd_sys_rw_content_t "/etc/glpi(/.*)?" > /dev/null 2>&1
+        restorecon -Rv ${rep_glpi} > /dev/null 2>&1
+        restorecon -Rv /var/lib/glpi > /dev/null 2>&1
+        restorecon -Rv /etc/glpi > /dev/null 2>&1
+        sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 = on/' /etc/php.ini > /dev/null 2>&1
         # Restart de Nginx et php-fpm
         systemctl restart nginx php-fpm > /dev/null 2>&1
     fi
-    #php ${rep_glpi}bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
-    #rm -rf /var/www/html/glpi/install.php
+    php ${rep_glpi}bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
+    sleep 5
+    rm -rf /var/www/html/glpi/install.php
+    sleep 5
     # Change permissions
-    #chmod -R 755 /etc/glpi
-    #chmod -R 755 /var/log/glpi
-    #chmod -R 755 ${rep_glpi}
+    chmod -R 755 /etc/glpi
+    chmod -R 755 /var/log/glpi
+    chmod -R 755 ${rep_glpi}
     # Setup Cron task
     echo "*/2 * * * * www-data /usr/bin/php '$rep_glpi'front/cron.php &>/dev/null" >> /etc/cron.d/glpi
 }
 function maj_user_glpi(){
-        # Changer le mot de passe de l'admin glpi 
-        mysql -u glpi_user -p"$SQLGLPIPWD" -e "USE glpi; UPDATE glpi_users SET password = MD5('$ADMINGLPIPWD') WHERE name = 'glpi';" > /dev/null 2>&1
-        # Changer le mot de passe de l'utilisateur post-only
-        mysql -u glpi_user -p"$SQLGLPIPWD" -e "USE glpi; UPDATE glpi_users SET password = MD5('$POSTGLPIPWD') WHERE name = 'post-only';" > /dev/null 2>&1
-        # Changer le mot de passe de l'utilisateur tech
-        mysql -u glpi_user -p"$SQLGLPIPWD" -e "USE glpi; UPDATE glpi_users SET password = MD5('$TECHGLPIPWD') WHERE name = 'tech';" > /dev/null 2>&1
-        # Changer le mot de passe de l'utilisateur normal
-        mysql -u glpi_user -p"$SQLGLPIPWD" -e "USE glpi; UPDATE glpi_users SET password = MD5('$NORMGLPIPWD') WHERE name = 'normal';" > /dev/null 2>&1
+    info "Changement des mots de passe de GLPI..."
+    # Changer le mot de passe de l'admin glpi 
+    mysql -u glpi_user -p"$SQLGLPIPWD" -e "USE glpi; UPDATE glpi_users SET password = MD5('$ADMINGLPIPWD') WHERE name = 'glpi';"
+    # Changer le mot de passe de l'utilisateur post-only
+    mysql -u glpi_user -p"$SQLGLPIPWD" -e "USE glpi; UPDATE glpi_users SET password = MD5('$POSTGLPIPWD') WHERE name = 'post-only';"
+    # Changer le mot de passe de l'utilisateur tech
+    mysql -u glpi_user -p"$SQLGLPIPWD" -e "USE glpi; UPDATE glpi_users SET password = MD5('$TECHGLPIPWD') WHERE name = 'tech';"
+    # Changer le mot de passe de l'utilisateur normal
+    mysql -u glpi_user -p"$SQLGLPIPWD" -e "USE glpi; UPDATE glpi_users SET password = MD5('$NORMGLPIPWD') WHERE name = 'normal';"
 }
 function display_credentials(){
         info "===========================> Détail de l'installation de GLPI <=================================="
@@ -440,7 +441,7 @@ function update(){
 }
 rep_script="/root/glpi-install.sh"
 rep_backup="/home/glpi_sauve/"
-rep_glpi="/var/www/html/glpi/"
+export rep_glpi="/var/www/html/glpi/"
 current_date_time=$(date +"%d-%m-%Y_%H-%M-%S")
 bdd_backup="bdd_glpi-""$current_date_time"".sql"
 clear
