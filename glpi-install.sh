@@ -195,24 +195,24 @@ EOF
     sleep 1
     cat > /var/www/html/glpi/inc/downstream.php << EOF
 <?php
-    define('GLPI_CONFIG_DIR', '/etc/glpi');
+    define('GLPI_CONFIG_DIR', '/etc/glpi/config');
     if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
         require_once GLPI_CONFIG_DIR . '/local_define.php';
     }
 EOF
-    mv ${rep_glpi}config/* /etc/glpi/
+    mv ${rep_glpi}config /etc/glpi/
     mv ${rep_glpi}files /var/lib/glpi/
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
         chown -R www-data:www-data  /etc/glpi
-        chmod -R 775 /etc/glpi
+        chmod -R 755 /etc/glpi
         sleep 1
         mkdir /var/log/glpi
         chown -R www-data:www-data  /var/log/glpi
-        chmod -R 775 /var/log/glpi
+        chmod -R 755 /var/log/glpi
         sleep 1
         # Add permissions
         chown -R www-data:www-data ${rep_glpi}
-        chmod -R 775 ${rep_glpi}
+        chmod -R 755 ${rep_glpi}
         sleep 1
         # Setup vhost
          cat > /etc/apache2/sites-available/glpi.conf << EOF
@@ -246,17 +246,16 @@ EOF
         systemctl restart apache2 > /dev/null 2>&1
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
         chown -R nginx:nginx  /etc/glpi
-        chmod -R 775 /etc/glpi
+        chmod -R 755 /etc/glpi
         sleep 1
         mkdir /var/log/glpi
         chown -R nginx:nginx  /var/log/glpi
-        chmod -R 775 /var/log/glpi
+        chmod -R 755 /var/log/glpi
         sleep 1
         # Add permissions
         chown -R nginx:nginx ${rep_glpi}
-        chmod -R 775 ${rep_glpi}
+        chmod -R 755 ${rep_glpi}
         sleep 1
-        mv /etc/nginx/nginx.conf /etc/nginx.conf.bak
         cat > /etc/nginx/conf.d/glpi.conf << EOF
 server {
     listen       80;
