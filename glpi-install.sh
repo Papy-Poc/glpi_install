@@ -200,7 +200,7 @@ EOF
         require_once GLPI_CONFIG_DIR . '/local_define.php';
     }
 EOF
-    mv ${rep_glpi}config/*.* /etc/glpi/
+    mv ${rep_glpi}config/* /etc/glpi/
     mv ${rep_glpi}files /var/lib/glpi/
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
         chown -R www-data:www-data  /etc/glpi
