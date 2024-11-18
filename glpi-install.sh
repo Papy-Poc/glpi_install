@@ -307,7 +307,7 @@ EOF
         systemctl restart php-fpm nginx
     fi
     #sudo -u nginx php ${REP_GLPI}bin/console db:configure -h="localhost" -P=3306 -d=glpi -u=glpi_user -p="$SQLGLPIPWD" -q -n 
-    sudo -u nginx php ${REP_GLPI}bin/console db:install --db-host="localhost" --db-port=3306 --db-name=glpi --db-user=glpi_user --db-password="${SQLGLPIPWD}" --default-language="fr_FR" --force --no-telemetry --quiet --no-interaction 
+    #sudo -u nginx php ${REP_GLPI}bin/console db:install --db-host="localhost" --db-port=3306 --db-name=glpi --db-user=glpi_user --db-password="${SQLGLPIPWD}" --default-language="fr_FR" --force --no-telemetry --quiet --no-interaction 
     sleep 5
     rm -rf /var/www/html/glpi/install/install.php
     sleep 5
