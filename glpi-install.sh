@@ -291,18 +291,27 @@ server {
     }
 }
 EOF
-        setenforce 0
+        setsebool -P httpd_can_network_connect on
+        setsebool -P httpd_can_network_connect_db on
+        setsebool -P httpd_can_sendmail on
+        semanage fcontext -a -t httpd_sys_rw_content_t "${REP_GLPI}(/.*)?" > /dev/null 2>&1
+        semanage fcontext -a -t httpd_sys_rw_content_t "/var/lib/glpi(/.*)?" > /dev/null 2>&1
+        semanage fcontext -a -t httpd_sys_rw_content_t "/var/log/glpi(/.*)?" > /dev/null 2>&1
+        semanage fcontext -a -t httpd_sys_rw_content_t "/etc/glpi(/.*)?" > /dev/null 2>&1
+        restorecon -Rv ${REP_GLPI} > /dev/null 2>&1
+        restorecon -Rv /var/lib/glpi > /dev/null 2>&1
+        restorecon -Rv /var/log/glpi > /dev/null 2>&1
+        restorecon -Rv /etc/glpi > /dev/null 2>&1
         sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 = on/' /etc/php.ini > /dev/null 2>&1
         # Restart de Nginx et php-fpm
         systemctl restart php-fpm nginx
     fi
-    sudo -u nginx php /var/www/html/glpi/bin/console db:configure -h="localhost" -P=3306 -d=glpi -u=glpi_user -p="$SQLGLPIPWD" -q -n 
-    #sudo -u nginx php /var/www/html/glpi/bin/console db:install --db-host="localhost" --db-port=3306 --db-name=glpi --db-user=glpi_user --db-password="$SQLGLPIPWD" --default-language="fr_FR" --force --no-telemetry --quiet --no-interaction 
+    #sudo -u nginx php ${REP_GLPI}bin/console db:configure -h="localhost" -P=3306 -d=glpi -u=glpi_user -p="$SQLGLPIPWD" -q -n 
+    sudo -u nginx php ${REP_GLPI}bin/console db:install --db-host="localhost" --db-port=3306 --db-name=glpi --db-user=glpi_user --db-password="${SQLGLPIPWD}" --default-language="fr_FR" --force --no-telemetry --quiet --no-interaction 
     sleep 5
     rm -rf /var/www/html/glpi/install/install.php
     sleep 5
     if [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
-        setenforce 1
         setsebool -P httpd_can_network_connect on
         setsebool -P httpd_can_network_connect_db on
         setsebool -P httpd_can_sendmail on
