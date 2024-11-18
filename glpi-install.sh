@@ -98,15 +98,34 @@ function check_install(){
 }
 function update_distro(){
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
-        info "Recherche des mise à jour"
+        info "Recherche des mises à jour"
         apt-get update > /dev/null 2>&1
-        info "Application des mise à jour"
+        info "Application des mises à jour"
         apt-get upgrade -y > /dev/null 2>&1
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
-        info "Recherche des mise à jour"
+        systemctl enable --now mariadb nginx php-fpm > /dev/null 2>&1
+        info "Recherche des mises à jour"
         dnf update -y > /dev/null 2>&1
-        info "Application des mise à jour"
+        info "Application des mises à jour"
         dnf upgrade -y > /dev/null 2>&1
+        info "Activation des mises à jour automatique"
+        dnf install dnf-automatic -y > /dev/null 2>&1
+        sed -i 's/^\(;\?\)\(apply_updates\).*/\2 = yes/' /etc/dnf/automatic.conf
+        sed -i 's/^\(;\?\)\(reboot\).*/\2 = when-needed/' /etc/dnf/automatic.conf
+        sed -i 's/^\(;\?\)\(reboot\).*/\2 = when-needed/' /etc/dnf/automatic.conf
+        sed -i 's/^\(;\?\)\(upgrade_type\).*/\2 = security/' /etc/dnf/automatic.conf
+        cat > /etc/systemd/system/dnf-automatic.timer.d/override.conf << EOF
+[Unit]
+Description=dnf-automatic timer
+ConditionPathExists=!/run/ostree-booted
+Wants=network-online.target
+
+[Timer]
+OnCalendar=*-*-* 6:00
+RandomizedDelaySec=60m
+Persistent=true
+EOF
+        systemctl enable --now dnf-automatic.timer > /dev/null 2>&1
     fi
 }
 function network_info(){
@@ -134,7 +153,7 @@ function install_packages(){
         info "Installation des extensions de php"
         dnf module install -y php-{mysqli,mysqlnd,gd,intl,ldap,apcu,opcache,zip,xml} > /dev/null 2>&1
         info "Installation des service lamp..."
-        dnf install -y nginx mariadb-server perl curl jq php epel-release > /dev/null 2>&1
+        dnf install -y nginx mariadb-server perl curl jq php epel-release dnf-automatic > /dev/null 2>&1
         info "Activation et démarrage de MariaDB, d'ENGINE X et de PHP-FPM"
         systemctl enable --now mariadb nginx php-fpm > /dev/null 2>&1
         firewall-cmd --permanent --zone=public --add-service=http > /dev/null 2>&1
