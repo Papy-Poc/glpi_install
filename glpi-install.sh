@@ -152,7 +152,7 @@ function install_packages(){
         dnf module install -y php:8.2 > /dev/null 2>&1
         dnf module install -y nginx:1.24 > /dev/null 2>&1
         info "Installation des extensions de php"
-        dnf install -y php-{mysqli,mysqlnd,gd,intl,ldap,apcu,opcache,zip,xml} > /dev/null 2>&1
+        dnf install -y php-{mysqlnd,gd,intl,ldap,apcu,opcache,zip,xml} > /dev/null 2>&1
         info "Installation des service lamp..."
         dnf install -y nginx mariadb-server perl curl jq php epel-release dnf-automatic > /dev/null 2>&1
         info "Activation et démarrage de MariaDB, d'ENGINE X et de PHP-FPM"
@@ -304,7 +304,7 @@ EOF
         restorecon -Rv /etc/glpi > /dev/null 2>&1
         sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 = on/' /etc/php.ini > /dev/null 2>&1
         # Restart de Nginx et php-fpm
-        systemctl restart php-fpm nginx
+        systemctl restart nginx php-fpm
     fi
     #sudo -u nginx php ${REP_GLPI}bin/console db:configure -h="localhost" -P=3306 -d=glpi -u=glpi_user -p="$SQLGLPIPWD" -q -n 
     #sudo -u nginx php ${REP_GLPI}bin/console db:install --db-host="localhost" --db-port=3306 --db-name=glpi --db-user=glpi_user --db-password="${SQLGLPIPWD}" --default-language="fr_FR" --force --no-telemetry --quiet --no-interaction 
