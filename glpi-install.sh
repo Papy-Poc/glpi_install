@@ -148,10 +148,11 @@ function install_packages(){
         systemctl restart apache2 > /dev/null 2>&1
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
         sleep 1
-        dnf module reset -y php > /dev/null 2>&1
+        dnf module reset -y php nginx > /dev/null 2>&1
         dnf module install -y php:8.2 > /dev/null 2>&1
+        dnf module install -y nginx:1.24 > /dev/null 2>&1
         info "Installation des extensions de php"
-        dnf module install -y php-{mysqli,mysqlnd,gd,intl,ldap,apcu,opcache,zip,xml} > /dev/null 2>&1
+        dnf install -y php-{mysqli,mysqlnd,gd,intl,ldap,apcu,opcache,zip,xml} > /dev/null 2>&1
         info "Installation des service lamp..."
         dnf install -y nginx mariadb-server perl curl jq php epel-release dnf-automatic > /dev/null 2>&1
         info "Activation et démarrage de MariaDB, d'ENGINE X et de PHP-FPM"
@@ -295,10 +296,10 @@ EOF
         # Restart de Nginx et php-fpm
         systemctl restart php-fpm nginx
     fi
-    #php /var/www/html/glpi/bin/console db:configure --db-host="localhost" --db-port=3306 --db-name=glpi --db-user=glpi_user --db-password="$SQLGLPIPWD" -r --quiet --no-interaction
-    #php /var/www/html/glpi/bin/console db:install --default-language="fr_FR" --force --no-telemetry --quiet --no-interaction 
+    #sudo -u nginx php /var/www/html/glpi/bin/console db:configure --db-host="localhost" --db-port=3306 --db-name=glpi --db-user=glpi_user --db-password="$SQLGLPIPWD" -r --quiet --no-interaction
+    sudo -u nginx php /var/www/html/glpi/bin/console db:install --db-host="localhost" --db-port=3306 --db-name=glpi --db-user=glpi_user --db-password="$SQLGLPIPWD" --default-language="fr_FR" --force --no-telemetry --quiet --no-interaction 
     sleep 5
-    #rm -rf /var/www/html/glpi/install/install.php
+    rm -rf /var/www/html/glpi/install/install.php
     sleep 5
     if [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
         setenforce 1
