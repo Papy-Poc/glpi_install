@@ -284,9 +284,9 @@ EOF
         # Restart de Nginx et php-fpm
         systemctl restart php-fpm nginx
     fi
-    php /var/www/html/glpi/bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --force #--quiet --no-interaction 
+    #php /var/www/html/glpi/bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --force --no-telemetry --quiet --no-interaction 
     sleep 5
-    rm -rf /var/www/html/glpi/install/install.php
+    #rm -rf /var/www/html/glpi/install/install.php
     sleep 5
     if [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
         setsebool -P httpd_can_network_connect on
@@ -300,12 +300,12 @@ EOF
         restorecon -Rv /etc/glpi > /dev/null 2>&1
     fi
     # Change permissions
-    chown -R nginx:nginx /etc/glpi
-    chmod -R 755 /etc/glpi
-    chown -R nginx:nginx /var/log/glpi
-    chmod -R 777 /var/log/glpi
-    chown -R nginx:nginx ${REP_GLPI}
-    chmod -R 755 ${REP_GLPI}
+    #chown -R nginx:nginx /etc/glpi
+    #chmod -R 755 /etc/glpi
+    #chown -R nginx:nginx /var/log/glpi
+    #chmod -R 777 /var/log/glpi
+    #chown -R nginx:nginx ${REP_GLPI}
+    #chmod -R 755 ${REP_GLPI}
     # Setup Cron task
     echo "*/2 * * * * www-data /usr/bin/php ${REP_GLPI}front/cron.php &>/dev/null" >> /etc/cron.d/glpi
 }
