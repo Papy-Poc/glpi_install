@@ -26,7 +26,7 @@ function check_distro(){
     # Constante pour les versions d'Ubuntu acceptables
     UBUNTU_VERSIONS=("23.10" "24.10")
     # Constante pour les versions d'Almalinux acceptables
-    ALMA_VERSIONS=("9.4")
+    ALMA_VERSIONS=("9.4" "9.5")
     # Constante pour les versions de Centos acceptables
     CENTOS_VERSIONS=("9")
     # Constante pour les versions de Rocky Linux acceptables
@@ -132,7 +132,7 @@ function install_packages(){
         dnf module reset -y php > /dev/null 2>&1
         dnf module install -y php:8.2 > /dev/null 2>&1
         info "Installation des extensions de php"
-        dnf install -y php-{mysqli,mysqlnd,gd,intl,ldap,apcu,opcache,zip,xml} > /dev/null 2>&1
+        dnf module install -y php-{mysqli,mysqlnd,gd,intl,ldap,apcu,opcache,zip,xml} > /dev/null 2>&1
         info "Installation des service lamp..."
         dnf install -y nginx mariadb-server perl curl jq php epel-release > /dev/null 2>&1
         info "Activation et démarrage de MariaDB, d'ENGINE X et de PHP-FPM"
