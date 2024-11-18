@@ -110,10 +110,10 @@ function update_distro(){
         dnf upgrade -y > /dev/null 2>&1
         info "Activation des mises à jour automatique"
         dnf install dnf-automatic -y > /dev/null 2>&1
-        sed -i 's/^\(;\?\)\(apply_updates\).*/\2 = yes/' /etc/dnf/automatic.conf
-        sed -i 's/^\(;\?\)\(reboot\).*/\2 = when-needed/' /etc/dnf/automatic.conf
-        sed -i 's/^\(;\?\)\(reboot\).*/\2 = when-needed/' /etc/dnf/automatic.conf
-        sed -i 's/^\(;\?\)\(upgrade_type\).*/\2 = security/' /etc/dnf/automatic.conf
+        sed -i 's/^\(;\?\)\(apply_updates =\).*/\2 yes/' /etc/dnf/automatic.conf
+        sed -i 's/^\(;\?\)\(reboot =\).*/\2 when-needed/' /etc/dnf/automatic.conf
+        sed -i 's/^\(;\?\)\(upgrade_type =\).*/\2 security/' /etc/dnf/automatic.conf
+        mkdir /etc/systemd/system/dnf-automatic.timer.d
         cat > /etc/systemd/system/dnf-automatic.timer.d/override.conf << EOF
 [Unit]
 Description=dnf-automatic timer
@@ -295,8 +295,8 @@ EOF
         # Restart de Nginx et php-fpm
         systemctl restart php-fpm nginx
     fi
-    php /var/www/html/glpi/bin/console db:configure --db-host="localhost" --db-port=3306 --db-name=glpi --db-user=glpi_user --db-password="$SQLGLPIPWD" -r --quiet --no-interaction
-    #php /var/www/html/glpi/bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --force --no-telemetry --quiet --no-interaction 
+    #php /var/www/html/glpi/bin/console db:configure --db-host="localhost" --db-port=3306 --db-name=glpi --db-user=glpi_user --db-password="$SQLGLPIPWD" -r --quiet --no-interaction
+    #php /var/www/html/glpi/bin/console db:install --default-language="fr_FR" --force --no-telemetry --quiet --no-interaction 
     sleep 5
     #rm -rf /var/www/html/glpi/install/install.php
     sleep 5
