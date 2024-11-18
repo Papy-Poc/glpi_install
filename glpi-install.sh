@@ -104,7 +104,7 @@ function update_distro(){
         apt-get upgrade -y > /dev/null 2>&1
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
         info "Recherche des mise à jour"
-        dnf update > /dev/null 2>&1
+        dnf update -y > /dev/null 2>&1
         info "Application des mise à jour"
         dnf upgrade -y > /dev/null 2>&1
     fi
@@ -181,7 +181,7 @@ function install_glpi(){
     wget -O /tmp/glpi-latest.tgz "$DOWNLOADLINK" > /dev/null 2>&1
     tar xzf /tmp/glpi-latest.tgz -C /var/www/html/
 }
-function setup_db(){
+function setup_glpi(){
     info "Configuration de GLPI..."
     mkdir /var/log/glpi
     mkdir /etc/glpi
@@ -282,11 +282,11 @@ EOF
         restorecon -Rv /etc/glpi > /dev/null 2>&1
         sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 = on/' /etc/php.ini > /dev/null 2>&1
         # Restart de Nginx et php-fpm
-        systemctl restart nginx php-fpm
+        systemctl restart php-fpm nginx
     fi
-    #php /var/www/html/glpi/bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --no-interaction --force --quiet
+    php /var/www/html/glpi/bin/console db:install --db-name=glpi --db-user=glpi_user --db-host="localhost" --db-port=3306 --db-password="$SQLGLPIPWD" --default-language="fr_FR" --force #--quiet --no-interaction 
     sleep 5
-    #rm -rf /var/www/html/glpi/install/install.php
+    rm -rf /var/www/html/glpi/install/install.php
     sleep 5
     if [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
         setsebool -P httpd_can_network_connect on
@@ -300,25 +300,25 @@ EOF
         restorecon -Rv /etc/glpi > /dev/null 2>&1
     fi
     # Change permissions
-    #chown -R nginx:nginx /etc/glpi
-    #chmod -R 755 /etc/glpi
-    #chown -R nginx:nginx /var/log/glpi
-    #chmod -R 777 /var/log/glpi
-    #chown -R nginx:nginx ${REP_GLPI}
-    #chmod -R 755 ${REP_GLPI}
+    chown -R nginx:nginx /etc/glpi
+    chmod -R 755 /etc/glpi
+    chown -R nginx:nginx /var/log/glpi
+    chmod -R 777 /var/log/glpi
+    chown -R nginx:nginx ${REP_GLPI}
+    chmod -R 755 ${REP_GLPI}
     # Setup Cron task
     echo "*/2 * * * * www-data /usr/bin/php ${REP_GLPI}front/cron.php &>/dev/null" >> /etc/cron.d/glpi
 }
 function maj_user_glpi(){
     info "Changement des mots de passe de GLPI..."
     # Changer le mot de passe de l'admin glpi 
-    mysql -u glpi_user -p"$SQLGLPIPWD" -e "USE glpi; UPDATE glpi_users SET password = MD5('$ADMINGLPIPWD') WHERE name = 'glpi';"
+    mysql -u glpi_user -p"${SQLGLPIPWD}" -e "USE glpi; UPDATE glpi_users SET password = MD5('${ADMINGLPIPWD}') WHERE name = 'glpi';"
     # Changer le mot de passe de l'utilisateur post-only
-    mysql -u glpi_user -p"$SQLGLPIPWD" -e "USE glpi; UPDATE glpi_users SET password = MD5('$POSTGLPIPWD') WHERE name = 'post-only';"
+    mysql -u glpi_user -p"${SQLGLPIPWD}" -e "USE glpi; UPDATE glpi_users SET password = MD5('${POSTGLPIPWD}') WHERE name = 'post-only';"
     # Changer le mot de passe de l'utilisateur tech
-    mysql -u glpi_user -p"$SQLGLPIPWD" -e "USE glpi; UPDATE glpi_users SET password = MD5('$TECHGLPIPWD') WHERE name = 'tech';"
+    mysql -u glpi_user -p"${SQLGLPIPWD}" -e "USE glpi; UPDATE glpi_users SET password = MD5('${TECHGLPIPWD}') WHERE name = 'tech';"
     # Changer le mot de passe de l'utilisateur normal
-    mysql -u glpi_user -p"$SQLGLPIPWD" -e "USE glpi; UPDATE glpi_users SET password = MD5('$NORMGLPIPWD') WHERE name = 'normal';"
+    mysql -u glpi_user -p"${SQLGLPIPWD}" -e "USE glpi; UPDATE glpi_users SET password = MD5('${NORMGLPIPWD}') WHERE name = 'normal';"
 }
 function display_credentials(){
         info "<==========================> Détail de l'installation de GLPI <=================================>"
@@ -390,9 +390,9 @@ function install(){
         sleep 5
         install_glpi
         sleep 5
-        setup_db
+        setup_glpi
         sleep 5
-        #maj_user_glpi
+        maj_user_glpi
         display_credentials
         write_credentials
         efface_script
