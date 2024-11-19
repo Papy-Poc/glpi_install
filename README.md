@@ -50,6 +50,7 @@ GLPI s'installe en lançant la commande suivante dans votre terminal.
 
 >[!IMPORTANT]
 >⚠️ Il est fortement recommandé d'exécuter ce script sur une nouvelle installation ou sur une installation faite avec ce script.
+>
 >⚠️ S'assurer qu'il n'y a plus le script dans le répertoire ```/root```, sinon ```rm /root/glpi-install.sh```
 >
 >⚠️ 'Wget' doit etre installé sur votre système ```apt install wget -y``` ou ```dnf install wget -y```
