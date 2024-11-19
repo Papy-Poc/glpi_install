@@ -321,12 +321,12 @@ EOF
         semanage fcontext -a -t httpd_sys_rw_content_t "/var/lib/glpi(/.*)?" > /dev/null 2>&1
         semanage fcontext -a -t httpd_sys_rw_content_t "/var/log/glpi(/.*)?" > /dev/null 2>&1
         semanage fcontext -a -t httpd_sys_rw_content_t "/etc/glpi(/.*)?" > /dev/null 2>&1
-        semanage fcontext -a -t httpd_sys_rw_content_t "${REP_GLPI}glpi/marketplace" > /dev/null 2>&1
+        semanage fcontext -a -t httpd_sys_rw_content_t "${REP_GLPI}marketplace" > /dev/null 2>&1
         restorecon -Rv ${REP_GLPI} > /dev/null 2>&1
         restorecon -Rv /var/lib/glpi > /dev/null 2>&1
         restorecon -Rv /var/log/glpi > /dev/null 2>&1
         restorecon -Rv /etc/glpi > /dev/null 2>&1
-        restorecon -Rv ${REP_GLPI}glpi/marketplace > /dev/null 2>&1
+        restorecon -Rv ${REP_GLPI}marketplace > /dev/null 2>&1
     fi
     # Change permissions
     #chown -R nginx:nginx /etc/glpi
