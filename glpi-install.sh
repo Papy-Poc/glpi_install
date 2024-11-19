@@ -105,11 +105,11 @@ function update_distro(){
         apt-get upgrade -y > /dev/null 2>&1
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rocky" ]]; then
         info "Recherche des mises à jour"
-        dnf update -y #> /dev/null 2>&1
+        dnf update -y > /dev/null 2>&1
         info "Application des mises à jour"
-        dnf upgrade -y #> /dev/null 2>&1
+        dnf upgrade -y > /dev/null 2>&1
         info "Activation des mises à jour automatique"
-        dnf install dnf-automatic -y #> /dev/null 2>&1
+        dnf install tar dnf-automatic -y > /dev/null 2>&1
         sed -i 's/^\(;\?\)\(apply_updates =\).*/\2 yes/' /etc/dnf/automatic.conf
         sed -i 's/^\(;\?\)\(reboot =\).*/\2 when-needed/' /etc/dnf/automatic.conf
         sed -i 's/^\(;\?\)\(upgrade_type =\).*/\2 security/' /etc/dnf/automatic.conf
@@ -125,7 +125,7 @@ OnCalendar=*-*-* 6:00
 RandomizedDelaySec=60m
 Persistent=true
 EOF
-        systemctl enable --now dnf-automatic.timer #> /dev/null 2>&1
+        systemctl enable --now dnf-automatic.timer > /dev/null 2>&1
     fi
 }
 function network_info(){
