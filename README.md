@@ -49,10 +49,10 @@ Si vous rencontrez un problème avec GLPI et/ou avez besoin de plus d'informatio
 >|Debian|12|✅|
 >|Ubuntu|23.10|✅|
 >|Ubuntu|24.10|⚠️ A tester|
->|Alma Linux|9.4|⚠️ En cours de développement|
->|Alma Linux|9.5|⚠️ En cours de développement|
->|Centos|9|⚠️ A tester|
->|Rocky Linux|9.5|⚠️ A tester|
+>|Alma Linux|9.4|✅|
+>|Alma Linux|9.5|✅|
+>|Centos|9|⚠️ En cours de test|
+>|Rocky Linux|9.5|⚠️ En cours de test|
 
 ## Comment utiliser
 
