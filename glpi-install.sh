@@ -5,18 +5,25 @@
 # Version: 1.3.0
 #
 
-REP_SCRIPT="/root/glpi-install.sh"
-REP_BACKUP="/root/glpi_sauve/"
-export REP_GLPI="/var/www/html/glpi/"
-SLQROOTPWD=$(openssl rand -base64 48 | cut -c1-12)
-SQLGLPIPWD=$(openssl rand -base64 48 | cut -c1-12)
-ADMINGLPIPWD=$(openssl rand -base64 48 | cut -c1-12)
-POSTGLPIPWD=$(openssl rand -base64 48 | cut -c1-12)
-TECHGLPIPWD=$(openssl rand -base64 48 | cut -c1-12)
-NORMGLPIPWD=$(openssl rand -base64 48 | cut -c1-12)
-CURRENT_DATE_TIME=$(date +"%d-%m-%Y_%H-%M-%S")
-BDD_BACKUP="bdd_glpi-${CURRENT_DATE_TIME}.sql"
 
+DEBIAN_VERSIONS=("11" "12") # Constante pour les versions de Debian acceptables
+UBUNTU_VERSIONS=("23.10" "24.10") # Constante pour les versions d'Ubuntu acceptables
+ALMA_VERSIONS=("9.5") # Constante pour les versions d'Almalinux acceptables
+CENTOS_VERSIONS=("9") # Constante pour les versions de Centos acceptables
+ROCKY_VERSIONS=("9.5") # Constante pour les versions de Rocky Linux acceptables
+REDHAT_VERSIONS=("9.6") # Constante pour les versions de Red Hat acceptables
+REP_SCRIPT="/root/glpi-install.sh" # Constante pour le script d'installation de GLPI
+REP_BACKUP="/root/glpi_sauve/" # Constante pour le répertoire de sauvergarde avant MàJ
+REP_GLPI="/var/www/html/glpi/" # Constante pour le répertoire d'installation du site Web GLPI
+SLQROOTPWD=$(openssl rand -base64 48 | cut -c1-18) # Constante pour le MdP root de MariaDB
+SQLGLPIPWD=$(openssl rand -base64 48 | cut -c1-18) # Constante pour le MdP GLPI de MariaDB
+ADMINGLPIPWD=$(openssl rand -base64 48 | cut -c1-12) # Constante pour pour le MdP du compte GLPI de GLPI
+POSTGLPIPWD=$(openssl rand -base64 48 | cut -c1-12) # Constante pour pour le MdP du compte POST_ONLY de GLPI
+TECHGLPIPWD=$(openssl rand -base64 48 | cut -c1-12) # Constante pour pour le MdP du compte TECH de GLPI
+NORMGLPIPWD=$(openssl rand -base64 48 | cut -c1-12) # Constante pour pour le MdP du compte NORMAL de GLPI
+CURRENT_DATE_TIME=$(date +"%d-%m-%Y_%H-%M-%S") # Constante pour la date courante
+BDD_BACKUP="bdd_glpi-${CURRENT_DATE_TIME}.sql" # Constante pour le nommage du fichier DUMP de la BDD de GLPI
+NEW_VERSION=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.name') # Constante pour la dernière version de GLPI
 function warn(){
     echo -e '\e[31m'"$1"'\e[0m';
 }
@@ -33,26 +40,12 @@ function check_root(){
     fi
 }
 function check_distro(){
-    # Constante pour les versions de Debian acceptables
-    DEBIAN_VERSIONS=("11" "12")
-    # Constante pour les versions d'Ubuntu acceptables
-    UBUNTU_VERSIONS=("23.10" "24.10")
-    # Constante pour les versions d'Almalinux acceptables
-    ALMA_VERSIONS=("9.5")
-    # Constante pour les versions de Centos acceptables
-    CENTOS_VERSIONS=("9")
-    # Constante pour les versions de Rocky Linux acceptables
-    ROCKY_VERSIONS=("9.5")
-    # Constante pour les versions de Red Hat acceptables
-    REDHAT_VERSIONS=("9.5")
-    # Vérifie si c'est une distribution Debian ou Ubuntu
+    # Vérifie si le fichier os-release existe
     if [ -f /etc/os-release ]; then
     # Source le fichier /etc/os-release pour obtenir les informations de la distribution
-    # Récupere les variables d'environnement
-    # shellcheck disable=SC1091
     source /etc/os-release
     # Vérifie si la distribution est basée sur Debian, Ubuntu, Alma Linux, Centos ou Rocky Linux
-        if [[ "${ID}" == "debian" || "${ID}" == "ubuntu" || "${ID}" == "almalinux" || "${ID}" == "centos" || "${ID}" == "rocky" || "${ID}" == "rhel" ]]; then
+        if [[ "${ID}" =~ ^(debian|ubuntu|almalinux|centos|rocky|rhel)$ ]]; then
             if [[ " ${DEBIAN_VERSIONS[*]} " =~ " ${VERSION_ID} " || " ${UBUNTU_VERSIONS[*]} " =~ " ${VERSION_ID} " || " ${ALMA_VERSIONS[*]} " =~ " ${VERSION_ID} " || " ${CENTOS_VERSIONS[*]} " =~ " ${VERSION_ID} " || " ${ROCKY_VERSIONS[*]} " =~ " ${VERSION_ID} " || " ${REDHAT_VERSIONS[*]} " =~ " ${VERSION_ID} " ]]; then
                 info "La version de votre systeme d'exploitation (${ID} ${VERSION_ID}) est compatible."
             else
@@ -87,7 +80,6 @@ function check_install(){
         sleep 2
         glpi_cli_version=$(sed -n 's/.*GLPI CLI \([^ ]*\).*/\1/p' <<< "$output")
         warn "Le site est déjà installé. Version ""$glpi_cli_version"
-        NEW_VERSION=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.name')
         info "Nouvelle version trouver : GLPI version $NEW_VERSION"
         if [ "$glpi_cli_version" == "$NEW_VERSION" ]; then
             info "Vous avez déjà la dernière version de GLPI. Mise à jour annuler"
@@ -208,7 +200,6 @@ function mariadb_configure(){
     sleep 1
 }
 function install_glpi(){
-    NEW_VERSION=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.name')
     info "Téléchargement et installation de la version ${NEW_VERSION} de GLPI..."
     # Get download link for the latest release
     DOWNLOADLINK=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.assets[0].browser_download_url')
