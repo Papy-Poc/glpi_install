@@ -50,7 +50,7 @@ Si vous rencontrez un problème avec GLPI et/ou avez besoin de plus d'informatio
 >|Ubuntu|23.10|✅|
 >|Ubuntu|24.10|⚠️ A tester|
 >|Alma Linux|9.5|✅|
->|Centos|9|⚠️ En cours de test|
+>|Centos|9|✅|
 >|Rocky Linux|9.5|✅|
 
 ## Comment utiliser
