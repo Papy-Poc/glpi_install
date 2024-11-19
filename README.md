@@ -3,7 +3,7 @@
  
 ## À propos de ce script
 
-Ce script a été écrit pour installer rapidement la dernière version de GLPI sur les serveurs Ubuntu, Debian, Alma Linux, Centos, Rocky Linux et Red Hat.
+Ce script a été écrit pour installer rapidement et de façon automatique la dernière version de GLPI sur les serveurs Ubuntu, Debian, Alma Linux, Centos, Rocky Linux et Red Hat.
 
 ## Distribution et serveur Web
 
@@ -53,8 +53,8 @@ GLPI s'installe en lançant la commande suivante dans votre terminal.
 >
 >⚠️ 'Wget' doit etre installé sur votre système ```apt install wget -y``` ou ```dnf install wget -y```
 >
->⚠️ Vous devez etre connecté en compte 'root' pour ce faire taper dans la console ```su -``` saisir votre mot de passe root et relancer la commande suivante.
+>⚠️ Vous devez etre connecté en compte 'root', pour ce faire taper dans la console ```su -``` saisir votre mot de passe root et relancer la commande suivante.
 
 ```bash
-wget -N https://raw.githubusercontent.com/Papy-Poc/glpi_install/refs/heads/main/glpi-install.sh && chmod 700 glpi-install.sh && ./glpi-install.sh
+wget https://raw.githubusercontent.com/Papy-Poc/glpi_install/main/glpi-install.sh && chmod +x glpi-install.sh && ./glpi-install.sh
 ```
