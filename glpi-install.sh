@@ -108,12 +108,12 @@ function check_install(){
     fi
 }
 function update_distro(){
-    if [[ "${ID}" == "debian" || "${ID}" == "ubuntu" ]]; then
+    if [[ "${ID}" =~ ^(debian|ubuntu)$ ]]; then
         info "Recherche des mises à jour"
         apt-get update > /dev/null 2>&1
         info "Application des mises à jour"
         apt-get upgrade -y > /dev/null 2>&1
-    elif [[ "${ID}" == "almalinux" || "${ID}" == "centos" || "${ID}" == "rocky" || "${ID}" == "rhel" ]]; then
+    elif [[ "${ID}" =~ ^(almalinux|centos|rocky|rhel)$ ]];; then
         info "Recherche des mises à jour"
         dnf update -y > /dev/null 2>&1
         info "Application des mises à jour"
@@ -126,7 +126,7 @@ function network_info(){
     # HOST=$(hostname)
 }
 function install_packages(){
-    if [[ "${ID}" == "debian" || "${ID}" == "ubuntu" ]]; then
+    if [[ "${ID}" =~ ^(debian|ubuntu)$ ]]; then
         sleep 1
         info "Installation des extensions de php"
         apt install -y --no-install-recommends php-{mysql,mbstring,curl,gd,xml,intl,ldap,apcu,opcache,xmlrpc,zip,bz2} > /dev/null 2>&1
@@ -138,7 +138,7 @@ function install_packages(){
         systemctl enable apache2 > /dev/null 2>&1
         info "Redémarage d'Apache"
         systemctl restart apache2 > /dev/null 2>&1
-    elif [[ "${ID}" == "almalinux" || "${ID}" == "centos" || "${ID}" == "rocky" || "${ID}" == "rhel" ]]; then
+    elif [[ "${ID}" =~ ^(almalinux|centos|rocky|rhel)$ ]];; then
         sleep 1
         dnf module reset -y php nginx mariadb > /dev/null 2>&1
         dnf module install -y php:8.2 > /dev/null 2>&1
@@ -163,7 +163,7 @@ Persistent=true
 EOF
         systemctl enable --now dnf-automatic.timer > /dev/null 2>&1
         info "Installation des extensions de php"
-        dnf install -y php-{mysqlnd,mbstring,curl,gd,xml,intl,ldap,apcu,opcache,xmlrpc,zip,bz2} > /dev/null 2>&1
+        dnf install -y php-{mysqlnd,mbstring,curl,gd,xml,intl,ldap,apcu,opcache,zip,bz2} > /dev/null 2>&1
         info "Installation des service lamp..."
         dnf install -y tar nginx mariadb-server perl curl jq php epel-release > /dev/null 2>&1
         sed -i 's/^\(;\?\)\(user =\).*/\2 nginx/' /etc/php-fpm.d/www.conf
@@ -225,7 +225,7 @@ EOF
         require_once GLPI_CONFIG_DIR . '/local_define.php';
     }
 EOF
-    if [[ "${ID}" == "debian" || "${ID}" == "ubuntu" ]]; then
+    if [[ "${ID}" =~ ^(debian|ubuntu)$ ]]; then
         # Add permissions
         chown -R www-data:www-data  /etc/glpi
         chmod -R 777 /etc/glpi
@@ -270,7 +270,7 @@ EOF
         # Restart d'apache
         systemctl restart apache2 > /dev/null 2>&1
         sudo -u www-data php ${REP_GLPI}bin/console db:install --db-host="localhost" --db-port=3306 --db-name=glpi --db-user=glpi_user --db-password="${SQLGLPIPWD}" --default-language="fr_FR" --force --no-telemetry --quiet --no-interaction
-    elif [[ "${ID}" == "almalinux" || "${ID}" == "centos" || "${ID}" == "rocky" || "${ID}" == "rhel" ]]; then
+    elif [[ "${ID}" =~ ^(almalinux|centos|rocky|rhel)$ ]];; then
         chown -R nginx:nginx /etc/glpi
         chmod -R 777 /etc/glpi
         sleep 1
@@ -308,7 +308,7 @@ EOF
     sleep 5
     rm -rf ${REP_GLPI}install/install.php
     sleep 5
-    if [[ "${ID}" == "almalinux" || "${ID}" == "centos" || "${ID}" == "rocky" || "${ID}" == "rhel" ]]; then
+    if [[ "${ID}" =~ ^(almalinux|centos|rocky|rhel)$ ]];; then
         setsebool -P httpd_can_network_connect on
         setsebool -P httpd_can_network_connect_db on
         setsebool -P httpd_can_sendmail on
@@ -424,16 +424,16 @@ function install(){
 function maintenance(){
     if [ "$1" == "1" ]; then
         warn "Mode maintenance activer"
-        if [[ "${ID}" == "debian" || "${ID}" == "ubuntu" ]]; then
+        if [[ "${ID}" =~ ^(debian|ubuntu)$ ]]; then
             sudo www-data php ${REP_GLPI}bin/console glpi:maintenance:enable  > /dev/null 2>&1
-        elif [[ "${ID}" == "almalinux" || "${ID}" == "centos" || "${ID}" == "rocky" || "${ID}" == "rhel" ]]; then
+        elif [[ "${ID}" =~ ^(almalinux|centos|rocky|rhel)$ ]];; then
             sudo nginx php ${REP_GLPI}bin/console glpi:maintenance:enable  > /dev/null 2>&1
         fi
     elif [ "$1" == "0" ]; then
         info "Mode maintenance désactiver"
-        if [[ "${ID}" == "debian" || "${ID}" == "ubuntu" ]]; then
+        if [[ "${ID}" =~ ^(debian|ubuntu)$ ]]; then
             sudo www-data php ${REP_GLPI}bin/console glpi:maintenance:disable  > /dev/null 2>&1
-        elif [[ "${ID}" == "almalinux" || "${ID}" == "centos" || "${ID}" == "rocky" || "${ID}" == "rhel" ]]; then
+        elif [[ "${ID}" =~ ^(almalinux|centos|rocky|rhel)$ ]];; then
             sudo nginx php ${REP_GLPI}bin/console glpi:maintenance:disable  > /dev/null 2>&1
         fi
     fi
@@ -468,10 +468,10 @@ function update_glpi(){
     }
 EOF
         info "Mise à jour de la base de donnée du site"
-        if [[ "${ID}" == "debian" || "${ID}" == "ubuntu" ]]; then
+        if [[ "${ID}" =~ ^(debian|ubuntu)$ ]]; then
             chown -R www-data:www-data ${REP_GLPI} > /dev/null 2>&1
             sudo www-data php ${REP_GLPI}bin/console db:update --quiet --no-interaction --force  > /dev/null 2>&1
-        elif [[ "${ID}" == "almalinux" || "${ID}" == "centos" || "${ID}" == "rocky" || "${ID}" == "rhel" ]]; then
+        elif [[ "${ID}" =~ ^(almalinux|centos|rocky|rhel)$ ]];; then
             chown -R nginx:nginx ${REP_GLPI} > /dev/null 2>&1
             semanage fcontext -a -t httpd_sys_rw_content_t "${REP_GLPI}(/.*)?" > /dev/null 2>&1
             semanage fcontext -a -t httpd_sys_rw_content_t "${REP_GLPI}marketplace" > /dev/null 2>&1
@@ -532,7 +532,7 @@ function check_distro(){
         # Source le fichier /etc/os-release pour obtenir les informations de la distribution
         . /etc/os-release
         # Vérifie si la distribution est basée sur Debian ou Ubuntu
-                if [[ "${ID}" == "debian" || "${ID}" == "ubuntu" ]]; then
+                if [[ "${ID}" =~ ^(debian|ubuntu)$ ]]; then
                         if [[ " ${DEBIAN_VERSIONS[*]} " == *" ${VERSION_ID} "* || " ${UBUNTU_VERSIONS[*]} " == *" ${VERSION_ID} "* ]]; then
                                 info "La version de votre systeme d'exploitation (${ID} ${VERSION_ID}) est compatible."
                         else
