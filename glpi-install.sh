@@ -102,7 +102,7 @@ function update_distro(){
         apt-get update > /dev/null 2>&1
         info "Application des mises à jour"
         apt-get upgrade -y > /dev/null 2>&1
-    elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
+    elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rocky" ]]; then
         info "Recherche des mises à jour"
         dnf update -y > /dev/null 2>&1
         info "Application des mises à jour"
@@ -145,7 +145,7 @@ function install_packages(){
         systemctl enable apache2 > /dev/null 2>&1
         info "Redémarage d'Apache"
         systemctl restart apache2 > /dev/null 2>&1
-    elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
+    elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rocky" ]]; then
         sleep 1
         dnf module reset -y php nginx > /dev/null 2>&1
         dnf module install -y php:8.2 > /dev/null 2>&1
@@ -264,7 +264,7 @@ EOF
         # Restart d'apache
         systemctl restart apache2 > /dev/null 2>&1
         sudo -u apache php ${REP_GLPI}bin/console db:install --db-host="localhost" --db-port=3306 --db-name=glpi --db-user=glpi_user --db-password="${SQLGLPIPWD}" --default-language="fr_FR" --force --no-telemetry --quiet --no-interaction
-    elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
+    elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rocky" ]]; then
         chown -R nginx:nginx /etc/glpi
         chmod -R 777 /etc/glpi
         sleep 1
@@ -302,7 +302,7 @@ EOF
     sleep 5
     rm -rf /var/www/html/glpi/install/install.php
     sleep 5
-    if [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
+    if [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rocky" ]]; then
         setsebool -P httpd_can_network_connect on
         setsebool -P httpd_can_network_connect_db on
         setsebool -P httpd_can_sendmail on
