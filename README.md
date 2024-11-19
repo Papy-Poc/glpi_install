@@ -6,7 +6,7 @@
 
 Ce script a été écrit pour installer rapidement la dernière version de GLPI sur les serveurs Ubuntu, Debian, Alma Linux, Centos et Rocky Linux.
 
-### Distribution et serveur Web
+## Distribution et serveur Web
 
 >[!IMPORTANT]
 >
@@ -25,7 +25,7 @@ Une fois le script exécuté, la seule chose que vous aurez à faire sera de vou
 
 L'installation de GLPI se fait sans SSL. Si vous avez besoin d'ouvrir l'accès à GLPI depuis l'extérieur et/ou d'un certificat SSL, je vous recommande d'utiliser un reverse proxy.
 
-### Comptes par défaut
+## Comptes par défaut
 | Identifiant | Mot de passe | Rôle |
 |:--:|:--:|:--:|
 |glpi|Défini à l'installation|compte administrateur|
@@ -33,7 +33,7 @@ L'installation de GLPI se fait sans SSL. Si vous avez besoin d'ouvrir l'accès �
 |tech|Défini à l'installation|compte technicien|
 |normal|Défini à l'installation|compte normal|
 
-### Lire la documentation
+## Lire la documentation
 
 Sachez que je n'ai aucun lien avec l'équipe qui développe GLPI et/ou TecLib.
 Si vous rencontrez un problème avec ce script sur une des distributions compatibles, vous pouvez créer une requète, je vous aiderai avec plaisir.
