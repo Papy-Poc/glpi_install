@@ -25,10 +25,7 @@ Une fois le script exécuté, la seule chose que vous aurez à faire sera de vou
 
 L'installation de GLPI se fait sans SSL. Si vous avez besoin d'ouvrir l'accès à GLPI depuis l'extérieur et/ou d'un certificat SSL, je vous recommande d'utiliser un reverse proxy.
 
->[!IMPORTANT]
-
 ### Comptes par défaut
-
 | Identifiant | Mot de passe | Rôle |
 |:--:|:--:|:--:|
 |glpi|Défini à l'installation|compte administrateur|
