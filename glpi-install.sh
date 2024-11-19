@@ -224,13 +224,16 @@ EOF
     }
 EOF
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
+        # Add permissions
         chown -R www-data:www-data  /etc/glpi
         chmod -R 777 /etc/glpi
         sleep 1
         chown -R www-data:www-data  /var/log/glpi
         chmod -R 777 /var/log/glpi
         sleep 1
-        # Add permissions
+        chown -R www-data:www-data /var/lib/glpi/files
+        chmod -R 777 /var/lib/glpi/files
+        sleep 1
         chown -R www-data:www-data ${REP_GLPI}
         chmod -R 777 ${REP_GLPI}
         sleep 1
