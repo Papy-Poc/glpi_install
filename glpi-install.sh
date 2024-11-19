@@ -30,14 +30,14 @@ function check_distro(){
     # Constante pour les versions de Centos acceptables
     CENTOS_VERSIONS=("9")
     # Constante pour les versions de Rocky Linux acceptables
-    ROCKY_VERSIONS=("9.4")
+    ROCKY_VERSIONS=("9.5")
     # Vérifie si c'est une distribution Debian ou Ubuntu
     if [ -f /etc/os-release ]; then
     # Source le fichier /etc/os-release pour obtenir les informations de la distribution
     # shellcheck disable=SC1091
     . /etc/os-release # Récupere les variables d'environnement
     # Vérifie si la distribution est basée sur Debian, Ubuntu, Alma Linux, Centos ou Rocky Linux
-        if [[ "$ID" == "debian" || "$ID" == "ubuntu" || "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
+        if [[ "$ID" == "debian" || "$ID" == "ubuntu" || "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rocky" ]]; then
             if [[ " ${DEBIAN_VERSIONS[*]} " == *" $VERSION_ID "* || " ${UBUNTU_VERSIONS[*]} " == *" $VERSION_ID "* || " ${ALMA_VERSIONS[*]} " == *" $VERSION_ID "* || " ${CENTOS_VERSIONS[*]} " == *" $VERSION_ID "* || " ${ROCKY_VERSIONS[*]} " == *" $VERSION_ID "* ]]; then
                 info "La version de votre systeme d'exploitation ($ID $VERSION_ID) est compatible."
             else
@@ -263,6 +263,7 @@ EOF
         a2ensite glpi.conf > /dev/null 2>&1
         # Restart d'apache
         systemctl restart apache2 > /dev/null 2>&1
+        sudo -u apache php ${REP_GLPI}bin/console db:install --db-host="localhost" --db-port=3306 --db-name=glpi --db-user=glpi_user --db-password="${SQLGLPIPWD}" --default-language="fr_FR" --force --no-telemetry --quiet --no-interaction
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
         chown -R nginx:nginx /etc/glpi
         chmod -R 777 /etc/glpi
@@ -293,23 +294,11 @@ server {
     }
 }
 EOF
-        setsebool -P httpd_can_network_connect on
-        setsebool -P httpd_can_network_connect_db on
-        setsebool -P httpd_can_sendmail on
-        semanage fcontext -a -t httpd_sys_rw_content_t "${REP_GLPI}(/.*)?" > /dev/null 2>&1
-        semanage fcontext -a -t httpd_sys_rw_content_t "/var/lib/glpi(/.*)?" > /dev/null 2>&1
-        semanage fcontext -a -t httpd_sys_rw_content_t "/var/log/glpi(/.*)?" > /dev/null 2>&1
-        semanage fcontext -a -t httpd_sys_rw_content_t "/etc/glpi(/.*)?" > /dev/null 2>&1
-        restorecon -Rv ${REP_GLPI} > /dev/null 2>&1
-        restorecon -Rv /var/lib/glpi > /dev/null 2>&1
-        restorecon -Rv /var/log/glpi > /dev/null 2>&1
-        restorecon -Rv /etc/glpi > /dev/null 2>&1
         sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 = on/' /etc/php.ini > /dev/null 2>&1
         # Restart de Nginx et php-fpm
         systemctl restart nginx php-fpm
+        sudo -u nginx php ${REP_GLPI}bin/console db:install --db-host="localhost" --db-port=3306 --db-name=glpi --db-user=glpi_user --db-password="${SQLGLPIPWD}" --default-language="fr_FR" --force --no-telemetry --quiet --no-interaction 
     fi
-    #sudo -u nginx php ${REP_GLPI}bin/console db:configure -h="localhost" -P=3306 -d=glpi -u=glpi_user -p="$SQLGLPIPWD" -q -n 
-    sudo -u nginx php ${REP_GLPI}bin/console db:install --db-host="localhost" --db-port=3306 --db-name=glpi --db-user=glpi_user --db-password="${SQLGLPIPWD}" --default-language="fr_FR" --force --no-telemetry --quiet --no-interaction 
     sleep 5
     rm -rf /var/www/html/glpi/install/install.php
     sleep 5
@@ -321,10 +310,12 @@ EOF
         semanage fcontext -a -t httpd_sys_rw_content_t "/var/lib/glpi(/.*)?" > /dev/null 2>&1
         semanage fcontext -a -t httpd_sys_rw_content_t "/var/log/glpi(/.*)?" > /dev/null 2>&1
         semanage fcontext -a -t httpd_sys_rw_content_t "/etc/glpi(/.*)?" > /dev/null 2>&1
+        semanage fcontext -a -t httpd_sys_rw_content_t "/var/www/html/glpi/marketplace" > /dev/null 2>&1
         restorecon -Rv ${REP_GLPI} > /dev/null 2>&1
         restorecon -Rv /var/lib/glpi > /dev/null 2>&1
         restorecon -Rv /var/log/glpi > /dev/null 2>&1
         restorecon -Rv /etc/glpi > /dev/null 2>&1
+        restorecon -Rv /var/www/html/glpi/marketplace > /dev/null 2>&1
     fi
     # Change permissions
     #chown -R nginx:nginx /etc/glpi
