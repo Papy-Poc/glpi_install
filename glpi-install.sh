@@ -5,6 +5,11 @@
 # Version: 1.3.0
 #
 
+REP_SCRIPT="/root/glpi-install.sh"
+REP_BACKUP="/root/glpi_sauve/"
+export REP_GLPI="/var/www/html/glpi/"
+CURRENT_DATE_TIME=$(date +"%d-%m-%Y_%H-%M-%S")
+BDD_BACKUP="bdd_glpi-${CURRENT_DATE_TIME}.sql"
 function warn(){
     echo -e '\e[31m'"$1"'\e[0m';
 }
@@ -96,6 +101,21 @@ function check_install(){
             info "Nouvelle installation de GLPI"
             install
     fi
+}
+function install(){
+    update_distro
+    install_packages
+    network_info
+    mariadb_configure
+    sleep 5
+    install_glpi
+    sleep 5
+    setup_glpi
+    sleep 5
+    maj_user_glpi
+    display_credentials
+    write_credentials
+    efface_script
 }
 function update_distro(){
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
@@ -215,7 +235,7 @@ function setup_glpi(){
     define('GLPI_LOG_DIR', '/var/log/glpi/config');
 EOF
     sleep 1
-    cat > /var/www/html/glpi/inc/downstream.php << EOF
+    cat > ${REP_GLPI}inc/downstream.php << EOF
 <?php
     define('GLPI_CONFIG_DIR', '/etc/glpi');
     if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
@@ -240,8 +260,8 @@ EOF
          cat > /etc/apache2/sites-available/glpi.conf << EOF
 <VirtualHost *:80>
     ServerName glpi.lan
-    DocumentRoot /var/www/glpi/public
-    <Directory /var/www/glpi/public>
+    DocumentRoot ${REP_GLPI}public
+    <Directory ${REP_GLPI}public>
         Require all granted
         RewriteEngine On
         RewriteCond %{HTTP:Authorization} ^(.+)$
@@ -266,7 +286,7 @@ EOF
         a2ensite glpi.conf > /dev/null 2>&1
         # Restart d'apache
         systemctl restart apache2 > /dev/null 2>&1
-        sudo -u www-data php ${REP_GLPI}bin/console db:install --db-host="localhost" --db-port=3306 --db-name=glpi --db-user=glpi_user --db-password="${SQLGLPIPWD}" --default-language="fr_FR" --force --no-telemetry --quiet --no-interaction
+        php ${REP_GLPI}bin/console db:install --db-host="localhost" --db-port=3306 --db-name=glpi --db-user=glpi_user --db-password="${SQLGLPIPWD}" --default-language="fr_FR" --force --no-telemetry --quiet --no-interaction
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rocky" ]]; then
         chown -R nginx:nginx /etc/glpi
         chmod -R 777 /etc/glpi
@@ -284,7 +304,7 @@ EOF
 server {
     listen 80;
     server_name glpi.localhost;
-    root /var/www/html/glpi/public;
+    root ${REP_GLPI}public;
     location / {
         try_files \$uri /index.php\$is_args\$args;
     }
@@ -303,7 +323,7 @@ EOF
         sudo -u nginx php ${REP_GLPI}bin/console db:install --db-host="localhost" --db-port=3306 --db-name=glpi --db-user=glpi_user --db-password="${SQLGLPIPWD}" --default-language="fr_FR" --force --no-telemetry --quiet --no-interaction 
     fi
     sleep 5
-    rm -rf /var/www/html/glpi/install/install.php
+    rm -rf ${REP_GLPI}install/install.php
     sleep 5
     if [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rocky" ]]; then
         setsebool -P httpd_can_network_connect on
@@ -313,12 +333,12 @@ EOF
         semanage fcontext -a -t httpd_sys_rw_content_t "/var/lib/glpi(/.*)?" > /dev/null 2>&1
         semanage fcontext -a -t httpd_sys_rw_content_t "/var/log/glpi(/.*)?" > /dev/null 2>&1
         semanage fcontext -a -t httpd_sys_rw_content_t "/etc/glpi(/.*)?" > /dev/null 2>&1
-        semanage fcontext -a -t httpd_sys_rw_content_t "/var/www/html/glpi/marketplace" > /dev/null 2>&1
+        semanage fcontext -a -t httpd_sys_rw_content_t "${REP_GLPI}glpi/marketplace" > /dev/null 2>&1
         restorecon -Rv ${REP_GLPI} > /dev/null 2>&1
         restorecon -Rv /var/lib/glpi > /dev/null 2>&1
         restorecon -Rv /var/log/glpi > /dev/null 2>&1
         restorecon -Rv /etc/glpi > /dev/null 2>&1
-        restorecon -Rv /var/www/html/glpi/marketplace > /dev/null 2>&1
+        restorecon -Rv ${REP_GLPI}glpi/marketplace > /dev/null 2>&1
     fi
     # Change permissions
     #chown -R nginx:nginx /etc/glpi
@@ -342,126 +362,66 @@ function maj_user_glpi(){
     mysql -u glpi_user -p"${SQLGLPIPWD}" -e "USE glpi; UPDATE glpi_users SET password = MD5('${NORMGLPIPWD}') WHERE name = 'normal';"
 }
 function display_credentials(){
-        info "<==========================> Détail de l'installation de GLPI <=================================>"
-        info "GLPI Version: ${NEW_VERSION}"
-        info "Répertoire d'installation de GLPI: ${REP_GLPI}"
-        warn "Il est important d'enregistrer ces informations. Si vous les perdez, elles seront irrécupérables."
-        echo ""
-        info "Les comptes utilisateurs par défaut sont :"
-        info "UTILISATEUR  -  MOT DE PASSE       -  ACCES"
-        info "glpi         -  ${ADMINGLPIPWD}       -  compte admin"
-        info "post-only    -  ${POSTGLPIPWD}       -  compte post-only"
-        info "tech         -  ${TECHGLPIPWD}       -  compte tech"
-        info "normal       -  ${NORMGLPIPWD}       -  compte normal"
-        echo ""
-        info "Vous pouvez accéder à la page web de GLPI à partir d'une adresse IP ou d'un nom d'hôte :"
-        info "http://${IPADRESS}" 
-        echo ""
-        info "==> Database:"
-        info "Mot de passe root: ${SLQROOTPWD}"
-        info "Mot de passe glpi_user: ${SQLGLPIPWD}"
-        info "Nom de la base de données GLPI: glpi"
-        info "<===============================================================================================>"
-        echo ""
-        info "Si vous rencontrez un problème avec ce script, veuillez le signaler sur GitHub : https://github.com/PapyPoc/glpi_install/issues"
+    info "<==========================> Détail de l'installation de GLPI <=================================>"
+    info "GLPI Version: ${NEW_VERSION}"
+    info "Répertoire d'installation de GLPI: ${REP_GLPI}"
+    warn "Il est important d'enregistrer ces informations. Si vous les perdez, elles seront irrécupérables."
+    echo ""
+    info "Les comptes utilisateurs par défaut sont :"
+    info "UTILISATEUR  -  MOT DE PASSE       -  ACCES"
+    info "glpi         -  ${ADMINGLPIPWD}       -  compte admin"
+    info "post-only    -  ${POSTGLPIPWD}       -  compte post-only"
+    info "tech         -  ${TECHGLPIPWD}       -  compte tech"
+    info "normal       -  ${NORMGLPIPWD}       -  compte normal"
+    echo ""
+    info "Vous pouvez accéder à la page web de GLPI à partir d'une adresse IP ou d'un nom d'hôte :"
+    info "http://${IPADRESS}" 
+    echo ""
+    info "==> Database:"
+    info "Mot de passe root: ${SLQROOTPWD}"
+    info "Mot de passe glpi_user: ${SQLGLPIPWD}"
+    info "Nom de la base de données GLPI: glpi"
+    info "<===============================================================================================>"
+    echo ""
+    info "Si vous rencontrez un problème avec ce script, veuillez le signaler sur GitHub : https://github.com/PapyPoc/glpi_install/issues"
 }
 function write_credentials(){
-        cat <<EOF > /root/sauve_mdp.txt
-        <==========================> Détail de l'installation de GLPI <=================================>
-        GLPI Version: ${NEW_VERSION}
-        Répertoire d'installation de GLPI: ${REP_GLPI}
-        Il est important d'enregistrer ces informations. Si vous les perdez, elles seront irrécupérables.
+    cat <<EOF > /root/sauve_mdp.txt
+<==========================> Détail de l'installation de GLPI <=================================>
+GLPI Version: ${NEW_VERSION}
+Répertoire d'installation de GLPI: ${REP_GLPI}
+Il est important d'enregistrer ces informations. Si vous les perdez, elles seront irrécupérables.
 
-        Les comptes utilisateurs par défaut sont :
-        UTILISATEUR       -  MOT DE PASSE       -  ACCES
-        info "glpi        -  ${ADMINGLPIPWD}       -  compte admin"
-        info "post-only   -  ${POSTGLPIPWD}       -  compte post-only"
-        info "tech        -  ${TECHGLPIPWD}       -  compte tech"
-        info "normal      -  ${NORMGLPIPWD}       -  compte normal"
-        
-        Vous pouvez accéder à la page web de GLPI à partir d'une adresse IP ou d'un nom d'hôte :
-        http://$IPADRESS
+Les comptes utilisateurs par défaut sont :
+UTILISATEUR       -  MOT DE PASSE       -  ACCES
+info "glpi        -  ${ADMINGLPIPWD}       -  compte admin"
+info "post-only   -  ${POSTGLPIPWD}       -  compte post-only"
+info "tech        -  ${TECHGLPIPWD}       -  compte tech"
+info "normal      -  ${NORMGLPIPWD}       -  compte normal"
 
-        ==> Database:
-        Mot de passe root: ${SLQROOTPWD}
-        Mot de passe glpi_user: ${SQLGLPIPWD}
-        Nom de la base de données GLPI: glpi
-        <===============================================================================================>
+Vous pouvez accéder à la page web de GLPI à partir d'une adresse IP ou d'un nom d'hôte :
+http://$IPADRESS
 
-        Si vous rencontrez un probléme avec ce script, veuillez le signaler sur GitHub : https://github.com/PapyPoc/glpi_install/issues
+==> Database:
+Mot de passe root: ${SLQROOTPWD}
+Mot de passe glpi_user: ${SQLGLPIPWD}
+Nom de la base de données GLPI: glpi
+<===============================================================================================>
+
+Si vous rencontrez un probléme avec ce script, veuillez le signaler sur GitHub : https://github.com/PapyPoc/glpi_install/issues
 EOF
-        chmod 700 /root/sauve_mdp.txt
-        echo ""
-        warn "Fichier de sauve_mdp.txt enregistrer dans /home"
-        echo ""
+    chmod 700 /root/sauve_mdp.txt
+    echo ""
+    warn "Fichier de sauve_mdp.txt enregistrer dans /home"
+    echo ""
 }
 function efface_script(){
-        # Vérifie si le répertoire existe
-        if [ -e "$REP_SCRIPT" ]; then
-                warn "Le script est déjà présent."
-                warn "Effacement en cours"
-                rm -f "$REP_SCRIPT"
-        fi
-}
-function install(){
-        update_distro
-        install_packages
-        network_info
-        mariadb_configure
-        sleep 5
-        install_glpi
-        sleep 5
-        setup_glpi
-        sleep 5
-        maj_user_glpi
-        display_credentials
-        write_credentials
-        efface_script
-}
-function maintenance(){
-        if [ "$1" == "1" ]; then
-                warn "Mode maintenance activer"
-                php /var/www/html/glpi/bin/console glpi:maintenance:enable  > /dev/null 2>&1
-        elif [ "$1" == "0" ]; then
-                info "Mode maintenance désactiver"
-                php /var/www/html/glpi/bin/console glpi:maintenance:disable > /dev/null 2>&1
-        fi
-}
-function backup_glpi(){
-        # Vérifie si le répertoire existe
-        if [ ! -d "$REP_BACKUP" ]; then
-                info "Création du  répertoire de sauvegarde avant mise à jour"
-                mkdir "$REP_BACKUP"
-        fi
-        # Sauvergarde de la bdd
-        info "Dump de la base de donnée"
-        PASSWORD=$(sed -n 's/.*Mot de passe root: \([^ ]*\).*/\1/p' /root/sauve_mdp.txt)
-        mysqldump -u root -p"$PASSWORD" --databases glpi > "${REP_BACKUP}${BDD_BACKUP}" > /dev/null 2>&1
-        info "La base de donnée a été sauvergardé avec succè."
-        # Sauvegarde des fichiers
-        info "Sauvegarde des fichiers du sites"
-        cp -Rf ${REP_GLPI} "$REP_BACKUP"backup_glpi
-        info "Les fichiers du site GLPI ont été sauvegardés avec succès."
-        info "Suppression des fichiers du site"
-        rm -Rf ${REP_GLPI}
-}
-function update_glpi(){
-        info "Remise en place des dossiers marketplace"
-        cp -Rf "$REP_BACKUP"backup_glpi/plugins ${REP_GLPI} > /dev/null 2>&1
-        cp -Rf "$REP_BACKUP"backup_glpi/marketplace ${REP_GLPI} > /dev/null 2>&1
-        cat > ${REP_GLPI}inc/downstream.php << EOF
-        <?php
-        define('GLPI_CONFIG_DIR', '/etc/glpi');
-        if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
-        require_once GLPI_CONFIG_DIR . '/local_define.php';
-        }
-EOF
-        chown -R www-data:www-data ${REP_GLPI} > /dev/null 2>&1
-        info "Mise à jour de la base de donnée du site"
-        php ${REP_GLPI}/bin/console db:update --quiet --no-interaction --force  > /dev/null 2>&1
-        info "Nettoyage de la mise à jour"
-        rm -Rf ${REP_GLPI}install > /dev/null 2>&1
-        rm -Rf "$REP_BACKUP"backup_glpi > /dev/null 2>&1
+    # Vérifie si le répertoire existe
+    if [ -e "$REP_SCRIPT" ]; then
+            warn "Le script est déjà présent."
+            warn "Effacement en cours"
+            rm -f "$REP_SCRIPT"
+    fi
 }
 function update(){
         maintenance "1"
@@ -471,11 +431,69 @@ function update(){
         maintenance "0"
         efface_script
 }
-REP_SCRIPT="/root/glpi-install.sh"
-REP_BACKUP="/home/glpi_sauve/"
-export REP_GLPI="/var/www/html/glpi/"
-CURRENT_DATE_TIME=$(date +"%d-%m-%Y_%H-%M-%S")
-BDD_BACKUP="bdd_glpi-""$CURRENT_DATE_TIME"".sql"
+function maintenance(){
+    if [ "$1" == "1" ]; then
+        warn "Mode maintenance activer"
+        if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
+            sudo www-data php ${REP_GLPI}bin/console glpi:maintenance:enable  > /dev/null 2>&1
+        elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rocky" ]]; then
+            sudo nginx php ${REP_GLPI}bin/console glpi:maintenance:enable  > /dev/null 2>&1
+        fi
+    elif [ "$1" == "0" ]; then
+        info "Mode maintenance désactiver"
+        if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
+            sudo www-data php ${REP_GLPI}bin/console glpi:maintenance:disable  > /dev/null 2>&1
+        elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rocky" ]]; then
+            sudo nginx php ${REP_GLPI}bin/console glpi:maintenance:disable  > /dev/null 2>&1
+        fi
+    fi
+}
+function backup_glpi(){
+        # Vérifie si le répertoire existe
+        if [ ! -d "$REP_BACKUP" ]; then
+            info "Création du  répertoire de sauvegarde avant mise à jour"
+            mkdir "$REP_BACKUP"
+        fi
+        # Sauvergarde de la bdd
+        info "Dump de la base de donnée"
+        PASSWORD=$(sed -n 's/.*Mot de passe root: \([^ ]*\).*/\1/p' /root/sauve_mdp.txt)
+        mysqldump -u root -p"$PASSWORD" --databases glpi > "${REP_BACKUP}${BDD_BACKUP}" > /dev/null 2>&1
+        info "La base de donnée a été sauvergardé avec succè."
+        # Sauvegarde des fichiers
+        info "Sauvegarde des fichiers du sites"
+        cp -Rf ${REP_GLPI} ${REP_BACKUP}backup_glpi
+        info "Les fichiers du site GLPI ont été sauvegardés avec succès."
+        info "Suppression des fichiers du site"
+        rm -Rf ${REP_GLPI}
+}
+function update_glpi(){
+        info "Remise en place des dossiers marketplace et plugins"
+        cp -Rf ${REP_BACKUP}backup_glpi/plugins ${REP_GLPI} > /dev/null 2>&1
+        cp -Rf ${REP_BACKUP}backup_glpi/marketplace ${REP_GLPI} > /dev/null 2>&1
+        cat > ${REP_GLPI}inc/downstream.php << EOF
+<?php
+    define('GLPI_CONFIG_DIR', '/etc/glpi');
+    if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
+        require_once GLPI_CONFIG_DIR . '/local_define.php';
+    }
+EOF
+        info "Mise à jour de la base de donnée du site"
+        if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
+            chown -R www-data:www-data ${REP_GLPI} > /dev/null 2>&1
+            sudo www-data php ${REP_GLPI}bin/console db:update --quiet --no-interaction --force  > /dev/null 2>&1
+        elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rocky" ]]; then
+            chown -R nginx:nginx ${REP_GLPI} > /dev/null 2>&1
+            semanage fcontext -a -t httpd_sys_rw_content_t "${REP_GLPI}(/.*)?" > /dev/null 2>&1
+            semanage fcontext -a -t httpd_sys_rw_content_t "${REP_GLPI}glpi/marketplace" > /dev/null 2>&1
+            restorecon -Rv ${REP_GLPI} > /dev/null 2>&1
+            restorecon -Rv ${REP_GLPI}glpi/marketplace > /dev/null 2>&1
+            sudo nginx php ${REP_GLPI}bin/console db:update --quiet --no-interaction --force  > /dev/null 2>&1
+        fi
+        
+        info "Nettoyage de la mise à jour"
+        rm -Rf ${REP_GLPI}install > /dev/null 2>&1
+        rm -Rf "$REP_BACKUP"backup_glpi > /dev/null 2>&1
+}
 clear
 check_root
 check_distro
