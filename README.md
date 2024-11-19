@@ -52,7 +52,7 @@ Si vous rencontrez un problème avec GLPI et/ou avez besoin de plus d'informatio
 >|Alma Linux|9.4|✅|
 >|Alma Linux|9.5|✅|
 >|Centos|9|⚠️ En cours de test|
->|Rocky Linux|9.5|⚠️ En cours de test|
+>|Rocky Linux|9.5|✅|
 
 ## Comment utiliser
 
