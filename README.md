@@ -43,15 +43,15 @@ Si vous rencontrez un problème avec GLPI et/ou avez besoin de plus d'informatio
 
 >[!IMPORTANT]
 >
->| OS | VERSION| COMPATIBILITÉ|
->|:--:|:--:|:--:|
->|Debian|11|✅|
->|Debian|12|✅|
->|Ubuntu|23.10|✅|
->|Ubuntu|24.10|⚠️ A tester|
->|Alma Linux|9.5|✅|
->|Centos|9|✅|
->|Rocky Linux|9.5|✅|
+>| OS | VERSION | COMPATIBILITÉ | SERVEUR WEB |
+>|:--:|:--:|:--:|:--:|
+>|Debian|11|✅|Apache|
+>|Debian|12|✅|Apache|
+>|Ubuntu|23.10|✅|Apache|
+>|Ubuntu|24.10|⚠️ A tester|Apache|
+>|Alma Linux|9.5|✅|Engine X (Nginx)|
+>|Centos|9|✅|Engine X (Nginx)|
+>|Rocky Linux|9.5|✅|Engine X (Nginx)|
 
 ## Comment utiliser
 
