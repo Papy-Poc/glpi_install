@@ -34,8 +34,9 @@ function check_distro(){
     # Vérifie si c'est une distribution Debian ou Ubuntu
     if [ -f /etc/os-release ]; then
     # Source le fichier /etc/os-release pour obtenir les informations de la distribution
+    # Récupere les variables d'environnement
     # shellcheck disable=SC1091
-    . /etc/os-release # Récupere les variables d'environnement
+    source /etc/os-release
     # Vérifie si la distribution est basée sur Debian, Ubuntu, Alma Linux, Centos ou Rocky Linux
         if [[ "$ID" == "debian" || "$ID" == "ubuntu" || "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rocky" ]]; then
             if [[ " ${DEBIAN_VERSIONS[*]} " == *" $VERSION_ID "* || " ${UBUNTU_VERSIONS[*]} " == *" $VERSION_ID "* || " ${ALMA_VERSIONS[*]} " == *" $VERSION_ID "* || " ${CENTOS_VERSIONS[*]} " == *" $VERSION_ID "* || " ${ROCKY_VERSIONS[*]} " == *" $VERSION_ID "* ]]; then
@@ -104,11 +105,11 @@ function update_distro(){
         apt-get upgrade -y > /dev/null 2>&1
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rocky" ]]; then
         info "Recherche des mises à jour"
-        dnf update -y > /dev/null 2>&1
+        dnf update -y #> /dev/null 2>&1
         info "Application des mises à jour"
-        dnf upgrade -y > /dev/null 2>&1
+        dnf upgrade -y #> /dev/null 2>&1
         info "Activation des mises à jour automatique"
-        dnf install dnf-automatic -y > /dev/null 2>&1
+        dnf install dnf-automatic -y #> /dev/null 2>&1
         sed -i 's/^\(;\?\)\(apply_updates =\).*/\2 yes/' /etc/dnf/automatic.conf
         sed -i 's/^\(;\?\)\(reboot =\).*/\2 when-needed/' /etc/dnf/automatic.conf
         sed -i 's/^\(;\?\)\(upgrade_type =\).*/\2 security/' /etc/dnf/automatic.conf
@@ -124,7 +125,7 @@ OnCalendar=*-*-* 6:00
 RandomizedDelaySec=60m
 Persistent=true
 EOF
-        systemctl enable --now dnf-automatic.timer > /dev/null 2>&1
+        systemctl enable --now dnf-automatic.timer #> /dev/null 2>&1
     fi
 }
 function network_info(){
