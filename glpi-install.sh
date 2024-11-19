@@ -208,7 +208,6 @@ function setup_glpi(){
     mkdir -p /var/log/glpi
     mkdir -p /etc/glpi/config
     mkdir -p /var/lib/glpi/files
-    #mv ${REP_GLPI}config/* /etc/glpi/
     mv -f ${REP_GLPI}files /var/lib/glpi
     cat > /etc/glpi/local_define.php << EOF
 <?php
