@@ -8,8 +8,15 @@
 REP_SCRIPT="/root/glpi-install.sh"
 REP_BACKUP="/root/glpi_sauve/"
 export REP_GLPI="/var/www/html/glpi/"
+SLQROOTPWD=$(openssl rand -base64 48 | cut -c1-12)
+SQLGLPIPWD=$(openssl rand -base64 48 | cut -c1-12)
+ADMINGLPIPWD=$(openssl rand -base64 48 | cut -c1-12)
+POSTGLPIPWD=$(openssl rand -base64 48 | cut -c1-12)
+TECHGLPIPWD=$(openssl rand -base64 48 | cut -c1-12)
+NORMGLPIPWD=$(openssl rand -base64 48 | cut -c1-12)
 CURRENT_DATE_TIME=$(date +"%d-%m-%Y_%H-%M-%S")
 BDD_BACKUP="bdd_glpi-${CURRENT_DATE_TIME}.sql"
+
 function warn(){
     echo -e '\e[31m'"$1"'\e[0m';
 }
@@ -102,21 +109,6 @@ function check_install(){
             install
     fi
 }
-function install(){
-    update_distro
-    install_packages
-    network_info
-    mariadb_configure
-    sleep 5
-    install_glpi
-    sleep 5
-    setup_glpi
-    sleep 5
-    maj_user_glpi
-    display_credentials
-    write_credentials
-    efface_script
-}
 function update_distro(){
     if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
         info "Recherche des mises à jour"
@@ -128,8 +120,34 @@ function update_distro(){
         dnf update -y > /dev/null 2>&1
         info "Application des mises à jour"
         dnf upgrade -y > /dev/null 2>&1
+    fi
+}
+function network_info(){
+    INTERFACE=$(ip route | awk 'NR==1 {print $5}')
+    IPADRESS=$(ip addr show "$INTERFACE" | grep inet | awk '{ print $2; }' | sed 's/\/.*$//' | head -n 1)
+    # HOST=$(hostname)
+}
+function install_packages(){
+    if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
+        sleep 1
+        info "Installation des extensions de php"
+        apt install -y --no-install-recommends php-{mysql,mbstring,curl,gd,xml,intl,ldap,apcu,opcache,xmlrpc,zip,bz2} > /dev/null 2>&1
+        info "Installation des service lamp..."
+        apt-get install -y --no-install-recommends tar apache2 mariadb-server perl curl jq php > /dev/null 2>&1
+        info "Activation de MariaDB"
+        systemctl enable mariadb > /dev/null 2>&1
+        info "Activation d'Apache"
+        systemctl enable apache2 > /dev/null 2>&1
+        info "Redémarage d'Apache"
+        systemctl restart apache2 > /dev/null 2>&1
+    elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rocky" ]]; then
+        sleep 1
+        dnf module reset -y php nginx mariadb > /dev/null 2>&1
+        dnf module install -y php:8.2 > /dev/null 2>&1
+        dnf module install -y nginx:1.24 > /dev/null 2>&1
+        dnf module install -y mariadb:10.11 > /dev/null 2>&1
         info "Activation des mises à jour automatique"
-        dnf install tar dnf-automatic -y > /dev/null 2>&1
+        dnf install dnf-automatic -y > /dev/null 2>&1
         sed -i 's/^\(;\?\)\(apply_updates =\).*/\2 yes/' /etc/dnf/automatic.conf
         sed -i 's/^\(;\?\)\(reboot =\).*/\2 when-needed/' /etc/dnf/automatic.conf
         sed -i 's/^\(;\?\)\(upgrade_type =\).*/\2 security/' /etc/dnf/automatic.conf
@@ -146,36 +164,10 @@ RandomizedDelaySec=60m
 Persistent=true
 EOF
         systemctl enable --now dnf-automatic.timer > /dev/null 2>&1
-    fi
-}
-function network_info(){
-    INTERFACE=$(ip route | awk 'NR==1 {print $5}')
-    IPADRESS=$(ip addr show "$INTERFACE" | grep inet | awk '{ print $2; }' | sed 's/\/.*$//' | head -n 1)
-    # HOST=$(hostname)
-}
-function install_packages(){
-    if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
-        sleep 1
         info "Installation des extensions de php"
-        apt install -y --no-install-recommends php-{mysql,mbstring,curl,gd,xml,intl,ldap,apcu,xmlrpc,zip,bz2,intl} > /dev/null 2>&1
+        dnf install -y php-{mysqlnd,mbstring,curl,gd,xml,intl,ldap,apcu,opcache,xmlrpc,zip,bz2} > /dev/null 2>&1
         info "Installation des service lamp..."
-        apt-get install -y --no-install-recommends apache2 mariadb-server perl curl jq php > /dev/null 2>&1
-        info "Activation de MariaDB"
-        systemctl enable mariadb > /dev/null 2>&1
-        info "Activation d'Apache"
-        systemctl enable apache2 > /dev/null 2>&1
-        info "Redémarage d'Apache"
-        systemctl restart apache2 > /dev/null 2>&1
-    elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rocky" ]]; then
-        sleep 1
-        dnf module reset -y php nginx > /dev/null 2>&1
-        dnf module install -y php:8.2 > /dev/null 2>&1
-        dnf module install -y nginx:1.24 > /dev/null 2>&1
-        dnf module install -y mariadb:10.11 > /dev/null 2>&1
-        info "Installation des extensions de php"
-        dnf install -y php-{mysqlnd,mbstring,curl,gd,intl,ldap,apcu,opcache,zip,xml} > /dev/null 2>&1
-        info "Installation des service lamp..."
-        dnf install -y nginx mariadb-server perl curl jq php epel-release > /dev/null 2>&1
+        dnf install -y tar nginx mariadb-server perl curl jq php epel-release > /dev/null 2>&1
         sed -i 's/^\(;\?\)\(user =\).*/\2 nginx/' /etc/php-fpm.d/www.conf
         sed -i 's/^\(;\?\)\(group =\).*/\2 nginx/' /etc/php-fpm.d/www.conf
         info "Activation et démarrage de MariaDB, d'ENGINE X et de PHP-FPM"
@@ -187,12 +179,6 @@ function install_packages(){
 function mariadb_configure(){
     info "Configuration de MariaDB"
     sleep 1
-    SLQROOTPWD=$(openssl rand -base64 48 | cut -c1-12 ); export SLQROOTPWD
-    SQLGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 ); export SQLGLPIPWD
-    ADMINGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 ); export ADMINGLPIPWD
-    POSTGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 ); export POSTGLPIPWD
-    TECHGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 ); export TECHGLPIPWD
-    NORMGLPIPWD=$(openssl rand -base64 48 | cut -c1-12 ); export NORMGLPIPWD
     systemctl start mariadb > /dev/null 2>&1
     (echo ""; echo "y"; echo "y"; echo "$SLQROOTPWD"; echo "$SLQROOTPWD"; echo "y"; echo "y"; echo "y"; echo "y") | mysql_secure_installation > /dev/null 2>&1
     sleep 1
@@ -344,7 +330,7 @@ EOF
     #chown -R nginx:nginx /etc/glpi
     #chmod -R 755 /etc/glpi
     #chown -R nginx:nginx /var/log/glpi
-    #chmod -R 777 /var/log/glpi
+    #chmod -R 755 /var/log/glpi
     #chown -R nginx:nginx ${REP_GLPI}
     #chmod -R 755 ${REP_GLPI}
     # Setup Cron task
@@ -400,7 +386,7 @@ info "tech        -  ${TECHGLPIPWD}       -  compte tech"
 info "normal      -  ${NORMGLPIPWD}       -  compte normal"
 
 Vous pouvez accéder à la page web de GLPI à partir d'une adresse IP ou d'un nom d'hôte :
-http://$IPADRESS
+http://${IPADRESS}
 
 ==> Database:
 Mot de passe root: ${SLQROOTPWD}
@@ -423,13 +409,20 @@ function efface_script(){
             rm -f "$REP_SCRIPT"
     fi
 }
-function update(){
-        maintenance "1"
-        backup_glpi
-        install_glpi
-        update_glpi
-        maintenance "0"
-        efface_script
+function install(){
+    update_distro
+    install_packages
+    network_info
+    mariadb_configure
+    sleep 5
+    install_glpi
+    sleep 5
+    setup_glpi
+    sleep 5
+    maj_user_glpi
+    display_credentials
+    write_credentials
+    efface_script
 }
 function maintenance(){
     if [ "$1" == "1" ]; then
@@ -464,7 +457,7 @@ function backup_glpi(){
         cp -Rf ${REP_GLPI} ${REP_BACKUP}backup_glpi
         info "Les fichiers du site GLPI ont été sauvegardés avec succès."
         info "Suppression des fichiers du site"
-        rm -Rf ${REP_GLPI}
+        rm -rf ${REP_GLPI}
 }
 function update_glpi(){
         info "Remise en place des dossiers marketplace et plugins"
@@ -484,15 +477,23 @@ EOF
         elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rocky" ]]; then
             chown -R nginx:nginx ${REP_GLPI} > /dev/null 2>&1
             semanage fcontext -a -t httpd_sys_rw_content_t "${REP_GLPI}(/.*)?" > /dev/null 2>&1
-            semanage fcontext -a -t httpd_sys_rw_content_t "${REP_GLPI}glpi/marketplace" > /dev/null 2>&1
+            semanage fcontext -a -t httpd_sys_rw_content_t "${REP_GLPI}marketplace" > /dev/null 2>&1
             restorecon -Rv ${REP_GLPI} > /dev/null 2>&1
-            restorecon -Rv ${REP_GLPI}glpi/marketplace > /dev/null 2>&1
+            restorecon -Rv ${REP_GLPI}marketplace > /dev/null 2>&1
             sudo nginx php ${REP_GLPI}bin/console db:update --quiet --no-interaction --force  > /dev/null 2>&1
         fi
         
         info "Nettoyage de la mise à jour"
-        rm -Rf ${REP_GLPI}install > /dev/null 2>&1
+        rm -rf ${REP_GLPI}install/install.php > /dev/null 2>&1
         rm -Rf "$REP_BACKUP"backup_glpi > /dev/null 2>&1
+}
+function update(){
+    maintenance "1"
+    backup_glpi
+    install_glpi
+    update_glpi
+    maintenance "0"
+    efface_script
 }
 clear
 check_root
