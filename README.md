@@ -1,4 +1,4 @@
-# Installation et mise à jour de GLPI en automatique
+# Installation et mise à jour de GLPI en automatique sur Débian et Red Hat
 
  ![GLPI](https://glpi-project.org/wp-content/uploads/2022/01/hero-img-2.png)
 
