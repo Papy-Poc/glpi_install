@@ -186,7 +186,6 @@ function mariadb_configure(){
     mysql -e "FLUSH PRIVILEGES;" > /dev/null 2>&1
     # 
     mysql -e "GRANT SELECT ON mysql.time_zone_name TO 'glpi_user'@'localhost'" > /dev/null 2>&1
-
     # Initialize time zones datas
     info "Configuration de TimeZone"
     mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root -p"$SLQROOTPWD" mysql > /dev/null 2>&1
@@ -208,9 +207,8 @@ function setup_glpi(){
     mkdir -p /var/log/glpi
     mkdir -p /etc/glpi/config
     mkdir -p /var/lib/glpi/files
-    exit 0
     #mv ${REP_GLPI}config/* /etc/glpi/
-    mv ${REP_GLPI}files /var/lib/glpi
+    mv -f ${REP_GLPI}files /var/lib/glpi
     cat > /etc/glpi/local_define.php << EOF
 <?php
     define('GLPI_VAR_DIR', '/var/lib/glpi/files');
@@ -311,7 +309,7 @@ EOF
         systemctl restart nginx php-fpm
     fi
     #sudo -u nginx php ${REP_GLPI}bin/console db:configure -h="localhost" -P=3306 -d=glpi -u=glpi_user -p="$SQLGLPIPWD" -q -n 
-    #sudo -u nginx php ${REP_GLPI}bin/console db:install --db-host="localhost" --db-port=3306 --db-name=glpi --db-user=glpi_user --db-password="${SQLGLPIPWD}" --default-language="fr_FR" --force --no-telemetry --quiet --no-interaction 
+    sudo -u nginx php ${REP_GLPI}bin/console db:install --db-host="localhost" --db-port=3306 --db-name=glpi --db-user=glpi_user --db-password="${SQLGLPIPWD}" --default-language="fr_FR" --force --no-telemetry --quiet --no-interaction 
     sleep 5
     rm -rf /var/www/html/glpi/install/install.php
     sleep 5
