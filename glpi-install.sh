@@ -103,7 +103,6 @@ function update_distro(){
         info "Application des mises à jour"
         apt-get upgrade -y > /dev/null 2>&1
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rockylinux" ]]; then
-        systemctl enable --now mariadb nginx php-fpm > /dev/null 2>&1
         info "Recherche des mises à jour"
         dnf update -y > /dev/null 2>&1
         info "Application des mises à jour"
@@ -151,10 +150,13 @@ function install_packages(){
         dnf module reset -y php nginx > /dev/null 2>&1
         dnf module install -y php:8.2 > /dev/null 2>&1
         dnf module install -y nginx:1.24 > /dev/null 2>&1
+        dnf module install -y mariadb:10.11 > /dev/null 2>&1
         info "Installation des extensions de php"
-        dnf install -y php-{mysqlnd,gd,intl,ldap,apcu,opcache,zip,xml} > /dev/null 2>&1
+        dnf install -y php-{mysqlnd,mbstring,curl,gd,intl,ldap,apcu,opcache,zip,xml} > /dev/null 2>&1
         info "Installation des service lamp..."
-        dnf install -y nginx mariadb-server perl curl jq php epel-release dnf-automatic > /dev/null 2>&1
+        dnf install -y nginx mariadb-server perl curl jq php epel-release > /dev/null 2>&1
+        sed -i 's/^\(;\?\)\(user =\).*/\2 nginx/' /etc/php-fpm.d/www.conf
+        sed -i 's/^\(;\?\)\(group =\).*/\2 nginx/' /etc/php-fpm.d/www.conf
         info "Activation et démarrage de MariaDB, d'ENGINE X et de PHP-FPM"
         systemctl enable --now mariadb nginx php-fpm > /dev/null 2>&1
         firewall-cmd --permanent --zone=public --add-service=http > /dev/null 2>&1
@@ -203,14 +205,16 @@ function install_glpi(){
 }
 function setup_glpi(){
     info "Configuration de GLPI..."
-    mkdir /var/log/glpi
-    mkdir /etc/glpi
+    mkdir -p /var/log/glpi
+    mkdir -p /etc/glpi/config
+    mkdir -p /var/lib/glpi/files
+    exit 0
     #mv ${REP_GLPI}config/* /etc/glpi/
-    mv ${REP_GLPI}files /var/lib/glpi/
+    mv ${REP_GLPI}files /var/lib/glpi
     cat > /etc/glpi/local_define.php << EOF
 <?php
-    define('GLPI_VAR_DIR', '/var/lib/glpi');
-    define('GLPI_LOG_DIR', '/var/log/glpi');
+    define('GLPI_VAR_DIR', '/var/lib/glpi/files');
+    define('GLPI_LOG_DIR', '/var/log/glpi/config');
 EOF
     sleep 1
     cat > /var/www/html/glpi/inc/downstream.php << EOF
