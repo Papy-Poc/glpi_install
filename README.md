@@ -8,13 +8,17 @@ Ce script a été écrit pour installer rapidement la dernière version de GLPI 
 
 ### Distribution et serveur Web
 
-| Distribution | Serveur Web |
-|:--:|:--:|
-|Ubuntu|Apache|
-|Débian|Apache|
-|Alma Linux|Nginx|
-|Centos|Nginx|
-|Rocky Linux|Nginx|
+>[!IMPORTANT]
+>
+>| OS | VERSION | COMPATIBILITÉ | SERVEUR WEB |
+>|:--:|:--:|:--:|:--:|
+>|Debian|11|✅|Apache|
+>|Debian|12|✅|Apache|
+>|Ubuntu|23.10|✅|Apache|
+>|Ubuntu|24.10|⚠️ A tester|Apache|
+>|Alma Linux|9.5|✅|Engine X (Nginx)|
+>|Centos|9|✅|Engine X (Nginx)|
+>|Rocky Linux|9.5|✅|Engine X (Nginx)|
 
 Le script fera la mise à jour du système hôte et installera le serveur Web, MariaDB, PHP et les dépendances, téléchargera et installera la dernière version depuis le [Dépôt Officiel de GLPI](https://github.com/glpi-project/glpi) et configurera la base de données pour vous.
 Une fois le script exécuté, la seule chose que vous aurez à faire sera de vous connecter à GLPI.
@@ -40,18 +44,6 @@ Si vous rencontrez un problème avec ce script sur une des distributions compati
 Si vous rencontrez un problème avec GLPI et/ou avez besoin de plus d'informations sur son fonctionnement, je vous recommande de lire les documentations :
 
 [Documentation Administrateurs de GLPI](https://glpi-install.readthedocs.io/), [Documentation Utilisateurs de GLPI](https://glpi-user-documentation.readthedocs.io/)
-
->[!IMPORTANT]
->
->| OS | VERSION | COMPATIBILITÉ | SERVEUR WEB |
->|:--:|:--:|:--:|:--:|
->|Debian|11|✅|Apache|
->|Debian|12|✅|Apache|
->|Ubuntu|23.10|✅|Apache|
->|Ubuntu|24.10|⚠️ A tester|Apache|
->|Alma Linux|9.5|✅|Engine X (Nginx)|
->|Centos|9|✅|Engine X (Nginx)|
->|Rocky Linux|9.5|✅|Engine X (Nginx)|
 
 ## Comment utiliser
 
