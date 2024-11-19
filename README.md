@@ -60,6 +60,8 @@ GLPI s'installe en lançant la commande suivante dans votre terminal.
 
 >[!IMPORTANT]
 >⚠️ S'assurer qu'il n'y a plus le script dans le répertoire ```/root```, sinon ```rm /root/glpi-install.sh```
+>⚠️ 'Wget' doit etre installé sur votre système ```apt install wget -y``` ou ```dnf install wget```
+>⚠️ Vous devez etre connecté en compte 'root' pour ce faire taper dans la console ```su -``` saisir votre mot de passe root et relancer la commande suivante.
 
 ```bash
 wget -N https://raw.githubusercontent.com/Papy-Poc/glpi_install/refs/heads/RedHat/glpi-install.sh && chmod 700 glpi-install.sh && ./glpi-install.sh
