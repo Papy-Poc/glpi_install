@@ -43,6 +43,8 @@ function check_distro(){
     CENTOS_VERSIONS=("9")
     # Constante pour les versions de Rocky Linux acceptables
     ROCKY_VERSIONS=("9.5")
+    # Constante pour les versions de Red Hat acceptables
+    REDHAT_VERSIONS=("9.5")
     # Vérifie si c'est une distribution Debian ou Ubuntu
     if [ -f /etc/os-release ]; then
     # Source le fichier /etc/os-release pour obtenir les informations de la distribution
@@ -50,8 +52,8 @@ function check_distro(){
     # shellcheck disable=SC1091
     source /etc/os-release
     # Vérifie si la distribution est basée sur Debian, Ubuntu, Alma Linux, Centos ou Rocky Linux
-        if [[ "$ID" == "debian" || "$ID" == "ubuntu" || "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rocky" ]]; then
-            if [[ " ${DEBIAN_VERSIONS[*]} " == *" $VERSION_ID "* || " ${UBUNTU_VERSIONS[*]} " == *" $VERSION_ID "* || " ${ALMA_VERSIONS[*]} " == *" $VERSION_ID "* || " ${CENTOS_VERSIONS[*]} " == *" $VERSION_ID "* || " ${ROCKY_VERSIONS[*]} " == *" $VERSION_ID "* ]]; then
+        if [[ "$ID" == "debian" || "$ID" == "ubuntu" || "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rocky" || "$ID" == "rhel" ]]; then
+            if [[ " ${DEBIAN_VERSIONS[*]} " == *" $VERSION_ID "* || " ${UBUNTU_VERSIONS[*]} " == *" $VERSION_ID "* || " ${ALMA_VERSIONS[*]} " == *" $VERSION_ID "* || " ${CENTOS_VERSIONS[*]} " == *" $VERSION_ID "* || " ${ROCKY_VERSIONS[*]} " == *" $VERSION_ID "* || " ${REDHAT_VERSIONS[*]} " == *" $VERSION_ID "* ]]; then
                 info "La version de votre systeme d'exploitation ($ID $VERSION_ID) est compatible."
             else
                 warn "La version de votre système d'exploitation ($ID $VERSION_ID) n'est pas considérée comme compatible."
@@ -115,7 +117,7 @@ function update_distro(){
         apt-get update > /dev/null 2>&1
         info "Application des mises à jour"
         apt-get upgrade -y > /dev/null 2>&1
-    elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rocky" ]]; then
+    elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rocky" || "$ID" == "rhel" ]]; then
         info "Recherche des mises à jour"
         dnf update -y > /dev/null 2>&1
         info "Application des mises à jour"
@@ -140,7 +142,7 @@ function install_packages(){
         systemctl enable apache2 > /dev/null 2>&1
         info "Redémarage d'Apache"
         systemctl restart apache2 > /dev/null 2>&1
-    elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rocky" ]]; then
+    elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rocky" || "$ID" == "rhel" ]]; then
         sleep 1
         dnf module reset -y php nginx mariadb > /dev/null 2>&1
         dnf module install -y php:8.2 > /dev/null 2>&1
@@ -273,7 +275,7 @@ EOF
         # Restart d'apache
         systemctl restart apache2 > /dev/null 2>&1
         sudo -u www-data php ${REP_GLPI}bin/console db:install --db-host="localhost" --db-port=3306 --db-name=glpi --db-user=glpi_user --db-password="${SQLGLPIPWD}" --default-language="fr_FR" --force --no-telemetry --quiet --no-interaction
-    elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rocky" ]]; then
+    elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rocky" || "$ID" == "rhel" ]]; then
         chown -R nginx:nginx /etc/glpi
         chmod -R 777 /etc/glpi
         sleep 1
@@ -311,7 +313,7 @@ EOF
     sleep 5
     rm -rf ${REP_GLPI}install/install.php
     sleep 5
-    if [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rocky" ]]; then
+    if [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rocky" || "$ID" == "rhel" ]]; then
         setsebool -P httpd_can_network_connect on
         setsebool -P httpd_can_network_connect_db on
         setsebool -P httpd_can_sendmail on
@@ -429,14 +431,14 @@ function maintenance(){
         warn "Mode maintenance activer"
         if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
             sudo www-data php ${REP_GLPI}bin/console glpi:maintenance:enable  > /dev/null 2>&1
-        elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rocky" ]]; then
+        elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rocky" || "$ID" == "rhel" ]]; then
             sudo nginx php ${REP_GLPI}bin/console glpi:maintenance:enable  > /dev/null 2>&1
         fi
     elif [ "$1" == "0" ]; then
         info "Mode maintenance désactiver"
         if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
             sudo www-data php ${REP_GLPI}bin/console glpi:maintenance:disable  > /dev/null 2>&1
-        elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rocky" ]]; then
+        elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rocky" || "$ID" == "rhel" ]]; then
             sudo nginx php ${REP_GLPI}bin/console glpi:maintenance:disable  > /dev/null 2>&1
         fi
     fi
@@ -474,7 +476,7 @@ EOF
         if [[ "$ID" == "debian" || "$ID" == "ubuntu" ]]; then
             chown -R www-data:www-data ${REP_GLPI} > /dev/null 2>&1
             sudo www-data php ${REP_GLPI}bin/console db:update --quiet --no-interaction --force  > /dev/null 2>&1
-        elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rocky" ]]; then
+        elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rocky" || "$ID" == "rhel" ]]; then
             chown -R nginx:nginx ${REP_GLPI} > /dev/null 2>&1
             semanage fcontext -a -t httpd_sys_rw_content_t "${REP_GLPI}(/.*)?" > /dev/null 2>&1
             semanage fcontext -a -t httpd_sys_rw_content_t "${REP_GLPI}marketplace" > /dev/null 2>&1
