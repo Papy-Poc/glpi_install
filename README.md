@@ -1,7 +1,6 @@
 # Installation et mise à jour de GLPI sur Débian et Red Hat
 
  ![GLPI](https://glpi-project.org/wp-content/uploads/2022/01/hero-img-2.png)
-
 ## À propos de ce script
 
 Ce script a été écrit pour installer rapidement la dernière version de GLPI sur les serveurs Ubuntu, Debian, Alma Linux, Centos, Rocky Linux et Red Hat.
