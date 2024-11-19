@@ -286,7 +286,7 @@ EOF
         a2ensite glpi.conf > /dev/null 2>&1
         # Restart d'apache
         systemctl restart apache2 > /dev/null 2>&1
-        php ${REP_GLPI}bin/console db:install --db-host="localhost" --db-port=3306 --db-name=glpi --db-user=glpi_user --db-password="${SQLGLPIPWD}" --default-language="fr_FR" --force --no-telemetry --quiet --no-interaction
+        sudo -u www-data php ${REP_GLPI}bin/console db:install --db-host="localhost" --db-port=3306 --db-name=glpi --db-user=glpi_user --db-password="${SQLGLPIPWD}" --default-language="fr_FR" --force --no-telemetry --quiet --no-interaction
     elif [[ "$ID" == "almalinux" || "$ID" == "centos" || "$ID" == "rocky" ]]; then
         chown -R nginx:nginx /etc/glpi
         chmod -R 777 /etc/glpi
