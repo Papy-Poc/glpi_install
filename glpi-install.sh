@@ -26,7 +26,7 @@ function check_distro(){
     # Constante pour les versions d'Ubuntu acceptables
     UBUNTU_VERSIONS=("23.10" "24.10")
     # Constante pour les versions d'Almalinux acceptables
-    ALMA_VERSIONS=("9.4" "9.5")
+    ALMA_VERSIONS=("9.5")
     # Constante pour les versions de Centos acceptables
     CENTOS_VERSIONS=("9")
     # Constante pour les versions de Rocky Linux acceptables
