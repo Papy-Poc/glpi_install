@@ -8,6 +8,8 @@ Ce script a été écrit pour installer rapidement la dernière version de GLPI 
 
 ### Distribution et serveur Web
 
+<div style="text-align: center;">
+
 >[!IMPORTANT]
 >
 >| OS | VERSION | COMPATIBILITÉ | SERVEUR WEB |
@@ -19,6 +21,8 @@ Ce script a été écrit pour installer rapidement la dernière version de GLPI 
 >|Alma Linux|9.5|✅|Engine X (Nginx)|
 >|Centos|9|✅|Engine X (Nginx)|
 >|Rocky Linux|9.5|✅|Engine X (Nginx)|
+
+</div>
 
 Le script fera la mise à jour du système hôte et installera le serveur Web, MariaDB, PHP et les dépendances, téléchargera et installera la dernière version depuis le [Dépôt Officiel de GLPI](https://github.com/glpi-project/glpi) et configurera la base de données pour vous.
 Une fois le script exécuté, la seule chose que vous aurez à faire sera de vous connecter à GLPI.
