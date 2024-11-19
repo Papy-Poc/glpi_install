@@ -21,6 +21,7 @@ Ce script a été écrit pour installer rapidement la dernière version de GLPI 
 >|Rocky Linux|9.5|✅|Engine X (Nginx)|
 
 Le script fera la mise à jour du système hôte et installera le serveur Web, MariaDB, PHP et les dépendances, téléchargera et installera la dernière version depuis le [Dépôt Officiel de GLPI](https://github.com/glpi-project/glpi) et configurera la base de données pour vous.
+
 Une fois le script exécuté, la seule chose que vous aurez à faire sera de vous connecter à GLPI.
 
 L'installation de GLPI se fait sans SSL. Si vous avez besoin d'ouvrir l'accès à GLPI depuis l'extérieur et/ou d'un certificat SSL, je vous recommande d'utiliser un reverse proxy.
