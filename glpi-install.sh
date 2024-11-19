@@ -5,7 +5,6 @@
 # Version: 1.3.0
 #
 
-
 DEBIAN_VERSIONS=("11" "12") # Constante pour les versions de Debian acceptables
 UBUNTU_VERSIONS=("23.10" "24.10") # Constante pour les versions d'Ubuntu acceptables
 ALMA_VERSIONS=("9.5") # Constante pour les versions d'Almalinux acceptables
