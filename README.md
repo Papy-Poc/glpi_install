@@ -1,6 +1,6 @@
 # Installing and updating GLPI on Debian and Red Hat
 
- <img src="https://glpi-project.org/wp-content/uploads/2022/01/hero-img-2.png" alt="drawing" width="800"/>
+ ![Image](https://glpi-project.org/wp-content/uploads/2022/01/hero-img-2.png)
 
 ## About this script
 
