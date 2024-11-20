@@ -137,7 +137,7 @@ function install_packages(){
         info "Installation des extensions de php"
         apt install -y --no-install-recommends php-{mysql,mbstring,curl,gd,xml,intl,ldap,apcu,opcache,xmlrpc,zip,bz2} > /dev/null 2>&1
         info "Installation des service lamp..."
-        apt-get install -y --no-install-recommends tar apache2 mariadb-server perl curl jq php > /dev/null 2>&1
+        apt-get install -y --no-install-recommends crontabs logrotate cronie tar apache2 mariadb-server perl curl jq php > /dev/null 2>&1
         info "Activation de MariaDB"
         systemctl enable mariadb > /dev/null 2>&1
         info "Activation d'Apache"
@@ -171,7 +171,7 @@ EOF
         info "Installation des extensions de php"
         dnf install -y php-{mysqlnd,mbstring,curl,gd,xml,intl,ldap,apcu,opcache,zip,bz2} > /dev/null 2>&1
         info "Installation des service lamp..."
-        dnf install -y tar nginx mariadb-server perl curl jq php epel-release > /dev/null 2>&1
+        dnf install -y crontabs logrotate cronie tar nginx mariadb-server perl curl jq php epel-release > /dev/null 2>&1
         sed -i 's/^\(;\?\)\(user =\).*/\2 nginx/' /etc/php-fpm.d/www.conf
         sed -i 's/^\(;\?\)\(group =\).*/\2 nginx/' /etc/php-fpm.d/www.conf
         info "Activation et démarrage de MariaDB, d'ENGINE X et de PHP-FPM"
@@ -225,7 +225,7 @@ EOF
     sleep 1
     cat > ${REP_GLPI}inc/downstream.php << EOF
 <?php
-    define('GLPI_CONFIG_DIR', '/etc/glpi');
+    define('GLPI_CONFIG_DIR', '/etc/glpi/config');
     if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
         require_once GLPI_CONFIG_DIR . '/local_define.php';
     }
@@ -305,6 +305,22 @@ server {
     }
 }
 EOF
+        cat > /etc/logrotate.d/glpi << EOF
+# Rotate GLPI logs daily, only if not empty
+# Save 14 days old logs under compressed mode
+/var/lib/glpi/files/_log/*.log {
+    su nginx nginx
+    daily
+    rotate 14
+    compress
+    notifempty
+    missingok
+    create 644 nginx nginx
+}
+EOF
+        chmod 0644 /etc/logrotate.d/glpi
+        chown root:root /etc/logrotate.d/glpi
+        chcon system_u:object_r:etc_t:s0 /etc/logrotate.d/glpi
         sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 = on/' /etc/php.ini > /dev/null 2>&1
         # Restart de Nginx et php-fpm
         systemctl restart nginx php-fpm
@@ -314,6 +330,9 @@ EOF
     rm -rf ${REP_GLPI}install/install.php
     sleep 5
     sed -i '$i \   public $date_default_timezone_set = ("'${TIMEZONE}'");' /etc/glpi/config_db.php
+    # Change timezone and language
+    mysql -e "UPDATE glpi.glpi_configs SET value = "${TIMEZONE}" WHERE name = 'timezone';" > /dev/null 2>&1
+    mysql -e "UPDATE glpi.glpi_configs SET value = "${LANG}" WHERE name = 'language';" > /dev/null 2>&1
     if [[ "${ID}" =~ ^(debian|ubuntu)$ ]]; then
         systemctl restart apache2 php-fpm
     elif [[ "${ID}" =~ ^(almalinux|centos|rocky|rhel)$ ]]; then
