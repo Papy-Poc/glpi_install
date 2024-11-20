@@ -59,7 +59,7 @@ GLPI is installed by running the following command in your terminal.
 >
 >| Debian | Red Hat |
 >|:--:|:--:|
->| ```bash apt install -y git``` | ```bash dnf install -y git``` |
+>| ```apt install -y git``` | ```dnf install -y git``` |
 
 For the distribution Debian
 
