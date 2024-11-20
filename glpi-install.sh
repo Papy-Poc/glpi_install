@@ -23,6 +23,8 @@ NORMGLPIPWD=$(openssl rand -base64 48 | cut -c1-12) # Constante pour pour le MdP
 CURRENT_DATE_TIME=$(date +"%d-%m-%Y_%H-%M-%S") # Constante pour la date courante
 BDD_BACKUP="bdd_glpi-${CURRENT_DATE_TIME}.sql" # Constante pour le nommage du fichier DUMP de la BDD de GLPI
 NEW_VERSION=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.name') # Constante pour la dernière version de GLPI
+TIMEZONE=$(timedatectl | grep "Time zone" | awk '{print $3}')
+LANG=$(locale | grep LANG | cut -d= -f2 | cut -d. -f1)
 function warn(){
     echo -e '\e[31m'"$1"'\e[0m';
 }
@@ -41,7 +43,7 @@ function check_root(){
 function compatible() {
     local version="$1"
     local -n versions_array="$2"
-    [[ " ${versions_array[*]} " =~ " ${version} " ]]
+    [[ ${versions_array[*]} =~ ${version} ]]
 }
 function check_distro(){
     # Vérifie si le fichier os-release existe
@@ -198,8 +200,7 @@ function mariadb_configure(){
     # Initialize time zones datas
     info "Configuration de TimeZone"
     mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root -p"$SLQROOTPWD" mysql > /dev/null 2>&1
-    # Ask tz
-    echo "Europe/Paris" | dpkg-reconfigure -f noninteractive tzdata > /dev/null 2>&1
+    # Restart MariaDB
     systemctl restart mariadb
     sleep 1
 }
@@ -273,7 +274,7 @@ EOF
         a2ensite glpi.conf > /dev/null 2>&1
         # Restart d'apache
         systemctl restart apache2 > /dev/null 2>&1
-        sudo -u www-data php ${REP_GLPI}bin/console db:install --db-host="localhost" --db-port=3306 --db-name=glpi --db-user=glpi_user --db-password="${SQLGLPIPWD}" --default-language="fr_FR" --force --no-telemetry --quiet --no-interaction
+        sudo -u www-data php ${REP_GLPI}bin/console db:install --db-host="localhost" --db-port=3306 --db-name=glpi --db-user=glpi_user --db-password="${SQLGLPIPWD}" --default-language="${LANG}" --force --no-telemetry --quiet --no-interaction
     elif [[ "${ID}" =~ ^(almalinux|centos|rocky|rhel)$ ]]; then
         chown -R nginx:nginx /etc/glpi
         chmod -R 777 /etc/glpi
@@ -307,12 +308,15 @@ EOF
         sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 = on/' /etc/php.ini > /dev/null 2>&1
         # Restart de Nginx et php-fpm
         systemctl restart nginx php-fpm
-        sudo -u nginx php ${REP_GLPI}bin/console db:install --db-host="localhost" --db-port=3306 --db-name=glpi --db-user=glpi_user --db-password="${SQLGLPIPWD}" --default-language="fr_FR" --force --no-telemetry --quiet --no-interaction 
+        sudo -u nginx php ${REP_GLPI}bin/console db:install --db-host="localhost" --db-port=3306 --db-name=glpi --db-user=glpi_user --db-password="${SQLGLPIPWD}" --default-language="${LANG}" --force --no-telemetry --quiet --no-interaction 
     fi
     sleep 5
     rm -rf ${REP_GLPI}install/install.php
     sleep 5
-    if [[ "${ID}" =~ ^(almalinux|centos|rocky|rhel)$ ]]; then
+    sed -i '$i \   public $date_default_timezone_set = ("'${TIMEZONE}'");' /etc/glpi/config_db.php
+    if [[ "${ID}" =~ ^(debian|ubuntu)$ ]]; then
+        systemctl restart apache2 php-fpm
+    elif [[ "${ID}" =~ ^(almalinux|centos|rocky|rhel)$ ]]; then
         setsebool -P httpd_can_network_connect on
         setsebool -P httpd_can_network_connect_db on
         setsebool -P httpd_can_sendmail on
@@ -326,14 +330,15 @@ EOF
         restorecon -Rv /var/log/glpi > /dev/null 2>&1
         restorecon -Rv /etc/glpi > /dev/null 2>&1
         restorecon -Rv ${REP_GLPI}marketplace > /dev/null 2>&1
+        systemctl restart nginx php-fpm
     fi
     # Change permissions
-    #chown -R nginx:nginx /etc/glpi
-    #chmod -R 755 /etc/glpi
-    #chown -R nginx:nginx /var/log/glpi
-    #chmod -R 755 /var/log/glpi
-    #chown -R nginx:nginx ${REP_GLPI}
-    #chmod -R 755 ${REP_GLPI}
+    chown -R nginx:nginx /etc/glpi
+    chmod -R 755 /etc/glpi
+    chown -R nginx:nginx /var/log/glpi
+    chmod -R 755 /var/log/glpi
+    chown -R nginx:nginx ${REP_GLPI}
+    chmod -R 755 ${REP_GLPI}
     # Setup Cron task
     echo "*/2 * * * * www-data /usr/bin/php ${REP_GLPI}front/cron.php &>/dev/null" >> /etc/cron.d/glpi
 }
