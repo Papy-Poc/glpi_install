@@ -1,15 +1,15 @@
-# Installation et mise à jour de GLPI sur Débian et Red Hat
+# Installing and updating GLPI on Debian and Red Hat
  <img src="https://glpi-project.org/wp-content/uploads/2022/01/hero-img-2.png" alt="drawing" width="800"/>
  
-## À propos de ce script
+## About this script
 
-Ce script a été écrit pour installer rapidement et de façon automatique la dernière version de GLPI sur les serveurs Ubuntu, Debian, Alma Linux, Centos, Rocky Linux et Red Hat.
+This script was written to quickly and automatically install the latest version of GLPI on Ubuntu, Debian, Alma Linux, Centos, Rocky Linux and Red Hat servers.
 
-## Distribution et serveur Web
+## Distribution and Web server
 
 >[!IMPORTANT]
 >
->| OS | VERSION | COMPATIBILITÉ | SERVEUR WEB |
+>| OS | VERSION | COMPATIBILITY | WEB SERVER |
 >|:--:|:--:|:--:|:--:|
 >|Debian|11|✅|Apache|
 >|Debian|12|✅|Apache|
@@ -20,40 +20,40 @@ Ce script a été écrit pour installer rapidement et de façon automatique la d
 >|Rocky Linux|9.5|✅|Engine X (Nginx)|
 >|Red Hat|9.5|✅|Engine X (Nginx)|
 
-Le script fera la mise à jour du système hôte et installera le serveur Web, MariaDB, PHP et les dépendances, téléchargera et installera la dernière version depuis le [Dépôt Officiel de GLPI](https://github.com/glpi-project/glpi) et configurera la base de données pour vous.
+The script will update the host system and install the Web server, MariaDB, PHP and dependencies, download and install the latest version from the [GLPI Official Repository](https://github.com/glpi-project/glpi) and configure the database for you.
 
-Une fois le script exécuté, la seule chose que vous aurez à faire sera de vous connecter à GLPI.
+Once the script has run, all you need to do is connect to GLPI.
 
-L'installation de GLPI se fait sans SSL. Si vous avez besoin d'ouvrir l'accès à GLPI depuis l'extérieur et/ou d'un certificat SSL, je vous recommande d'utiliser un reverse proxy.
+GLPI is installed without SSL. If you need to open access to GLPI from the outside and/or an SSL certificate, I recommend using a reverse proxy.
 
-## Comptes par défaut
-| Identifiant | Mot de passe | Rôle |
+## Default accounts
+| Login | Password | Role |
 |:--:|:--:|:--:|
-|glpi|Défini à l'installation|compte administrateur|
-|post-only|Défini à l'installation|compte post-only|
-|tech|Défini à l'installation|compte technicien|
-|normal|Défini à l'installation|compte normal|
+|glpi|Defined at installation|admin account|
+|post-only|Defined at installation|post-only account|
+|tech|Defined at installation|technician account|
+|normal|Defined at installation|normal account|
 
-## Lire la documentation
+## Read the documentation
 
-Sachez que je n'ai aucun lien avec l'équipe qui développe GLPI et/ou TecLib.
-Si vous rencontrez un problème avec ce script sur une des distributions compatibles, vous pouvez créer une requète, je vous aiderai avec plaisir.
-Si vous rencontrez un problème avec GLPI et/ou avez besoin de plus d'informations sur son fonctionnement, je vous recommande de lire les documentations :
+Please note that I have no connection with the team that develops GLPI and/or TecLib.
+If you encounter a problem with this script on one of the compatible distributions, you can create a request, and I'll be happy to help you.
+If you encounter a problem with GLPI and/or need more information on how it works, I recommend that you read the following documentation:
 
-[Documentation Administrateurs de GLPI](https://glpi-install.readthedocs.io/), [Documentation Utilisateurs de GLPI](https://glpi-user-documentation.readthedocs.io/)
+[Documentation GLPI Administrators](https://glpi-install.readthedocs.io/), [Documentation GLPI Users](https://glpi-user-documentation.readthedocs.io/)
 
-## Comment utiliser
+## How to use
 
-GLPI s'installe en lançant la commande suivante dans votre terminal.
+GLPI is installed by running the following command in your terminal.
 
 >[!IMPORTANT]
->⚠️ Il est fortement recommandé d'exécuter ce script sur une nouvelle installation ou sur une installation faite avec ce script.
+>⚠️ It is strongly recommended to run this script on a new installation or on an installation made with this script.
 >
->⚠️ S'assurer qu'il n'y a plus le script dans le répertoire ```/root```, sinon ```rm /root/glpi-install.sh```
+>⚠️ Make sure the script is no longer present in the ``/root`` directory, otherwise ```rm /root/glpi-install.sh```.
 >
->⚠️ 'Wget' doit etre installé sur votre système ```apt install wget -y``` ou ```dnf install wget -y```
+>⚠️ 'Wget' must be installed on your system ``apt install wget -y`` or ``dnf install wget -y``.
 >
->⚠️ Vous devez etre connecté en compte 'root', pour ce faire taper dans la console ```su -``` saisir votre mot de passe root et relancer la commande suivante.
+>⚠️ You must be logged in as root. To do this, type ```su -``` into the console, enter your root password and run the following command again.
 
 ```bash
 wget https://raw.githubusercontent.com/Papy-Poc/glpi_install/main/glpi-install.sh && chmod +x glpi-install.sh && ./glpi-install.sh
