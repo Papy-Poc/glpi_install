@@ -120,6 +120,7 @@ function update_distro(){
         info "Application des mises à jour"
         apt-get upgrade -y > /dev/null 2>&1
     elif [[ "${ID}" =~ ^(almalinux|centos|rocky|rhel)$ ]]; then
+        dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm > /dev/null 2>&1
         info "Recherche des mises à jour"
         dnf update -y > /dev/null 2>&1
         info "Application des mises à jour"
