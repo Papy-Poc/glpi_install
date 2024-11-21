@@ -120,7 +120,6 @@ function update_distro(){
         info "Application des mises à jour"
         apt-get upgrade -y > /dev/null 2>&1
     elif [[ "${ID}" =~ ^(almalinux|centos|rocky|rhel)$ ]]; then
-        dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm > /dev/null 2>&1
         info "Recherche des mises à jour"
         dnf update -y > /dev/null 2>&1
         info "Application des mises à jour"
@@ -147,6 +146,7 @@ function install_packages(){
         systemctl restart apache2 > /dev/null 2>&1
     elif [[ "${ID}" =~ ^(almalinux|centos|rocky|rhel)$ ]]; then
         sleep 1
+        dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm > /dev/null 2>&1
         dnf module reset -y php nginx mariadb > /dev/null 2>&1
         dnf module install -y php:8.2 > /dev/null 2>&1
         dnf module install -y nginx:1.24 > /dev/null 2>&1
