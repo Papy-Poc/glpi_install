@@ -3,7 +3,7 @@
 
 ## About this script
 
-### Dernière version de GLPI : 10.0.17
+### Latest version of GLPI : 10.0.17
 
 This script was written to quickly and automatically install the latest version of GLPI on Ubuntu, Debian, Alma Linux, Centos, Rocky Linux and Red Hat servers.
 
@@ -73,4 +73,3 @@ For the distribution Red Hat
 ```bash
 git clone https://github.com/Papy-Poc/glpi_install.git -b main && chmod -R +x glpi_install && ./glpi_install/glpi-install.sh
 ```
-### Latest version of GLPI : 10.0.17
