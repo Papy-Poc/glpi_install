@@ -4,7 +4,8 @@
 
 ## About this script
 
-#### Dernière version de GLPI
+##### Dernière version de GLPI : 10.0.17
+
 
 - Version : 10.0.17
 - Télécharger ici : 
