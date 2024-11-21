@@ -342,9 +342,9 @@ EOF
     sleep 5
     rm -rf ${REP_GLPI}install/install.php
     sleep 5
-    sed -i '$i \   public $date_default_timezone_set = ("'${TIMEZONE}'");' /etc/glpi/config_db.php
+    sed -i '$i \   public $date_default_timezone_set = ("'${TIMEZONE}'");' /etc/glpi/config/config_db.php
     # Change timezone and language
-    mysql -e "UPDATE glpi.glpi_configs SET value = "${TIMEZONE}" WHERE name = 'timezone';" > /dev/null 2>&1
+    mysql -e "INSERT INTO glpi.glpi_configs (context, name, value) VALUES ('core', 'timezone', '${TIMEZONE}');" > /dev/null 2>&1
     mysql -e "UPDATE glpi.glpi_configs SET value = "${LANG}" WHERE name = 'language';" > /dev/null 2>&1
     if [[ "${ID}" =~ ^(debian|ubuntu)$ ]]; then
         systemctl restart apache2 php-fpm
