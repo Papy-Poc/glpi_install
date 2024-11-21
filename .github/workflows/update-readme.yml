@@ -33,9 +33,9 @@ jobs:
             echo -e "$new_version_info" >> README.md
           fi
 
-      - name: Commit and push changes to README.md
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add README.md
-          git commit -m "Update README" || echo "No changes to commit"
-          git push
+     - name: Commit and push changes to README.md
+        uses: EndBug/add-and-commit@v9
+        with:
+          author_name: "GitHub Actions"
+          author_email: "stephane.morin63@free.fr"
+          message: "Mise à jour du README avec la dernière version de GLPI"
