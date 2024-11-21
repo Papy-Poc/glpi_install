@@ -55,7 +55,7 @@ GLPI s'installe en lançant la commande suivante dans votre terminal.
 >
 >⚠️ Vous devez etre connecté en compte 'root', pour ce faire taper dans la console ```su -``` saisir votre mot de passe root et relancer la commande suivante.
 >
->⚠️ git doit etre installé sur votre machine, pour l'installer faite :
+>⚠️ Git doit etre installé sur votre machine, pour l'installer faite :
 >
 >| Debian | Red Hat |
 >|:--:|:--:|
