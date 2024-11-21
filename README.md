@@ -1,8 +1,9 @@
 # Installing and updating GLPI on Debian and Red Hat
-
  ![Image](https://glpi-project.org/wp-content/uploads/2022/01/hero-img-2.png)
 
 ## About this script
+
+### Latest version of GLPI : 10.0.17
 
 This script was written to quickly and automatically install the latest version of GLPI on Ubuntu, Debian, Alma Linux, Centos, Rocky Linux and Red Hat servers.
 
