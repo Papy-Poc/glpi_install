@@ -1,0 +1,48 @@
+name: Update LISEZMOI with Latest GLPI Version
+
+on:
+  # Cela peut être un push sur la branche principale
+  push:
+    branches:
+      - main
+  # Ou planifier l'action de mise à jour tous les jours (optionnel)
+  schedule:
+    - cron: '0 0 * * *'  # Tous les jours à minuit UTC
+
+jobs:
+  update-readme:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Get the latest GLPI release info
+        id: glpi_release
+        run: |
+          latest_version=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.tag_name')
+          echo "LATEST_VERSION=$latest_version" >> $GITHUB_ENV
+
+      - name: Update README.md with the latest version
+        run: |
+          # Lire le fichier LISEZMOI.md actuel
+          readme_content=$(cat LISEZMOI.md)
+          
+          # Ajouter ou remplacer la section de la version de GLPI
+          new_version_info="### Dernière version de GLPI : $LATEST_VERSION"
+          
+          # Remplacer ou ajouter la section dans le LISEZMOI
+          if grep -q "### Latest version of GLPI" LISEZMOI.md; then
+            # Si la section existe déjà, la remplacer
+            sed -i "s/### Dernière version de GLPI.*/$new_version_info/" LISEZMOI.md
+          else
+            # Sinon, l'ajouter à la fin
+            echo -e "$new_version_info" >> LISEZMOI.md
+          fi
+
+      - name: Commit and push changes to LISEZMOI.md
+        uses: EndBug/add-and-commit@v9
+        with:
+          author_name: "GitHub Actions"
+          author_email: "actions@github.com"
+          message: "Mise à jour du LISEZMOI avec la dernière version de GLPI"
