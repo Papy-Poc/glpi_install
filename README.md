@@ -49,13 +49,13 @@ GLPI is installed by running the following command in your terminal.
 >[!IMPORTANT]
 >⚠️ It is strongly recommended to run this script on a new installation or on an installation made with this script.
 >
->⚠️ Make sure the script is no longer present in the ``/root`` directory, otherwise ```rm /root/glpi-install.sh```.
+>⚠️ Make sure the script is no longer present in the ``/root`` directory.
 >
 >⚠️ 'Wget' must be installed on your system ``apt install wget -y`` or ``dnf install wget -y``.
 >
->⚠️ You must be logged in as root. To do this, type ```su -``` into the console, enter your root password and run the following command again.
+>⚠️ You must be logged in as root. To do this, type ```su -``` into the console.
 >
->⚠️ git doit etre installé sur votre machine, pour l'installer faite :
+>⚠️ Git must be installed on your machine, to install it do :
 >
 >| Debian | Red Hat |
 >|:--:|:--:|
