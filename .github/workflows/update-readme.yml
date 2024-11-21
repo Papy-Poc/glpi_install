@@ -32,9 +32,9 @@ jobs:
           new_version_info="### Dernière version de GLPI : $LATEST_VERSION\n"
           
           # Remplacer ou ajouter la section dans le README
-          if grep -q "Dernière version de GLPI" README.md; then
+          if grep -q "### Dernière version de GLPI" README.md; then
             # Si la section existe déjà, la remplacer
-            sed -i "s/## Dernière version de GLPI.*/$new_version_info/" README.md
+            sed -i "s/### Dernière version de GLPI.*/$new_version_info/" README.md
           else
             # Sinon, l'ajouter à la fin
             echo -e "$new_version_info" >> README.md
