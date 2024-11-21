@@ -11,7 +11,7 @@ ALMA_VERSIONS=("9.5") # Constante pour les versions d'Almalinux acceptables
 CENTOS_VERSIONS=("9") # Constante pour les versions de Centos acceptables
 ROCKY_VERSIONS=("9.5") # Constante pour les versions de Rocky Linux acceptables
 REDHAT_VERSIONS=("9.5") # Constante pour les versions de Red Hat acceptables
-REP_SCRIPT="/root/glpi-install.sh" # Constante pour le script d'installation de GLPI
+REP_SCRIPT="/root/glpi_install" # Constante pour le script d'installation de GLPI
 REP_BACKUP="/root/glpi_sauve/" # Constante pour le répertoire de sauvergarde avant MàJ
 REP_GLPI="/var/www/html/glpi/" # Constante pour le répertoire d'installation du site Web GLPI
 SLQROOTPWD=$(openssl rand -base64 48 | cut -c1-18) # Constante pour le MdP root de MariaDB
@@ -318,26 +318,26 @@ EOF
     create 644 nginx nginx
 }
 EOF
-        chmod 0644 /etc/logrotate.d/glpi
-        chown root:root /etc/logrotate.d/glpi
-        chcon system_u:object_r:etc_t:s0 /etc/logrotate.d/glpi
-        sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 = on/' /etc/php.ini > /dev/null 2>&1
-        setsebool -P httpd_can_network_connect on
-        setsebool -P httpd_can_network_connect_db on
-        setsebool -P httpd_can_sendmail on
-        semanage fcontext -a -t httpd_sys_rw_content_t "${REP_GLPI}(/.*)?" > /dev/null 2>&1
-        semanage fcontext -a -t httpd_sys_rw_content_t "/var/lib/glpi(/.*)?" > /dev/null 2>&1
-        semanage fcontext -a -t httpd_sys_rw_content_t "/var/log/glpi(/.*)?" > /dev/null 2>&1
-        semanage fcontext -a -t httpd_sys_rw_content_t "/etc/glpi(/.*)?" > /dev/null 2>&1
-        semanage fcontext -a -t httpd_sys_rw_content_t "${REP_GLPI}marketplace" > /dev/null 2>&1
-        restorecon -R ${REP_GLPI} > /dev/null 2>&1
-        restorecon -R /var/lib/glpi > /dev/null 2>&1
-        restorecon -R /var/log/glpi > /dev/null 2>&1
-        restorecon -R /etc/glpi > /dev/null 2>&1
-        restorecon -R ${REP_GLPI}marketplace > /dev/null 2>&1
-        # Restart de Nginx et php-fpm
-        systemctl restart nginx php-fpm
-        sudo -u nginx php ${REP_GLPI}bin/console db:install --db-host="localhost" --db-port=3306 --db-name=glpi --db-user=glpi_user --db-password="${SQLGLPIPWD}" --default-language="${LANG}" --force --no-telemetry --quiet --no-interaction 
+    chmod 0644 /etc/logrotate.d/glpi
+    chown root:root /etc/logrotate.d/glpi
+    chcon system_u:object_r:etc_t:s0 /etc/logrotate.d/glpi
+    sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 = on/' /etc/php.ini > /dev/null 2>&1
+    setsebool -P httpd_can_network_connect on
+    setsebool -P httpd_can_network_connect_db on
+    setsebool -P httpd_can_sendmail on
+    semanage fcontext -a -t httpd_sys_rw_content_t "${REP_GLPI}(/.*)?" > /dev/null 2>&1
+    semanage fcontext -a -t httpd_sys_rw_content_t "/var/lib/glpi(/.*)?" > /dev/null 2>&1
+    semanage fcontext -a -t httpd_sys_rw_content_t "/var/log/glpi(/.*)?" > /dev/null 2>&1
+    semanage fcontext -a -t httpd_sys_rw_content_t "/etc/glpi(/.*)?" > /dev/null 2>&1
+    semanage fcontext -a -t httpd_sys_rw_content_t "${REP_GLPI}marketplace" > /dev/null 2>&1
+    restorecon -R ${REP_GLPI} > /dev/null 2>&1
+    restorecon -R /var/lib/glpi > /dev/null 2>&1
+    restorecon -R /var/log/glpi > /dev/null 2>&1
+    restorecon -R /etc/glpi > /dev/null 2>&1
+    restorecon -R ${REP_GLPI}marketplace > /dev/null 2>&1
+    # Restart de Nginx et php-fpm
+    systemctl restart nginx php-fpm
+    sudo -u nginx php ${REP_GLPI}bin/console db:install --db-host="localhost" --db-port=3306 --db-name=glpi --db-user=glpi_user --db-password="${SQLGLPIPWD}" --default-language="${LANG}" --force --no-telemetry --quiet --no-interaction 
     fi
     sleep 5
     rm -rf ${REP_GLPI}install/install.php
@@ -431,7 +431,7 @@ function efface_script(){
     if [ -e "$REP_SCRIPT" ]; then
             warn "Le script est déjà présent."
             warn "Effacement en cours"
-            rm -f "$REP_SCRIPT"
+            rm -Rf "$REP_SCRIPT"
     fi
 }
 function install(){
