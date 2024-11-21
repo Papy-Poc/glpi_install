@@ -23,7 +23,7 @@ jobs:
           # Lire le fichier README.md actuel
           readme_content=$(cat README.md)
           # Ajouter ou remplacer la section de la version de GLPI
-          new_version_info="## Dernière version de GLPI: \n\n- Version : $LATEST_VERSION\n"
+          new_version_info="### Dernière version de GLPI: \n\n- Version : $LATEST_VERSION\n"
           # Remplacer ou ajouter la section dans le README
           if grep -q "Dernière version de GLPI" README.md; then
             # Si la section existe déjà, la remplacer
@@ -36,6 +36,6 @@ jobs:
       - name: Commit and push changes to README.md
         uses: EndBug/add-and-commit@v9
         with:
-          author_name: "GitHub Actions"
-          author_email: "actions@github.com"
+          author_name: "Poc"
+          author_email: "stephane.morin63@free.fr"
           message: "Mise à jour du README avec la dernière version de GLPI"
