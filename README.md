@@ -53,7 +53,7 @@ GLPI is installed by running the following command in your terminal.
 >
 >⚠️ 'Wget' must be installed on your system ``apt install wget -y`` or ``dnf install wget -y``.
 >
->⚠️ You must be logged in as root. To do this, type ```su -``` into the console, enter your root password and run the following command again.
+>⚠️ You must be logged in as root. To do this, type ```su -``` into the console.
 >
 >⚠️ Git must be installed on your machine, to install it do :
 >
