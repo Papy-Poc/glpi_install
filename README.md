@@ -4,8 +4,7 @@
 
 ## About this script
 
-#### Dernière version de GLPI : 10.0.17
-
+### Dernière version de GLPI : 10.0.17
 
 This script was written to quickly and automatically install the latest version of GLPI on Ubuntu, Debian, Alma Linux, Centos, Rocky Linux and Red Hat servers.
 
