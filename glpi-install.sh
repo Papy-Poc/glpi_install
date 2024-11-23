@@ -23,13 +23,30 @@ NORMGLPIPWD=$(openssl rand -base64 48 | cut -c1-12) # Constante pour pour le MdP
 CURRENT_DATE_TIME=$(date +"%d-%m-%Y_%H-%M-%S") # Constante pour la date courante
 BDD_BACKUP="bdd_glpi-${CURRENT_DATE_TIME}.sql" # Constante pour le nommage du fichier DUMP de la BDD de GLPI
 NEW_VERSION=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.name') # Constante pour la dernière version de GLPI
-TIMEZONE=$(timedatectl | grep "Time zone" | awk '{print $3}')
-LANG=$(locale | grep LANG | cut -d= -f2 | cut -d. -f1)
+TIMEZONE=$(timedatectl | grep "Time zone" | awk '{print $3}') # Constante pour le timezone d'installation du système
+LANG=$(locale | grep LANG | cut -d= -f2 | cut -d. -f1) # Constante pour la langue d'installation du système
+# Fichiers pour les logs
+SUCCESS_LOG="success.log"
+ERROR_LOG="error.log"
+# Vérifier que les fichiers de log sont accessibles
+if ! touch "$SUCCESS_LOG" "$ERROR_LOG" 2>/dev/null; then
+    echo "Erreur : Impossible de créer ou écrire dans les fichiers de log" >&2
+    exit 1
+fi
+# Rediriger stdout des commandes (sauf echo) vers un fichier de log
+exec > >(while read -r line; do
+    echo "$(date '+%Y-%m-%d %H:%M:%S') [INFO] $line" >> "$SUCCESS_LOG"
+done)
+# Rediriger stderr vers un fichier de log
+exec 2> >(while read -r line; do
+    echo "$(date '+%Y-%m-%d %H:%M:%S') [ERREUR] $line" >> "$ERROR_LOG"
+done)
+# Fonction pour gérer les messages d'echo en couleur
 function warn(){
-    echo -e '\e[31m'"$1"'\e[0m';
+    echo '\e[31m'"$1"'\e[0m' | tee -a "$SUCCESS_LOG"
 }
 function info(){
-    echo -e '\e[36m'"$1"'\e[0m';
+    echo -e '\e[36m'"$1"'\e[0m' | tee -a "$SUCCESS_LOG"
 }
 function check_root(){
     # Vérification des privilèges root
