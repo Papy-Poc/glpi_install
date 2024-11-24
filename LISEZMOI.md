@@ -75,3 +75,4 @@ git clone https://github.com/Papy-Poc/glpi_install.git -b main && chmod -R +x gl
 ### Dernière version de GLPI : 10.0.17
 ### Dernière version de GLPI : 10.0.17
 ### Dernière version de GLPI : 10.0.17
+### Dernière version de GLPI : 10.0.17
