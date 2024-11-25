@@ -2,7 +2,7 @@
 #
 # GLPI install script
 # Author: PapyPoc & Poupix
-# Version: 1.3.0
+# Version: 1.4.0
 #
 
 DEBIAN_VERSIONS=("11" "12") # Constante pour les versions de Debian acceptables
