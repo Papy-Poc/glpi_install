@@ -72,4 +72,3 @@ For the distribution Red Hat
 ```bash
 git clone https://github.com/Papy-Poc/glpi_install.git -b main && chmod -R +x glpi_install && ./glpi_install/glpi-install.sh
 ```
-### Dernière version de GLPI : 10.0.17
