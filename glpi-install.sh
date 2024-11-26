@@ -348,19 +348,27 @@ EOF
     mysql -e "INSERT INTO glpi.glpi_configs (context, name, value) VALUES ('core', 'timezone', '${TIMEZONE}');" > /dev/null 2>&1
     mysql -e "UPDATE glpi.glpi_configs SET value = "${LANG}" WHERE name = 'language';" > /dev/null 2>&1
     if [[ "${ID}" =~ ^(debian|ubuntu)$ ]]; then
-        systemctl restart apache2 php-fpm
+        # Change permissions
+        chown -Rc www-data:www-data /etc/glpi
+        chmod -R 755 /etc/glpi
+        chown -Rc www-data:www-data /var/log/glpi
+        chmod -R 755 /var/log/glpi
+        chown -Rc www-data:www-data ${REP_GLPI}
+        chmod -R 755 ${REP_GLPI}
+        systemctl restart apache2
+        # Setup Cron task
+        echo "*/2 * * * * www-data /usr/bin/php ${REP_GLPI}front/cron.php &>/dev/null" >> /etc/cron.d/glpi
     elif [[ "${ID}" =~ ^(almalinux|centos|rocky|rhel)$ ]]; then
+         # Change permissions
+        chown -R nginx:nginx /etc/glpi
+        chmod -R 755 /etc/glpi
+        chown -R nginx:nginx /var/log/glpi
+        chmod -R 755 /var/log/glpi
+        chown -R nginx:nginx ${REP_GLPI}
+        chmod -R 755 ${REP_GLPI}
         systemctl restart nginx php-fpm
+        echo "*/2 * * * * nginx /usr/bin/php ${REP_GLPI}front/cron.php &>/dev/null" >> /etc/cron.d/glpi
     fi
-    # Change permissions
-    chown -R nginx:nginx /etc/glpi
-    chmod -R 755 /etc/glpi
-    chown -R nginx:nginx /var/log/glpi
-    chmod -R 755 /var/log/glpi
-    chown -R nginx:nginx ${REP_GLPI}
-    chmod -R 755 ${REP_GLPI}
-    # Setup Cron task
-    echo "*/2 * * * * www-data /usr/bin/php ${REP_GLPI}front/cron.php &>/dev/null" >> /etc/cron.d/glpi
 }
 function maj_user_glpi(){
     info "Changement des mots de passe de GLPI..."
