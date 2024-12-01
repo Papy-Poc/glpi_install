@@ -7,10 +7,10 @@
 
 # Fonction pour gérer les messages d'echo en couleur
 function warn(){
-    echo '\e[31m'"$1"'\e[0m' | tee -a "$SUCCESS_LOG"
+    echo -e '\e[31m'"$1"'\e[0m'
 }
 function info(){
-    echo -e '\e[36m'"$1"'\e[0m' | tee -a "$SUCCESS_LOG"
+    echo -e '\e[36m'"$1"'\e[0m'
 }
 function check_root(){
     # Vérification des privilèges root
@@ -72,14 +72,14 @@ function show_progress() {
         progress=$(( (i + 1) * 100 / total_tasks ))
         echo $progress | dialog --no-shadow --title "${MSG_TITRE_GAUGE}" --gauge "$task" 7 100 0
         # Exécuter la commande associée à la tâche
-        eval $command 1>>succes.log 2>>error.log
+        eval "$command" 1>>succes.log 2>>error.log
         # Vérifier le code de retour de la commande
         if [ $? -ne 0 ]; then
             # Si la commande échoue, afficher un message d'erreur dans un dialog et arrêter le script
             if [[ "$LANG" == "fr_FR.UTF-8" ]]; then
-                source fr.lang
+                source ./glpi_install/lang/fr.lang
             else
-                source en.lang
+                source ./glpi_install/lang/en.lang
             fi
             dialog --title "${MSG_TITRE_ERROR}" --msgbox "${MSG_ERROR}" 40 100
             ERR_STOP=1
@@ -90,7 +90,7 @@ function show_progress() {
 function check_install(){
     # Vérifie si le répertoire existe
     if [ -d "$1" ]; then
-        output=$(php ${REP_GLPI}bin/console -V 2>&1)
+        output=$(php "${REP_GLPI}"bin/console -V 2>&1)
         sleep 2
         glpi_cli_version=$(sed -n 's/.*GLPI CLI \([^ ]*\).*/\1/p' <<< "$output")
         warn "Le site est déjà installé. Version ""$glpi_cli_version"
@@ -225,14 +225,14 @@ function setup_glpi(){
     mkdir -p /var/log/glpi
     mkdir -p /etc/glpi/config
     mkdir -p /var/lib/glpi/files
-    mv -f ${REP_GLPI}files /var/lib/glpi
+    mv -f "${REP_GLPI}"files /var/lib/glpi
     cat > /etc/glpi/config/local_define.php << EOF
 <?php
     define('GLPI_VAR_DIR', '/var/lib/glpi/files');
     define('GLPI_LOG_DIR', '/var/log/glpi/config');
 EOF
     sleep 1
-    cat > ${REP_GLPI}inc/downstream.php << EOF
+    cat > "${REP_GLPI}"inc/downstream.php << EOF
 <?php
     define('GLPI_CONFIG_DIR', '/etc/glpi/config');
     if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
@@ -250,8 +250,8 @@ EOF
         chown -R www-data:www-data /var/lib/glpi/files
         chmod -R 777 /var/lib/glpi/files
         sleep 1
-        chown -R www-data:www-data ${REP_GLPI}
-        chmod -R 777 ${REP_GLPI}
+        chown -R www-data:www-data "${REP_GLPI}"
+        chmod -R 777 "${REP_GLPI}"
         sleep 1
         # Setup vhost
          cat > /etc/apache2/sites-available/glpi.conf << EOF
@@ -283,7 +283,7 @@ EOF
         a2ensite glpi.conf > /dev/null 2>&1
         # Restart d'apache
         systemctl restart apache2 > /dev/null 2>&1
-        sudo -u www-data php ${REP_GLPI}bin/console db:install --db-host="localhost" --db-port=3306 --db-name=glpi --db-user=glpi_user --db-password="${SQLGLPIPWD}" --default-language="${LANG}" --force --no-telemetry --quiet --no-interaction
+        sudo -u www-data php "${REP_GLPI}"bin/console db:install --db-host="localhost" --db-port=3306 --db-name=glpi --db-user=glpi_user --db-password="${SQLGLPIPWD}" --default-language="${LANG}" --force --no-telemetry --quiet --no-interaction
     elif [[ "${ID}" =~ ^(almalinux|centos|rocky|rhel)$ ]]; then
         chown -R nginx:nginx /etc/glpi
         chmod -R 777 /etc/glpi
@@ -294,8 +294,8 @@ EOF
         chown -R nginx:nginx /var/lib/glpi
         chmod -R 777 /var/lib/glpi
         # Add permissions
-        chown -R nginx:nginx ${REP_GLPI}
-        chmod -R 777 ${REP_GLPI}
+        chown -R nginx:nginx "${REP_GLPI}"
+        chmod -R 777 "${REP_GLPI}"
         sleep 1
         cat > /etc/nginx/conf.d/glpi.conf << EOF
 server {
@@ -339,30 +339,30 @@ EOF
     semanage fcontext -a -t httpd_sys_rw_content_t "/var/log/glpi(/.*)?" > /dev/null 2>&1
     semanage fcontext -a -t httpd_sys_rw_content_t "/etc/glpi(/.*)?" > /dev/null 2>&1
     semanage fcontext -a -t httpd_sys_rw_content_t "${REP_GLPI}marketplace" > /dev/null 2>&1
-    restorecon -R ${REP_GLPI} > /dev/null 2>&1
+    restorecon -R "${REP_GLPI}" > /dev/null 2>&1
     restorecon -R /var/lib/glpi > /dev/null 2>&1
     restorecon -R /var/log/glpi > /dev/null 2>&1
     restorecon -R /etc/glpi > /dev/null 2>&1
-    restorecon -R ${REP_GLPI}marketplace > /dev/null 2>&1
+    restorecon -R "${REP_GLPI}"marketplace > /dev/null 2>&1
     # Restart de Nginx et php-fpm
     systemctl restart nginx php-fpm
-    sudo -u nginx php ${REP_GLPI}bin/console db:install --db-host="localhost" --db-port=3306 --db-name=glpi --db-user=glpi_user --db-password="${SQLGLPIPWD}" --default-language="${LANG}" --force --no-telemetry --quiet --no-interaction 
+    sudo -u nginx php "${REP_GLPI}"bin/console db:install --db-host="localhost" --db-port=3306 --db-name=glpi --db-user=glpi_user --db-password="${SQLGLPIPWD}" --default-language="${LANG}" --force --no-telemetry --quiet --no-interaction 
     fi
     sleep 5
     rm -rf ${REP_GLPI}install/install.php
     sleep 5
-    sed -i '$i \   public $date_default_timezone_set = ("'${TIMEZONE}'");' /etc/glpi/config/config_db.php
+    sed -i '$i \   public $date_default_timezone_set = ("'"${TIMEZONE}"'");' /etc/glpi/config/config_db.php
     # Change timezone and language
     mysql -e "INSERT INTO glpi.glpi_configs (context, name, value) VALUES ('core', 'timezone', '${TIMEZONE}');" > /dev/null 2>&1
-    mysql -e "UPDATE glpi.glpi_configs SET value = "${LANG}" WHERE name = 'language';" > /dev/null 2>&1
+    mysql -e "UPDATE glpi.glpi_configs SET value = ""${LANG}"" WHERE name = 'language';" > /dev/null 2>&1
     if [[ "${ID}" =~ ^(debian|ubuntu)$ ]]; then
         # Change permissions
         chown -Rc www-data:www-data /etc/glpi
         chmod -R 755 /etc/glpi
         chown -Rc www-data:www-data /var/log/glpi
         chmod -R 755 /var/log/glpi
-        chown -Rc www-data:www-data ${REP_GLPI}
-        chmod -R 755 ${REP_GLPI}
+        chown -Rc www-data:www-data "${REP_GLPI}"
+        chmod -R 755 "${REP_GLPI}"
         systemctl restart apache2
         # Setup Cron task
         echo "*/2 * * * * www-data /usr/bin/php ${REP_GLPI}front/cron.php &>/dev/null" >> /etc/cron.d/glpi
@@ -372,8 +372,8 @@ EOF
         chmod -R 755 /etc/glpi
         chown -R nginx:nginx /var/log/glpi
         chmod -R 755 /var/log/glpi
-        chown -R nginx:nginx ${REP_GLPI}
-        chmod -R 755 ${REP_GLPI}
+        chown -R nginx:nginx "${REP_GLPI}"
+        chmod -R 755 "${REP_GLPI}"
         systemctl restart nginx php-fpm
         echo "*/2 * * * * nginx /usr/bin/php ${REP_GLPI}front/cron.php &>/dev/null" >> /etc/cron.d/glpi
     fi
@@ -495,16 +495,16 @@ function maintenance(){
     if [ "$1" == "1" ]; then
         warn "Mode maintenance activer"
         if [[ "${ID}" =~ ^(debian|ubuntu)$ ]]; then
-            sudo www-data php ${REP_GLPI}bin/console glpi:maintenance:enable  > /dev/null 2>&1
+            sudo www-data php "${REP_GLPI}"bin/console glpi:maintenance:enable  > /dev/null 2>&1
         elif [[ "${ID}" =~ ^(almalinux|centos|rocky|rhel)$ ]]; then
-            sudo nginx php ${REP_GLPI}bin/console glpi:maintenance:enable  > /dev/null 2>&1
+            sudo nginx php "${REP_GLPI}"bin/console glpi:maintenance:enable  > /dev/null 2>&1
         fi
     elif [ "$1" == "0" ]; then
         info "Mode maintenance désactiver"
         if [[ "${ID}" =~ ^(debian|ubuntu)$ ]]; then
-            sudo www-data php ${REP_GLPI}bin/console glpi:maintenance:disable  > /dev/null 2>&1
+            sudo www-data php "${REP_GLPI}"bin/console glpi:maintenance:disable  > /dev/null 2>&1
         elif [[ "${ID}" =~ ^(almalinux|centos|rocky|rhel)$ ]]; then
-            sudo nginx php ${REP_GLPI}bin/console glpi:maintenance:disable  > /dev/null 2>&1
+            sudo nginx php "${REP_GLPI}"bin/console glpi:maintenance:disable  > /dev/null 2>&1
         fi
     fi
 }
@@ -521,16 +521,16 @@ function backup_glpi(){
         info "La base de donnée a été sauvergardé avec succè."
         # Sauvegarde des fichiers
         info "Sauvegarde des fichiers du sites"
-        cp -Rf ${REP_GLPI} ${REP_BACKUP}backup_glpi
+        cp -Rf "${REP_GLPI}" "${REP_BACKUP}"backup_glpi
         info "Les fichiers du site GLPI ont été sauvegardés avec succès."
         info "Suppression des fichiers du site"
-        rm -rf ${REP_GLPI}
+        rm -rf "${REP_GLPI}"
 }
 function update_glpi(){
         info "Remise en place des dossiers marketplace et plugins"
-        cp -Rf ${REP_BACKUP}backup_glpi/plugins ${REP_GLPI} > /dev/null 2>&1
-        cp -Rf ${REP_BACKUP}backup_glpi/marketplace ${REP_GLPI} > /dev/null 2>&1
-        cat > ${REP_GLPI}inc/downstream.php << EOF
+        cp -Rf "${REP_BACKUP}"backup_glpi/plugins "${REP_GLPI}" > /dev/null 2>&1
+        cp -Rf "${REP_BACKUP}"backup_glpi/marketplace "${REP_GLPI}" > /dev/null 2>&1
+        cat > "${REP_GLPI}"inc/downstream.php << EOF
 <?php
     define('GLPI_CONFIG_DIR', '/etc/glpi');
     if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
@@ -539,19 +539,19 @@ function update_glpi(){
 EOF
         info "Mise à jour de la base de donnée du site"
         if [[ "${ID}" =~ ^(debian|ubuntu)$ ]]; then
-            chown -R www-data:www-data ${REP_GLPI} > /dev/null 2>&1
-            sudo www-data php ${REP_GLPI}bin/console db:update --quiet --no-interaction --force  > /dev/null 2>&1
+            chown -R www-data:www-data "${REP_GLPI}" > /dev/null 2>&1
+            sudo www-data php "${REP_GLPI}"bin/console db:update --quiet --no-interaction --force  > /dev/null 2>&1
         elif [[ "${ID}" =~ ^(almalinux|centos|rocky|rhel)$ ]]; then
-            chown -R nginx:nginx ${REP_GLPI} > /dev/null 2>&1
+            chown -R nginx:nginx "${REP_GLPI}" > /dev/null 2>&1
             semanage fcontext -a -t httpd_sys_rw_content_t "${REP_GLPI}(/.*)?" > /dev/null 2>&1
             semanage fcontext -a -t httpd_sys_rw_content_t "${REP_GLPI}marketplace" > /dev/null 2>&1
-            restorecon -Rv ${REP_GLPI} > /dev/null 2>&1
-            restorecon -Rv ${REP_GLPI}marketplace > /dev/null 2>&1
-            sudo nginx php ${REP_GLPI}bin/console db:update --quiet --no-interaction --force  > /dev/null 2>&1
+            restorecon -Rv "${REP_GLPI}" > /dev/null 2>&1
+            restorecon -Rv "${REP_GLPI}"marketplace > /dev/null 2>&1
+            sudo nginx php "${REP_GLPI}"bin/console db:update --quiet --no-interaction --force  > /dev/null 2>&1
         fi
         
         info "Nettoyage de la mise à jour"
-        rm -rf ${REP_GLPI}install/install.php > /dev/null 2>&1
+        rm -rf "${REP_GLPI}"install/install.php > /dev/null 2>&1
         rm -Rf "$REP_BACKUP"backup_glpi > /dev/null 2>&1
 }
 function update(){
@@ -565,7 +565,7 @@ function update(){
 clear
 check_root
 check_distro
-check_install ${REP_GLPI}
+check_install "${REP_GLPI}"
 if [ "$ERR_STOP" -eq 0 ]; then
     dialog --title "${MSG_TITRE_OK}" --msgbox "${MSG_OK}" 40 100
 else
