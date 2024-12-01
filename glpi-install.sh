@@ -460,16 +460,16 @@ function install(){
         info "Installation des service lamp..."
         dnf install -y perl curl jq epel-release > /dev/null 2>&1
     fi
-    if [ -f "glpi_install/glpi_install.cfg" ]; then
-        source glpi_install/glpi_install.cfg
+    if [ -f "./glpi_install/glpi_install.cfg" ]; then
+        source ./glpi_install/glpi_install.cfg
     else
         warn "Variable configuration file not found"
         exit 0
     fi
     if [[ "$LANG" == "fr_FR.UTF-8" ]]; then
-        source glpi_install/lang/fr.lang
+        source ./glpi_install/lang/fr.lang
     else
-        source glpi_install/lang/en.lang
+        source ./glpi_install/lang/en.lang
     fi
     if ! command -v dialog &> /dev/null; then
         apt install dialog &> /dev/null
