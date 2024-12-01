@@ -5,23 +5,6 @@
 # Version: 1.4.0
 #
 
-source glpi_install/glpi_install.cfg
-# Fichiers pour les logs
-SUCCESS_LOG="success.log"
-ERROR_LOG="error.log"
-# Vérifier que les fichiers de log sont accessibles
-if ! touch "$SUCCESS_LOG" "$ERROR_LOG" 2>/dev/null; then
-    echo "Erreur : Impossible de créer ou écrire dans les fichiers de log" >&2
-    exit 1
-fi
-# Rediriger stdout des commandes (sauf echo) vers un fichier de log
-exec > >(while read -r line; do
-    echo "$(date '+%Y-%m-%d %H:%M:%S') [INFO] $line" >> "$SUCCESS_LOG"
-done)
-# Rediriger stderr vers un fichier de log
-exec 2> >(while read -r line; do
-    echo "$(date '+%Y-%m-%d %H:%M:%S') [ERREUR] $line" >> "$ERROR_LOG"
-done)
 # Fonction pour gérer les messages d'echo en couleur
 function warn(){
     echo '\e[31m'"$1"'\e[0m' | tee -a "$SUCCESS_LOG"
@@ -29,6 +12,23 @@ function warn(){
 function info(){
     echo -e '\e[36m'"$1"'\e[0m' | tee -a "$SUCCESS_LOG"
 }
+if [ -f "error.log" ]; then
+    source glpi_install/glpi_install.cfg
+else
+    warn "Variable configuration file not found"
+    exit 0
+fi
+if [[ "$LANG" == "fr_FR.UTF-8" ]]; then
+    source glpi_install/lang/fr.lang
+else
+    source glpi_install/lang/en.lang
+fi
+if ! command -v dialog &> /dev/null; then
+    apt install dialog &> /dev/null
+fi
+if [ -f "error.log" ]; then
+    rm -r *.log
+fi
 function check_root(){
     # Vérification des privilèges root
     if [[ "$(id -u)" -ne 0 ]]; then
@@ -76,6 +76,33 @@ function check_distro(){
         warn "Il s'agit d'une autre distribution que Debian ou Ubuntu qui n'est pas compatible."
         exit 1
     fi
+}
+function show_progress() {
+    # Nombre total de tâches
+    total_tasks=${#tasks[@]}
+    ERR_STOP=0
+    for i in "${!tasks[@]}"; do
+        # Extraire la tâche et la commande de la paire
+        task=$(echo "${tasks[$i]}" | cut -d ':' -f 1)
+        command=$(echo "${tasks[$i]}" | cut -d ':' -f 2)
+        # Afficher la barre de progression avec le nom dynamique de la tâche
+        progress=$(( (i + 1) * 100 / total_tasks ))
+        echo $progress | dialog --no-shadow --title "${MSG_TITRE_GAUGE}" --gauge "$task" 7 100 0
+        # Exécuter la commande associée à la tâche
+        eval $command 1>>succes.log 2>>error.log
+        # Vérifier le code de retour de la commande
+        if [ $? -ne 0 ]; then
+            # Si la commande échoue, afficher un message d'erreur dans un dialog et arrêter le script
+            if [[ "$LANG" == "fr_FR.UTF-8" ]]; then
+                source fr.lang
+            else
+                source en.lang
+            fi
+            dialog --title "${MSG_TITRE_ERROR}" --msgbox "${MSG_ERROR}" 40 100
+            ERR_STOP=1
+            break
+        fi
+    done
 }
 function check_install(){
     # Vérifie si le répertoire existe
@@ -442,19 +469,19 @@ function efface_script(){
     fi
 }
 function install(){
-    update_distro
-    install_packages
-    network_info
-    mariadb_configure
-    sleep 5
-    install_glpi
-    sleep 5
-    setup_glpi
-    sleep 5
-    maj_user_glpi
-    display_credentials
-    write_credentials
-    efface_script
+    tasks=(
+        "${MSG_T1}:echo ${MSG_T1};update_distro"
+        "${MSG_T2}:echo ${MSG_T2};install_packages
+        "${MSG_T3}:echo ${MSG_T3};network_info
+        "${MSG_T4}:echo ${MSG_T4};mariadb_configure
+        "${MSG_T5}:echo ${MSG_T5};install_glpi
+        "${MSG_T6}:echo ${MSG_T6};setup_glpi
+        "${MSG_T7}:echo ${MSG_T7};maj_user_glpi
+        #"${MSG_T8}:echo ${MSG_T8};display_credentials
+        "${MSG_T9}:echo ${MSG_T9};write_credentials
+        "${MSG_T10}:echo ${MSG_T10};efface_script
+    )
+    show_progress
 }
 function maintenance(){
     if [ "$1" == "1" ]; then
@@ -531,3 +558,14 @@ clear
 check_root
 check_distro
 check_install ${REP_GLPI}
+if [ "$ERR_STOP" -eq 0 ]; then
+    dialog --title "${MSG_TITRE_OK}" --msgbox "${MSG_OK}" 40 100
+else
+    dialog --title "${MSG_TITRE_NONOK}" --msgbox "${MSG_NONOK}" 40 100
+fi
+if [ ! -s error.log ]; then
+    rm -r error.log
+else
+    echo "Des erreurs ont été enregistrées dans error.log."
+fi
+clear
