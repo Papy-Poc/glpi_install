@@ -12,6 +12,14 @@ function warn(){
 function info(){
     echo -e '\e[36m'"$1"'\e[0m' | tee -a "$SUCCESS_LOG"
 }
+if [[ "${ID}" =~ ^(debian|ubuntu)$ ]]; then
+        sleep 1
+        apt-get install -y --no-install-recommends curl perl curl jq > /dev/null 2>&1
+    elif [[ "${ID}" =~ ^(almalinux|centos|rocky|rhel)$ ]]; then
+        sleep 1
+        info "Installation des service lamp..."
+        dnf install -y perl curl jq epel-release > /dev/null 2>&1
+    fi
 if [ -f "glpi_install/glpi_install.cfg" ]; then
     source glpi_install/glpi_install.cfg
 else
