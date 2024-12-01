@@ -32,7 +32,7 @@ jobs:
           new_version_info="### Dernière version de GLPI : $LATEST_VERSION"
           
           # Remplacer ou ajouter la section dans le LISEZMOI
-          if grep -q "### Latest version of GLPI" LISEZMOI.md; then
+          if grep -q "### Dernière version de GLPI" LISEZMOI.md; then
             # Si la section existe déjà, la remplacer
             sed -i "s/### Dernière version de GLPI.*/$new_version_info/" LISEZMOI.md
           else

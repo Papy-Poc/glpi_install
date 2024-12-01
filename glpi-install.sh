@@ -2,7 +2,7 @@
 #
 # GLPI install script
 # Author: PapyPoc & Poupix
-# Version: 1.3.0
+# Version: 1.4.0
 #
 
 DEBIAN_VERSIONS=("11" "12") # Constante pour les versions de Debian acceptables
@@ -154,7 +154,7 @@ function install_packages(){
         info "Installation des extensions de php"
         apt install -y --no-install-recommends php-{mysql,mbstring,curl,gd,xml,intl,ldap,apcu,opcache,xmlrpc,zip,bz2} > /dev/null 2>&1
         info "Installation des service lamp..."
-        apt-get install -y --no-install-recommends crontabs logrotate cronie tar apache2 mariadb-server perl curl jq php > /dev/null 2>&1
+        apt-get install -y --no-install-recommends curl tar apache2 mariadb-server perl curl jq php > /dev/null 2>&1
         info "Activation de MariaDB"
         systemctl enable mariadb > /dev/null 2>&1
         info "Activation d'Apache"
@@ -163,6 +163,7 @@ function install_packages(){
         systemctl restart apache2 > /dev/null 2>&1
     elif [[ "${ID}" =~ ^(almalinux|centos|rocky|rhel)$ ]]; then
         sleep 1
+        dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm > /dev/null 2>&1
         dnf module reset -y php nginx mariadb > /dev/null 2>&1
         dnf module install -y php:8.2 > /dev/null 2>&1
         dnf module install -y nginx:1.24 > /dev/null 2>&1
@@ -364,19 +365,27 @@ EOF
     mysql -e "INSERT INTO glpi.glpi_configs (context, name, value) VALUES ('core', 'timezone', '${TIMEZONE}');" > /dev/null 2>&1
     mysql -e "UPDATE glpi.glpi_configs SET value = "${LANG}" WHERE name = 'language';" > /dev/null 2>&1
     if [[ "${ID}" =~ ^(debian|ubuntu)$ ]]; then
-        systemctl restart apache2 php-fpm
+        # Change permissions
+        chown -Rc www-data:www-data /etc/glpi
+        chmod -R 755 /etc/glpi
+        chown -Rc www-data:www-data /var/log/glpi
+        chmod -R 755 /var/log/glpi
+        chown -Rc www-data:www-data ${REP_GLPI}
+        chmod -R 755 ${REP_GLPI}
+        systemctl restart apache2
+        # Setup Cron task
+        echo "*/2 * * * * www-data /usr/bin/php ${REP_GLPI}front/cron.php &>/dev/null" >> /etc/cron.d/glpi
     elif [[ "${ID}" =~ ^(almalinux|centos|rocky|rhel)$ ]]; then
+         # Change permissions
+        chown -R nginx:nginx /etc/glpi
+        chmod -R 755 /etc/glpi
+        chown -R nginx:nginx /var/log/glpi
+        chmod -R 755 /var/log/glpi
+        chown -R nginx:nginx ${REP_GLPI}
+        chmod -R 755 ${REP_GLPI}
         systemctl restart nginx php-fpm
+        echo "*/2 * * * * nginx /usr/bin/php ${REP_GLPI}front/cron.php &>/dev/null" >> /etc/cron.d/glpi
     fi
-    # Change permissions
-    chown -R nginx:nginx /etc/glpi
-    chmod -R 755 /etc/glpi
-    chown -R nginx:nginx /var/log/glpi
-    chmod -R 755 /var/log/glpi
-    chown -R nginx:nginx ${REP_GLPI}
-    chmod -R 755 ${REP_GLPI}
-    # Setup Cron task
-    echo "*/2 * * * * www-data /usr/bin/php ${REP_GLPI}front/cron.php &>/dev/null" >> /etc/cron.d/glpi
 }
 function maj_user_glpi(){
     info "Changement des mots de passe de GLPI..."
