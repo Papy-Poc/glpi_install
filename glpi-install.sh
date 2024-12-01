@@ -5,26 +5,7 @@
 # Version: 1.4.0
 #
 
-DEBIAN_VERSIONS=("11" "12") # Constante pour les versions de Debian acceptables
-UBUNTU_VERSIONS=("23.10" "24.10") # Constante pour les versions d'Ubuntu acceptables
-ALMA_VERSIONS=("9.5") # Constante pour les versions d'Almalinux acceptables
-CENTOS_VERSIONS=("9") # Constante pour les versions de Centos acceptables
-ROCKY_VERSIONS=("9.5") # Constante pour les versions de Rocky Linux acceptables
-REDHAT_VERSIONS=("9.5") # Constante pour les versions de Red Hat acceptables
-REP_SCRIPT="/root/glpi_install" # Constante pour le script d'installation de GLPI
-REP_BACKUP="/root/glpi_sauve/" # Constante pour le répertoire de sauvergarde avant MàJ
-REP_GLPI="/var/www/html/glpi/" # Constante pour le répertoire d'installation du site Web GLPI
-SLQROOTPWD=$(openssl rand -base64 48 | cut -c1-18) # Constante pour le MdP root de MariaDB
-SQLGLPIPWD=$(openssl rand -base64 48 | cut -c1-18) # Constante pour le MdP GLPI de MariaDB
-ADMINGLPIPWD=$(openssl rand -base64 48 | cut -c1-12) # Constante pour pour le MdP du compte GLPI de GLPI
-POSTGLPIPWD=$(openssl rand -base64 48 | cut -c1-12) # Constante pour pour le MdP du compte POST_ONLY de GLPI
-TECHGLPIPWD=$(openssl rand -base64 48 | cut -c1-12) # Constante pour pour le MdP du compte TECH de GLPI
-NORMGLPIPWD=$(openssl rand -base64 48 | cut -c1-12) # Constante pour pour le MdP du compte NORMAL de GLPI
-CURRENT_DATE_TIME=$(date +"%d-%m-%Y_%H-%M-%S") # Constante pour la date courante
-BDD_BACKUP="bdd_glpi-${CURRENT_DATE_TIME}.sql" # Constante pour le nommage du fichier DUMP de la BDD de GLPI
-NEW_VERSION=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.name') # Constante pour la dernière version de GLPI
-TIMEZONE=$(timedatectl | grep "Time zone" | awk '{print $3}') # Constante pour le timezone d'installation du système
-LANG=$(locale | grep LANG | cut -d= -f2 | cut -d. -f1) # Constante pour la langue d'installation du système
+source glpi_install/glpi_install.cfg
 # Fichiers pour les logs
 SUCCESS_LOG="success.log"
 ERROR_LOG="error.log"
