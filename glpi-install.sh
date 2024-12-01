@@ -38,7 +38,7 @@ function check_distro(){
             else
                 warn "La version de votre système d'exploitation (${ID} ${VERSION_ID}) n'est pas considérée comme compatible."
                 warn "Voulez-vous toujours forcer l'installation ? Attention, si vous choisissez de forcer le script, c'est à vos risques et périls."
-                info "Etes-vous sûr de vouloir continuer ? [yes/no]"
+                info "Etes-vous sûr de vouloir continuer ? [O/N]"
                 read -r response
                 case "$response" in
                     O|o)
