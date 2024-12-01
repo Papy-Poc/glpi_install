@@ -479,15 +479,15 @@ function install(){
     fi
     tasks=(
         "${MSG_T1}:echo ${MSG_T1};update_distro"
-        "${MSG_T2}:echo ${MSG_T2};install_packages
-        "${MSG_T3}:echo ${MSG_T3};network_info
-        "${MSG_T4}:echo ${MSG_T4};mariadb_configure
-        "${MSG_T5}:echo ${MSG_T5};install_glpi
-        "${MSG_T6}:echo ${MSG_T6};setup_glpi
-        "${MSG_T7}:echo ${MSG_T7};maj_user_glpi
+        "${MSG_T2}:echo ${MSG_T2};install_packages"
+        "${MSG_T3}:echo ${MSG_T3};network_info"
+        "${MSG_T4}:echo ${MSG_T4};mariadb_configure"
+        "${MSG_T5}:echo ${MSG_T5};install_glpi"
+        "${MSG_T6}:echo ${MSG_T6};setup_glpi"
+        "${MSG_T7}:echo ${MSG_T7};maj_user_glpi"
         #"${MSG_T8}:echo ${MSG_T8};display_credentials
-        "${MSG_T9}:echo ${MSG_T9};write_credentials
-        "${MSG_T10}:echo ${MSG_T10};efface_script
+        "${MSG_T9}:echo ${MSG_T9};write_credentials"
+        "${MSG_T10}:echo ${MSG_T10};efface_script"
     )
     show_progress
 }
