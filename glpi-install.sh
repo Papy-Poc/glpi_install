@@ -12,7 +12,7 @@ function warn(){
 function info(){
     echo -e '\e[36m'"$1"'\e[0m' | tee -a "$SUCCESS_LOG"
 }
-if [ -f "error.log" ]; then
+if [ -f "glpi_install/glpi_install.cfg" ]; then
     source glpi_install/glpi_install.cfg
 else
     warn "Variable configuration file not found"
