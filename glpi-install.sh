@@ -12,31 +12,6 @@ function warn(){
 function info(){
     echo -e '\e[36m'"$1"'\e[0m' | tee -a "$SUCCESS_LOG"
 }
-if [[ "${ID}" =~ ^(debian|ubuntu)$ ]]; then
-        sleep 1
-        apt-get install -y --no-install-recommends curl perl curl jq > /dev/null 2>&1
-    elif [[ "${ID}" =~ ^(almalinux|centos|rocky|rhel)$ ]]; then
-        sleep 1
-        info "Installation des service lamp..."
-        dnf install -y perl curl jq epel-release > /dev/null 2>&1
-    fi
-if [ -f "glpi_install/glpi_install.cfg" ]; then
-    source glpi_install/glpi_install.cfg
-else
-    warn "Variable configuration file not found"
-    exit 0
-fi
-if [[ "$LANG" == "fr_FR.UTF-8" ]]; then
-    source glpi_install/lang/fr.lang
-else
-    source glpi_install/lang/en.lang
-fi
-if ! command -v dialog &> /dev/null; then
-    apt install dialog &> /dev/null
-fi
-if [ -f "error.log" ]; then
-    rm -r *.log
-fi
 function check_root(){
     # Vérification des privilèges root
     if [[ "$(id -u)" -ne 0 ]]; then
@@ -477,6 +452,31 @@ function efface_script(){
     fi
 }
 function install(){
+    if [[ "${ID}" =~ ^(debian|ubuntu)$ ]]; then
+        sleep 1
+        apt-get install -y --no-install-recommends curl perl curl jq > /dev/null 2>&1
+    elif [[ "${ID}" =~ ^(almalinux|centos|rocky|rhel)$ ]]; then
+        sleep 1
+        info "Installation des service lamp..."
+        dnf install -y perl curl jq epel-release > /dev/null 2>&1
+    fi
+    if [ -f "glpi_install/glpi_install.cfg" ]; then
+        source glpi_install/glpi_install.cfg
+    else
+        warn "Variable configuration file not found"
+        exit 0
+    fi
+    if [[ "$LANG" == "fr_FR.UTF-8" ]]; then
+        source glpi_install/lang/fr.lang
+    else
+        source glpi_install/lang/en.lang
+    fi
+    if ! command -v dialog &> /dev/null; then
+        apt install dialog &> /dev/null
+    fi
+    if [ -f "error.log" ]; then
+        rm -r *.log
+    fi
     tasks=(
         "${MSG_T1}:echo ${MSG_T1};update_distro"
         "${MSG_T2}:echo ${MSG_T2};install_packages
