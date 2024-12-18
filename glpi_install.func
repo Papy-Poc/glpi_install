@@ -17,7 +17,7 @@ function check_root(){ # Vérification des privilèges root
     else
 		info "$MSG_ROOT: OK"
 		sleep 2
-    fi }
+    fi}
 function check_dialog() { # Vérifier et installer 'dialog'
     if ! command -v dialog &> /dev/null; then
         info "$MSG_DIALOG_INSTALL"
@@ -25,7 +25,7 @@ function check_dialog() { # Vérifier et installer 'dialog'
             warn "$MSG_DIALOG_ERROR"
             exit 1
         fi
-    fi }
+    fi}
 function run_task() { # Exécuter une tâche
     local task_key="$1"
     local task_cmd="$2"
@@ -34,10 +34,10 @@ function run_task() { # Exécuter une tâche
     info "Tâche: $index/$total - $task_key" >> "$SUCCES_FILE"
     info "$MSG_COMMAND: $task_cmd" >> "$SUCCES_FILE"
     if ! eval "$task_cmd" >> "$SUCCES_FILE" 2>> "$ERROR_FILE"; then
-        warn "$MSG_ERROR_TASK: $task_key" >> "$ERROR_FILE"
+        warn "$MSG_ERROT_TASK: $task_key" >> "$ERROR_FILE"
         return 1
     fi
-    return 0; }
+    return 0}
 function glpi_install() { # Exécuter les tâches avec barre de progression
     declare -A tasks=(
 		["$MSG_T1"]="update_distro"
@@ -75,7 +75,7 @@ function display_result() { # Afficher le résultat final
 		efface_script
     else
         dialog --backtitle "$MSG_TITRE" --title "$MSG_TITRE_NONOK" --msgbox "$MSG_NONOK\n\n$MESSAGE" 0 0
-    fi }
+    fi}
 function load_language() { # Chargement du fichier de langue
 	#LANG_FILE="${REP_SCRIPT}/lang/$( [[ "${LANG}" == "fr_FR.UTF-8" ]] && echo "fr" || echo "en" ).lang"
     if [[ -f "$LANG_FILE" ]]; then
@@ -88,7 +88,7 @@ function load_language() { # Chargement du fichier de langue
 			warn "Language file not found : $LANG_FILE" 
 			exit 1
 		fi
-    fi }
+    fi}
 function compatible() {
     local version="$1"
     local -n versions_array="$2"
@@ -125,7 +125,7 @@ function check_distro(){ # Vérifie si la distribution est pris en compte pour l
     else
         warn "$MSG_DISTRO_INVALID"
         exit 1
-    fi }
+    fi}
 function check_install(){ # Vérifie si GLPI est installé ou pas
     # Vérifie si le répertoire existe
     if [ -d "$1" ]; then
@@ -157,7 +157,8 @@ function check_install(){ # Vérifie si GLPI est installé ou pas
     else
         warn "$MSG_GLPI_NEW"
         glpi_install
-    fi }
+    fi
+}
 function update_distro(){ # Mise à jour de la distribution
     if [[ "${ID}" =~ ^(debian|ubuntu)$ ]]; then
         info "$MSG_UPGADE_DISTRI"
@@ -165,11 +166,13 @@ function update_distro(){ # Mise à jour de la distribution
     elif [[ "${ID}" =~ ^(almalinux|centos|rocky|rhel)$ ]]; then
         info "$MSG_UPGADE_DISTRI"
         dnf update -y && dnf upgrade -y
-	fi }
+	fi
+}
 function network_info(){ # Adresse IP de la machine
     INTERFACE=$(ip route | awk 'NR==1 {print $5}')
     IPADRESS=$(ip addr show "$INTERFACE" | grep inet | awk '{ print $2; }' | sed 's/\/.*$//' | head -n 1)
-	sleep 2; }
+	sleep 2
+}
 function install_packages(){ # Installation des éléments nécessaire
     if [[ "${ID}" =~ ^(debian|ubuntu)$ ]]; then
         sleep 1
@@ -401,7 +404,8 @@ EOF
         systemctl restart nginx php-fpm
         echo "*/2 * * * * nginx /usr/bin/php ${REP_GLPI}front/cron.php &>/dev/null" >> /etc/cron.d/glpi
     fi
-	sleep 2; }
+	sleep 2
+}
 function maj_user_glpi(){ # MàJ des mot de passe des utilisateurs de GLPI
     info "$MSG_CHANGE_MDP_GLPI"
     # Changer le mot de passe de l'admin glpi 
@@ -412,7 +416,8 @@ function maj_user_glpi(){ # MàJ des mot de passe des utilisateurs de GLPI
     mysql -u glpi_user -p"${SQLGLPIPWD}" -e "USE glpi; UPDATE glpi_users SET password = MD5('${TECHGLPIPWD}') WHERE name = 'tech';"
     # Changer le mot de passe de l'utilisateur normal
     mysql -u glpi_user -p"${SQLGLPIPWD}" -e "USE glpi; UPDATE glpi_users SET password = MD5('${NORMGLPIPWD}') WHERE name = 'normal';"
-	sleep 2; }
+	sleep 2
+}
 function write_credentials(){ # Ecriture du fichier pour sauvegarder les mot de passe du serveur GLPI
     if [ "${LANG}" == "fr_FR.UTF-8" ]; then
 		cat <<EOF > $FICHIER_MSG
@@ -471,7 +476,8 @@ EOF
     echo ""
     warn "$MSG_FILE_MSG"
     echo ""	
-	sleep 2; }
+	sleep 2
+}
 function efface_script(){ # Efface le dossier du script
     # Vérifie si le répertoire existe
 	warn "$MSG_DELETE_DIR"
@@ -479,7 +485,8 @@ function efface_script(){ # Efface le dossier du script
             warn "$MSG_DIR_EXIST"
             warn "$MSG_DIR_DELETE"
             rm -Rf "$REP_SCRIPT"
-    fi }
+    fi
+}
 function maintenance(){ # Activé ou déactivé le mode maintenance (1 ou 0)
     if [ "$1" == "1" ]; then
         warn "$MSG_ACTIVE_SERVICE"
@@ -496,7 +503,8 @@ function maintenance(){ # Activé ou déactivé le mode maintenance (1 ou 0)
             sudo nginx php ${REP_GLPI}bin/console glpi:maintenance:disable 
         fi
     fi
-	sleep 2; }
+	sleep 2
+}
 function backup_glpi(){ # Sauvegarde de la base de donnée et des fichiers de GLPI
 	# Vérifie si le répertoire existe
 	if [ ! -d "$REP_BACKUP" ]; then
@@ -514,7 +522,8 @@ function backup_glpi(){ # Sauvegarde de la base de donnée et des fichiers de GL
 	info "$MSG_SITE_COPY_OK"
 	info "$MSG_RM_SITE_FILE"
 	rm -Rf ${REP_GLPI}
-	sleep 2; }
+	sleep 2
+}
 function update_glpi(){ # Mise à jour de GLPI
 	info "$MSG_CP_MARKET_PLUGIN"
 	cp -Rf ${REP_BACKUP}backup_glpi/plugins ${REP_GLPI}
@@ -541,7 +550,8 @@ EOF
 	info "$MSG_UPDATE_CLEAN"
 	rm -Rf ${REP_GLPI}install/install.php
 	rm -Rf "$REP_BACKUP"backup_glpi
-	sleep 2; }
+	sleep 2
+}
 function update(){ # Fonction principale pour exécuter les tâches avec barre de progression
     declare -A tasks=(
 		["$MSG_T10"]="maintenance "1""
@@ -562,4 +572,5 @@ function update(){ # Fonction principale pour exécuter les tâches avec barre d
         echo "XXX"
         run_task "$task_key" "${tasks[$task_key]}" "$task_index" "$total_tasks" || break
         sleep 1
-    done) | dialog --backtitle "$MSG_TITRE" --title "$MSG_TITRE_GAUGE" --gauge "" 8 120; }
+    done) | dialog --backtitle "$MSG_TITRE" --title "$MSG_TITRE_GAUGE" --gauge "" 8 120
+}
