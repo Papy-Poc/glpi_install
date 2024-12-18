@@ -93,22 +93,21 @@ function load_language() { # Chargement du fichier de langue
 function compatible() {
     local version="$1"
     local -n versions_array="$2"
-    [[ ${versions_array[*]} =~ ${version} ]]; }
+    [[ ${versions_array[*]} =~ ${version} ]]
+}
 function check_distro(){ # Vérifie si la distribution est pris en compte pour l'installation de GLPI
     # Vérifie si le fichier os-release existe
     if [ -f /etc/os-release ]; then
-    # Source le fichier /etc/os-release pour obtenir les informations de la distribution
-    source /etc/os-release
     # Vérifie si la distribution est basée sur Debian, Ubuntu, Alma Linux, Centos ou Rocky Linux
         if [[ "${ID}" =~ ^(debian|ubuntu|almalinux|centos|rocky|rhel)$ ]]; then
-            if compatible "${VERSION_ID}" DEBIAN_VERSIONS || compatible "${VERSION_ID}" UBUNTU_VERSIONS || compatible "${VERSION_ID}" ALMA_VERSIONS || compatible "${VERSION_ID}" CENTOS_VERSIONS || compatible "${VERSION_ID}" ROCKY_VERSIONS || compatible "${VERSION_ID}" REDHAT_VERSIONS; then
+            if compatible $VERSION_ID DEBIAN_VERSIONS || compatible $VERSION_ID UBUNTU_VERSIONS || compatible $VERSION_ID ALMA_VERSIONS || compatible $VERSION_ID CENTOS_VERSIONS || compatible $VERSION_ID ROCKY_VERSIONS || compatible $VERSION_ID REDHAT_VERSIONS; then
                 info "$MSG_DISTRO_OK"
             else
                 warn "MSG_DISTRO_NONOK"
                 warn "$MSG_FORCE_DISTRO"
                 info "$MSG_FORCE_DISTRO_QUESTION"
-                read -r response
-                case "$response" in
+                read -r RESPONSE
+                case $RESPONSE in
                     O|o|Y|y)
                         info "$MSG_CONTINUING"
                         ;;
@@ -158,6 +157,7 @@ function check_install(){ # Vérifie si GLPI est installé ou pas
         fi
     else
         warn "$MSG_GLPI_NEW"
+        exit 1 ######################################################################################
         glpi_install
     fi }
 function update_distro(){ # Mise à jour de la distribution
@@ -374,6 +374,7 @@ EOF
     sleep 5
     rm -Rf "${REP_GLPI}"install/install.php
     sleep 5
+    TIMEZONE=$(timedatectl | grep "Time zone" | awk '{print $3}') # Constante pour le timezone d'installation du système
     sed -i '$i \   public $date_default_timezone_set = ("'"${TIMEZONE}"'");' /etc/glpi/config/config_db.php
     # Change timezone and language
     mysql -e "INSERT INTO glpi.glpi_configs (context, name, value) VALUES ('core', 'timezone', '${TIMEZONE}');"
