@@ -157,7 +157,6 @@ function check_install(){ # Vérifie si GLPI est installé ou pas
         fi
     else
         warn "$MSG_GLPI_NEW"
-        exit 1 ######################################################################################
         glpi_install
     fi }
 function update_distro(){ # Mise à jour de la distribution
