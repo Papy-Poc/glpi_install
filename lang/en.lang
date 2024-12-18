@@ -6,8 +6,8 @@
 #
 
 MSG_TITRE="GLPI Installation"
-MSG_DIALOG_INSTALL="Installation of Dialog."
-MSG_DIALOG_ERROR="Installation of Dialog failed."
+MSG_DIALOG_INSTALL="Installation of Dialog"
+MSG_DIALOG_ERROR="Installation of Dialog failed"
 MSG_COMMAND="Command"
 MSG_ROOT_ONLY="This script must be run as root."
 MSG_ROOT="Root Privilege"
