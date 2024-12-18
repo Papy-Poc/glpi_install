@@ -414,7 +414,7 @@ function maj_user_glpi(){ # MàJ des mot de passe des utilisateurs de GLPI
 	sleep 2; }
 function write_credentials(){ # Ecriture du fichier pour sauvegarder les mot de passe du serveur GLPI
     if [ "${LANG}" == "fr_FR.UTF-8" ]; then
-		cat <<EOF > "${FICHIER_MSG}"
+		cat <<EOF > /root/sauve_mdp.txt
 <==========================> Détails de l'installation de GLPI <=================================>
 GLPI Version: ${NEW_VERSION}
 Répertoire d'installation de GLPI: ${REP_GLPI}
@@ -440,13 +440,13 @@ Fichier de ${FICHIER_MSG} enregistré dans /root
 Si vous rencontrez un probléme avec ce script, veuillez le signaler sur GitHub : https://github.com/PapyPoc/glpi_install/issues
 EOF
 	else
-		cat <<EOF > "${FICHIER_MSG}"
+		cat <<EOF > /root/sauve_mdp.txt
 <=============================> GLPI installation details <====================================>
 GLPI version: ${NEW_VERSION}
 GLPI installation directory: ${REP_GLPI}
 
 The default user accounts are:
-  USER         -    PASSWORD          -       ACCESS
+  USER         -    PASSWORD        -       ACCESS
 glpi           -  ${ADMINGLPIPWD}      -  admin account
 post-only      -  ${POSTGLPIPWD}      -  post-only account
 tech           -  ${TECHGLPIPWD}      -  tech account
