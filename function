@@ -65,18 +65,15 @@ function glpi_install() { # Exécuter les tâches avec barre de progression
         sleep 1
     done) | dialog --backtitle "$MSG_TITRE" --title "$MSG_TITRE_GAUGE" --gauge "" 8 120; }
 function display_result() { # Afficher le résultat final
-	if [ ! -s "$FICHIER_MSG" ]; then
-		if [[ ! -f "$FICHIER_MSG" ]]; then
-			warn "$MSG_ERROR_FICHIER_MSG"  2>> "$ERROR_FILE"
-			exit 1
-		else
-			MESSAGE=$(cat "$FICHIER_MSG")
-		fi
-		dialog --backtitle "$MSG_TITRE" --title "$MSG_TITRE_OK" --msgbox "$MESSAGE" 0 0
+	if [[ ! -f "$FICHIER_MSG" ]]; then
+        MESSAGE=$(cat "$FICHIER_MSG")
+        dialog --backtitle "$MSG_TITRE" --title "$MSG_TITRE_OK" --msgbox "$MESSAGE" 0 0
 		rm -f "$ERROR_FILE"
 		efface_script
     else
+        MESSAGE=$(cat "$FICHIER_MSG")
         dialog --backtitle "$MSG_TITRE" --title "$MSG_TITRE_NONOK" --msgbox "$MSG_NONOK\n\n$MESSAGE" 0 0
+        warn "$MSG_ERROR_FICHIER_MSG"
     fi }
 function load_language() { # Chargement du fichier de langue
     if [[ -f "${LANG_FILE}" ]]; then
