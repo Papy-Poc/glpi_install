@@ -349,7 +349,7 @@ EOF
     sudo -u nginx php "${REP_GLPI}"bin/console db:install --db-host="localhost" --db-port=3306 --db-name=glpi --db-user=glpi_user --db-password="${SQLGLPIPWD}" --default-language="${LANG}" --force --no-telemetry --quiet --no-interaction 
     fi
     sleep 5
-    rm -rf ${REP_GLPI}install/install.php
+    rm -rf "${REP_GLPI}"install/install.php
     sleep 5
     sed -i '$i \   public $date_default_timezone_set = ("'"${TIMEZONE}"'");' /etc/glpi/config/config_db.php
     # Change timezone and language
