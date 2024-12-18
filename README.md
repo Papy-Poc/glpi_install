@@ -1,4 +1,5 @@
-![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
+[![Build status](badge)](link)
+[![Code coverage](badge)](link) 
 # Installing and updating GLPI on Debian and Red Hat
  ![Image](https://glpi-project.org/wp-content/uploads/2022/01/hero-img-2.png)
 
