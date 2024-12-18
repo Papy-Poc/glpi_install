@@ -11,9 +11,11 @@
 clear
 source /root/glpi_install/config # Fichier de variable
 source /root/glpi_install/function # Fichier de fonctions
+source /etc/os-release
 load_language # Fichier de langue
 check_root # Utilisateur root
 check_dialog # Regarde si dialog est installé
+exit 0;
 check_distro # Regarde si la distribution est conforme
 check_install "${REP_GLPI}" # Regarde si GLPI est installé ou pas
 display_result # Affiche le résultat de l'installation

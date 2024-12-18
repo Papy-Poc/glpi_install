@@ -79,7 +79,6 @@ function display_result() { # Afficher le résultat final
         dialog --backtitle "$MSG_TITRE" --title "$MSG_TITRE_NONOK" --msgbox "$MSG_NONOK\n\n$MESSAGE" 0 0
     fi }
 function load_language() { # Chargement du fichier de langue
-	#LANG_FILE="${REP_SCRIPT}/lang/$( [[ "${LANG}" == "fr_FR.UTF-8" ]] && echo "fr" || echo "en" ).lang"
     if [[ -f "${LANG_FILE}" ]]; then
         source "${LANG_FILE}"
     else
@@ -307,7 +306,7 @@ EOF
         a2ensite glpi.conf
         # Restart d'apache
         systemctl restart apache2
-        sudo -u www-data php "${REP_GLPI}"bin/console db:install --db-host="localhost" --db-port=3306 --db-name=glpi --db-user=glpi_user --db-password="${SQLGLPIPWD}" --default-language="${LANG}" --force --no-telemetry --quiet --no-interaction
+        sudo -u www-data php "${REP_GLPI}"bin/console db:install --db-host="localhost" --db-port=3306 --db-name=glpi --db-user=glpi_user --db-password="${SQLGLPIPWD}" --default-language="${LANGUAGE}" --force --no-telemetry --quiet --no-interaction
     elif [[ "${ID}" =~ ^(almalinux|centos|rocky|rhel)$ ]]; then
         chown -R nginx:nginx /etc/glpi
         chmod -R 777 /etc/glpi
@@ -370,7 +369,7 @@ EOF
     restorecon -R "${REP_GLPI}"marketplace
     # Restart de Nginx et php-fpm
     systemctl restart nginx php-fpm
-    sudo -u nginx php "${REP_GLPI}"bin/console db:install --db-host="localhost" --db-port=3306 --db-name=glpi --db-user=glpi_user --db-password="${SQLGLPIPWD}" --default-language="${LANG}" --force --no-telemetry --quiet --no-interaction 
+    sudo -u nginx php "${REP_GLPI}"bin/console db:install --db-host="localhost" --db-port=3306 --db-name=glpi --db-user=glpi_user --db-password="${SQLGLPIPWD}" --default-language="${LANGUAGE}" --force --no-telemetry --quiet --no-interaction 
     fi
     sleep 5
     rm -Rf "${REP_GLPI}"install/install.php
@@ -378,7 +377,7 @@ EOF
     sed -i '$i \   public $date_default_timezone_set = ("'"${TIMEZONE}"'");' /etc/glpi/config/config_db.php
     # Change timezone and language
     mysql -e "INSERT INTO glpi.glpi_configs (context, name, value) VALUES ('core', 'timezone', '${TIMEZONE}');"
-    mysql -e "UPDATE glpi.glpi_configs SET value = ${LANG} WHERE name = 'language';"
+    mysql -e "UPDATE glpi.glpi_configs SET value = ${LANGUAGE} WHERE name = 'language';"
     if [[ "${ID}" =~ ^(debian|ubuntu)$ ]]; then
         # Change permissions
         chown -Rc www-data:www-data /etc/glpi

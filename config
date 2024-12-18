@@ -24,7 +24,7 @@ NORMGLPIPWD=$(openssl rand -base64 48 | cut -c1-12) # Constante pour pour le MdP
 CURRENT_DATE_TIME=$(date +"%d-%m-%Y_%H-%M-%S") # Constante pour la date courante
 BDD_BACKUP="bdd_glpi-${CURRENT_DATE_TIME}.sql" # Constante pour le nommage du fichier DUMP de la BDD de GLPI
 TIMEZONE=$(timedatectl | grep "Time zone" | awk '{print $3}') # Constante pour le timezone d'installation du système
-LANG=$(locale | grep LANG | cut -d= -f2 | cut -d. -f1) # Constante pour la langue d'installation du système
+LANGUAGE=$(locale | grep LANG | cut -d= -f2 | cut -d. -f1) # Constante pour la langue d'installation du système
 LANG_FILE="${REP_SCRIPT}/lang/$( [[ "${LANG}" == "fr_FR.UTF-8" ]] && echo "fr" || echo "en" ).lang"
 FICHIER_MSG="/root/sauve_mdp.txt"
 SUCCES_FILE="succes.log"
