@@ -52,8 +52,6 @@ GLPI s'installe en lançant la commande suivante dans votre terminal.
 >
 >⚠️ S'assurer qu'il n'y a plus le script dans le répertoire ```/root```.
 >
->⚠️ 'Wget' doit etre installé sur votre système ```apt install wget -y``` ou ```dnf install wget -y```
->
 >⚠️ Vous devez etre connecté en compte 'root', pour ce faire taper dans la console ```su -```.
 >
 >⚠️ Git doit etre installé sur votre machine, pour l'installer faite :
@@ -62,14 +60,8 @@ GLPI s'installe en lançant la commande suivante dans votre terminal.
 >|:--:|:--:|
 >| ```apt install -y git``` | ```dnf install -y git``` |
 
-For the distribution Debian
+Pour les distribution Debian et Red Hat
 
 ```bash
-git clone https://github.com/Papy-Poc/glpi_install.git -b dev && chmod -R +x glpi_install && ./glpi_install/glpi-install.sh
-```
-
-For the distribution Red Hat
-
-```bash
-git clone https://github.com/Papy-Poc/glpi_install.git -b dev && chmod -R +x glpi_install && ./glpi_install/glpi-install.sh
+git clone https://github.com/Papy-Poc/glpi_install.git -b dev && chmod -R +x glpi_install && ./glpi_install/glpi-install
 ```
