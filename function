@@ -54,7 +54,7 @@ function glpi_install() { # Exécuter les tâches avec barre de progression
     task_order=("$MSG_T1" "$MSG_T2" "$MSG_T3" "$MSG_T4" "$MSG_T5" "$MSG_T6" "$MSG_T7" "$MSG_T8")
     total_tasks=${#task_order[@]}
     task_index=0
-    NEW_VERSION=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.name') # Constante pour la dernière version de GLPI
+    #NEW_VERSION=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.name') # Constante pour la dernière version de GLPI
     (for task_key in "${task_order[@]}"; do
         task_index=$((task_index + 1))
         progress=$((task_index * 100 / total_tasks))
@@ -412,56 +412,56 @@ function maj_user_glpi(){ # MàJ des mot de passe des utilisateurs de GLPI
 	sleep 2; }
 function write_credentials(){ # Ecriture du fichier pour sauvegarder les mot de passe du serveur GLPI
     if [ "${LANG}" == "fr_FR.UTF-8" ]; then
-		cat <<EOF > /root/sauve_mdp.txt
-<==========================> Détails de l'installation de GLPI <=================================>
-GLPI Version: ${NEW_VERSION}
-Répertoire d'installation de GLPI: ${REP_GLPI}
-
-Les comptes utilisateurs par défaut sont :
-UTILISATEUR   -  MOT DE PASSE       -       ACCES
- glpi         -  ${ADMINGLPIPWD}     -  compte admin
- post-only    -  ${POSTGLPIPWD}     -  compte post-only
- tech         -  ${TECHGLPIPWD}     -  compte tech
- normal       -  ${NORMGLPIPWD}     -  compte normal
-
-Vous pouvez accéder à la page web de GLPI à partir d'une adresse IP ou d'un nom d'hôte :
-http://${IPADRESS}
-
-==> Base de données:
-Mot de passe root: ${SQLROOTPWD}
-Mot de passe glpi_user: ${SQLGLPIPWD}
-Nom de la base de données GLPI: glpi
-
-Fichier de ${FICHIER_MSG} enregistré dans /root
-<===============================================================================================>
-
-Si vous rencontrez un probléme avec ce script, veuillez le signaler sur GitHub : https://github.com/PapyPoc/glpi_install/issues
+		cat <<EOF > "$FICHIER_MSG"
+<==========================> Détails de l'installation de GLPI <=================================>\n
+GLPI Version: ${NEW_VERSION}\n
+Répertoire d'installation de GLPI: ${REP_GLPI}\n
+\n
+Les comptes utilisateurs par défaut sont :\n
+UTILISATEUR   -  MOT DE PASSE       -       ACCES\n
+ glpi         -  ${ADMINGLPIPWD}     -  compte admin\n
+ post-only    -  ${POSTGLPIPWD}     -  compte post-only\n
+ tech         -  ${TECHGLPIPWD}     -  compte tech\n
+ normal       -  ${NORMGLPIPWD}     -  compte normal\n
+\n
+Vous pouvez accéder à la page web de GLPI à partir d'une adresse IP ou d'un nom d'hôte :\n
+http://${IPADRESS}\n
+\n
+==> Base de données:\n
+Mot de passe root: ${SQLROOTPWD}\n
+Mot de passe glpi_user: ${SQLGLPIPWD}\n
+Nom de la base de données GLPI: glpi\n
+\n
+Fichier de ${FICHIER_MSG} enregistré dans /root\n
+<===============================================================================================>\n
+\n
+Si vous rencontrez un probléme avec ce script, veuillez le signaler sur GitHub : https://github.com/PapyPoc/glpi_install/issues\n
 EOF
 	else
-		cat <<EOF > /root/sauve_mdp.txt
-<=============================> GLPI installation details <====================================>
-GLPI version: ${NEW_VERSION}
-GLPI installation directory: ${REP_GLPI}
-
-The default user accounts are:
-  USER         -    PASSWORD        -       ACCESS
-glpi           -  ${ADMINGLPIPWD}      -  admin account
-post-only      -  ${POSTGLPIPWD}      -  post-only account
-tech           -  ${TECHGLPIPWD}      -  tech account
-normal         -  ${NORMGLPIPWD}      -  normal account
-
-You can accessthe GLPI web pagefrom the following address :
-http://${IPADRESS}
-
-==> Database:
-Root password: ${SQLROOTPWD}
-glpi_user password: ${SQLGLPIPWD}
-GLPI database name: glpi
-
-File ${FICHIER_MSG} save in /root
-<===============================================================================================>
-
-If you encounter a problem with this script, please report it on GitHub : https://github.com/PapyPoc/glpi_install/issues
+		cat <<EOF > "$FICHIER_MSG"
+<=============================> GLPI installation details <====================================>\n
+GLPI version: ${NEW_VERSION}\n
+GLPI installation directory: ${REP_GLPI}\n
+\n
+The default user accounts are:\n
+  USER         -    PASSWORD        -       ACCESS\n
+glpi           -  ${ADMINGLPIPWD}      -  admin account\n
+post-only      -  ${POSTGLPIPWD}      -  post-only account\n
+tech           -  ${TECHGLPIPWD}      -  tech account\n
+normal         -  ${NORMGLPIPWD}      -  normal account\n
+\n
+You can accessthe GLPI web pagefrom the following address :\n
+http://${IPADRESS}\n
+\n
+==> Database:\n
+Root password: ${SQLROOTPWD}\n
+glpi_user password: ${SQLGLPIPWD}\n
+GLPI database name: glpi\n
+\n
+File ${FICHIER_MSG} save in /root\n
+<===============================================================================================>\n
+\n
+If you encounter a problem with this script, please report it on GitHub : https://github.com/PapyPoc/glpi_install/issues\n
 EOF
 	fi
     chmod 700 $FICHIER_MSG
