@@ -64,7 +64,7 @@ function glpi_install() { # Exécuter les tâches avec barre de progression
         sleep 1
     done) | dialog --backtitle "$MSG_TITRE" --title "$MSG_TITRE_GAUGE" --gauge "" 8 120; }
 function display_result() { # Afficher le résultat final
-	if [[ ! -f "$FICHIER_MSG" ]]; then
+	if [[ -f "$FICHIER_MSG" ]]; then
         MESSAGE=""
         while IFS= read -r ligne; do
             MESSAGE+="${ligne}\n"
@@ -241,7 +241,7 @@ function install_glpi(){ # Téléchargement et décompression de GLPI
     info "$MSG_DOWNLOAD_INSTALL_GLPI"
     # Get download link for the latest release
     DOWNLOADLINK=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/latest | jq -r '.assets[0].browser_download_url')
-    wget -O /tmp/glpi-latest.tgz "$DOWNLOADLINK"
+    wget -nv -O /tmp/glpi-latest.tgz "$DOWNLOADLINK"
     tar xzf /tmp/glpi-latest.tgz -C /var/www/html/
 	sleep 5; }
 function setup_glpi(){ # Mise en place des réglage pour GLPI
@@ -351,26 +351,26 @@ EOF
     create 644 nginx nginx
 }
 EOF
-    chmod 0644 /etc/logrotate.d/glpi
-    chown root:root /etc/logrotate.d/glpi
-    chcon system_u:object_r:etc_t:s0 /etc/logrotate.d/glpi
-    sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 = on/' /etc/php.ini
-    setsebool -P httpd_can_network_connect on
-    setsebool -P httpd_can_network_connect_db on
-    setsebool -P httpd_can_sendmail on
-    semanage fcontext -a -t httpd_sys_rw_content_t "${REP_GLPI}(/.*)?"
-    semanage fcontext -a -t httpd_sys_rw_content_t "/var/lib/glpi(/.*)?"
-    semanage fcontext -a -t httpd_sys_rw_content_t "/var/log/glpi(/.*)?"
-    semanage fcontext -a -t httpd_sys_rw_content_t "/etc/glpi(/.*)?"
-    semanage fcontext -a -t httpd_sys_rw_content_t "${REP_GLPI}marketplace"
-    restorecon -R "${REP_GLPI}"
-    restorecon -R /var/lib/glpi
-    restorecon -R /var/log/glpi
-    restorecon -R /etc/glpi
-    restorecon -R "${REP_GLPI}"marketplace
-    # Restart de Nginx et php-fpm
-    systemctl restart nginx php-fpm
-    sudo -u nginx php "${REP_GLPI}"bin/console db:install --db-host="localhost" --db-port=3306 --db-name=glpi --db-user=glpi_user --db-password="${SQLGLPIPWD}" --default-language="${LANGUAGE}" --force --no-telemetry --quiet --no-interaction 
+        chmod 0644 /etc/logrotate.d/glpi
+        chown root:root /etc/logrotate.d/glpi
+        chcon system_u:object_r:etc_t:s0 /etc/logrotate.d/glpi
+        sed -i 's/^\(;\?\)\(session.cookie_httponly\).*/\2 = on/' /etc/php.ini
+        setsebool -P httpd_can_network_connect on
+        setsebool -P httpd_can_network_connect_db on
+        setsebool -P httpd_can_sendmail on
+        semanage fcontext -a -t httpd_sys_rw_content_t "${REP_GLPI}(/.*)?"
+        semanage fcontext -a -t httpd_sys_rw_content_t "/var/lib/glpi(/.*)?"
+        semanage fcontext -a -t httpd_sys_rw_content_t "/var/log/glpi(/.*)?"
+        semanage fcontext -a -t httpd_sys_rw_content_t "/etc/glpi(/.*)?"
+        semanage fcontext -a -t httpd_sys_rw_content_t "${REP_GLPI}marketplace"
+        restorecon -R "${REP_GLPI}"
+        restorecon -R /var/lib/glpi
+        restorecon -R /var/log/glpi
+        restorecon -R /etc/glpi
+        restorecon -R "${REP_GLPI}"marketplace
+        # Restart de Nginx et php-fpm
+        systemctl restart nginx php-fpm
+        sudo -u nginx php "${REP_GLPI}"bin/console db:install --db-host="localhost" --db-port=3306 --db-name=glpi --db-user=glpi_user --db-password="${SQLGLPIPWD}" --default-language="${LANGUAGE}" --force --no-telemetry --quiet --no-interaction 
     fi
     sleep 5
     rm -Rf "${REP_GLPI}"install/install.php
@@ -454,7 +454,7 @@ post-only      -  ${POSTGLPIPWD}      -  post-only account
 tech           -  ${TECHGLPIPWD}      -  tech account
 normal         -  ${NORMGLPIPWD}      -  normal account
 
-You can accessthe GLPI web pagefrom the following address :
+You can access the GLPI web page from the following address :
 http://${IPADRESS}
 
 ==> Database:
