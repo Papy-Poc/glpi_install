@@ -4,6 +4,7 @@
 ## À propos de ce script
 ### Dernière version de GLPI : 10.0.17
 Ce script a été écrit pour installer rapidement et de façon automatique la dernière version de GLPI sur les serveurs Ubuntu, Debian, Alma Linux, Centos, Rocky Linux et Red Hat.
+Le programme d'installation analyse les informations de localisation de la distribution pour sélectionner la langue d'installation par défaut.
 
 ## Distribution et serveur Web
 
@@ -20,7 +21,7 @@ Ce script a été écrit pour installer rapidement et de façon automatique la d
 >|Rocky Linux|9.5|✅|Engine X (Nginx)|
 >|Red Hat|9.5|✅|Engine X (Nginx)|
 
-Le script fera la mise à jour du système hôte et installera le serveur Web, MariaDB, PHP et les dépendances, téléchargera et installera la dernière version depuis le [Dépôt Officiel de GLPI](https://github.com/glpi-project/glpi) et configurera la base de données pour vous.
+Le script fera la mise à jour du système hôte et installera le serveur Web (Apache ou Engine X), MariaDB, PHP et les dépendances, téléchargera et installera la dernière version de GLPI depuis le [Dépôt Officiel de GLPI](https://github.com/glpi-project/glpi) et configurera la base de données pour vous.
 
 Une fois le script exécuté, la seule chose que vous aurez à faire sera de vous connecter à GLPI.
 
@@ -51,8 +52,6 @@ GLPI s'installe en lançant la commande suivante dans votre terminal.
 >
 >⚠️ S'assurer qu'il n'y a plus le script dans le répertoire ```/root```.
 >
->⚠️ 'Wget' doit etre installé sur votre système ```apt install wget -y``` ou ```dnf install wget -y```
->
 >⚠️ Vous devez etre connecté en compte 'root', pour ce faire taper dans la console ```su -```.
 >
 >⚠️ Git doit etre installé sur votre machine, pour l'installer faite :
@@ -61,14 +60,8 @@ GLPI s'installe en lançant la commande suivante dans votre terminal.
 >|:--:|:--:|
 >| ```apt install -y git``` | ```dnf install -y git``` |
 
-For the distribution Debian
+Pour les distribution Debian et Red Hat
 
 ```bash
-git clone https://github.com/Papy-Poc/glpi_install.git -b dev && chmod -R +x glpi_install && ./glpi_install/glpi-install.sh
-```
-
-For the distribution Red Hat
-
-```bash
-git clone https://github.com/Papy-Poc/glpi_install.git -b dev && chmod -R +x glpi_install && ./glpi_install/glpi-install.sh
+git clone https://github.com/Papy-Poc/glpi_install.git -b dev && chmod -R +x glpi_install && ./glpi_install/glpi-install
 ```

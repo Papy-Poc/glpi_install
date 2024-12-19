@@ -6,6 +6,7 @@
 ### Latest version of GLPI : 10.0.17
 
 This script was written to quickly and automatically install the latest version of GLPI on Ubuntu, Debian, Alma Linux, Centos, Rocky Linux and Red Hat servers.
+The installer analyzes the distribution's locale information to propose the default installation language.
 
 ## Distribution and Web server
 
@@ -20,7 +21,7 @@ This script was written to quickly and automatically install the latest version 
 |Rocky Linux|9.5|✅|Engine X (Nginx)|
 |Red Hat|9.5|✅|Engine X (Nginx)|
 
-The script will update the host system and install the Web server, MariaDB, PHP and dependencies, download and install the latest version from the [GLPI Official Repository](https://github.com/glpi-project/glpi) and configure the database for you.
+The script will automate the update of the system, the installation of a web server (Apache or Nginx), a MariaDB database, and PHP, as well as their dependencies. It will perform the download and installation of the latest version of GLPI from the [official repository](https://github.com/glpi-project/glpi) and finalize by configuring the database.
 
 Once the script has run, all you need to do is connect to GLPI.
 
