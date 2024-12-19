@@ -1,8 +1,11 @@
 # Installation et mise à jour de GLPI sur Débian et Red Hat
- <img src="https://glpi-project.org/wp-content/uploads/2022/01/hero-img-2.png" alt="drawing" width="800"/>
+
+  ![Image](https://glpi-project.org/wp-content/uploads/2022/01/hero-img-2.png)
 
 ## À propos de ce script
+
 ### Dernière version de GLPI : 10.0.17
+
 Ce script a été écrit pour installer rapidement et de façon automatique la dernière version de GLPI sur les serveurs Ubuntu, Debian, Alma Linux, Centos, Rocky Linux et Red Hat.
 Le programme d'installation analyse les informations de localisation de la distribution pour sélectionner la langue d'installation par défaut.
 
@@ -28,6 +31,7 @@ Une fois le script exécuté, la seule chose que vous aurez à faire sera de vou
 L'installation de GLPI se fait sans SSL. Si vous avez besoin d'ouvrir l'accès à GLPI depuis l'extérieur et/ou d'un certificat SSL, je vous recommande d'utiliser un reverse proxy.
 
 ## Comptes par défaut
+
 | Identifiant | Mot de passe | Rôle |
 |:--:|:--:|:--:|
 |glpi|Défini à l'installation|compte administrateur|
